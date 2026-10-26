@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Adrenaline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a655e1a9745f0c73025f6fc0afe24a22, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 33
+  Category: 2
+  TierFlags: 0
+  ThirdpersonModel: {fileID: 114313026266067498, guid: 4f16db8cdb62a8c48991a6cbb52a4628, type: 2}
+  ViewModel: {fileID: 114436073260064126, guid: 19dbc53e92feaed49ba59c339b94d693, type: 2}
+  Icon: {fileID: 2800000, guid: 1be5988172baa5145b8c6a9fe835fbce, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114632457200066912, guid: 49a8e097891077243be3aadedaacecfc, type: 2}
+  VariantsModule: {fileID: 0}
+  UseTime: 2.1
+  MaxCancellableTime: 0
+  _weight: 0.5
+  UsingSfxClip: {fileID: 8300000, guid: 1a70bf54bf547e34ebbac1217f33cc74, type: 3}
+  _activationTime: 0.9
+  _showProgressBar: 0
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2614c954bbf394f9472fda82addc6460, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff22000000
+  _coarseOutputs: 0e00000022000000
+  _oneToOneOutputs: 21000000
+  _fineOutputs: 11000000
+  _veryFineOutputs: 220000002200000011000000
+  _fireUpgradeTrigger: 0

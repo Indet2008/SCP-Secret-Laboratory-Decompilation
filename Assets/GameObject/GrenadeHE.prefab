@@ -1,0 +1,100 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: GrenadeHE
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0ec859ca8a2d0747b2bce6c2e9b562f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 25
+  Category: 5
+  TierFlags: 3
+  ThirdpersonModel: {fileID: 114025901758691103, guid: 993c0789a45f0ac49b641011c8489bc6, type: 2}
+  ViewModel: {fileID: 114107629493147155, guid: d10cfa6475c4916428da462f5e246434, type: 2}
+  Icon: {fileID: 2800000, guid: 26f087fe83c67194d8afa9cd64975ead, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114705390221481576, guid: 203aa6456aaf64941a5a6c225c78016f, type: 2}
+  VariantsModule: {fileID: 0}
+  <TargetHolidays>k__BackingField:
+  Projectile: {fileID: 114336590748365959, guid: 5d0bff178e4ed704eacf9375040d62c6, type: 2}
+  Phantom: {fileID: 114985305603660343, guid: 271d3fc22a838a647bc99e031fd94ae8, type: 2}
+  WeakThrowSettings:
+    StartVelocity: 4
+    UpwardsFactor: 0.7
+    TriggerTime: 0.32
+    StartTorque: {x: -5, y: 0, z: 0}
+    RelativePosition: {x: 0.083, y: -0.189, z: 0.3}
+  FullThrowSettings:
+    StartVelocity: 15
+    UpwardsFactor: 0.2
+    TriggerTime: 0.25
+    StartTorque: {x: 10, y: 10, z: 0}
+    RelativePosition: {x: 0.049, y: 0.038, z: 0.291}
+  ThrowingAnimTime: 1.1
+  CancelAnimTime: 2
+  ThrowClip: {fileID: 8300000, guid: 02f64d5afa646cb45a5942d20722a540, type: 3}
+  BeginClip: {fileID: 8300000, guid: a759ee51749afc442a206f71ca126409, type: 3}
+  CancelClip: {fileID: 8300000, guid: 8abea257718628d428c68688d445d058, type: 3}
+  _weight: 0.5
+  _pinPullTime: 0.15
+  _postThrownAnimationTime: 0.7
+  _repickupable: 0
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76352a25a35665526934e844d46385c8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 1a000000
+  _oneToOneOutputs: 1a000000
+  _fineOutputs: 19000000
+  _veryFineOutputs: 19000000ffffffffffffffff1f000000
+  _fireUpgradeTrigger: 0

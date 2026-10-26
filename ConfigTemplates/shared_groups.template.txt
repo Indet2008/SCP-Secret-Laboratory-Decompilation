@@ -1,0 +1,56 @@
+#Let's define shared groups, like local groups
+
+sysadmin_badge: SYSTEM ADMINISTRATOR	
+sysadmin_color: crimson
+sysadmin_cover: true
+sysadmin_hidden: false
+sysadmin_kick_power: 255
+sysadmin_required_kick_power: 255
+
+vip_badge: VIP
+vip_color: yellow
+vip_cover: true
+vip_hidden: false
+vip_kick_power: 0
+vip_required_kick_power: 0
+
+#And add them to the roles list
+SharedRoles:
+ - sysadmin
+ - vip
+
+#Let's setup permissions for roles
+#More info can be found on our wiki: https://en.scpslgame.com/index.php/Docs:Permissions
+#IT IS POSSIBLE to assign permissions to shared group only to specific server - just assign it in the server remote admin config, instead of this (shared) config AND VICE VERSA
+SharedPermissions:
+ - KickingAndShortTermBanning: [sysadmin]
+ - BanningUpToDay: [sysadmin]
+ - LongTermBanning: [sysadmin]
+ - ForceclassSelf: [sysadmin]
+ - ForceclassToSpectator: [sysadmin]
+ - ForceclassWithoutRestrictions: [sysadmin]
+ - GivingItems: [sysadmin]
+ - WarheadEvents: [sysadmin]
+ - RespawnEvents: [sysadmin]
+ - RoundEvents: [sysadmin]
+ - SetGroup: [sysadmin]
+ - GameplayData: [sysadmin]
+ - Overwatch: [sysadmin]
+ - FacilityManagement: [sysadmin]
+ - PlayersManagement: [sysadmin]
+ - PermissionsManagement: [sysadmin]
+ - ServerConsoleCommands: [sysadmin]
+ - ViewHiddenBadges: [sysadmin]
+ - ServerConfigs: [sysadmin]
+ - Broadcasting: [sysadmin]
+ - PlayerSensitiveDataAccess: [sysadmin]
+ - Noclip: [sysadmin]
+ - AFKImmunity: [sysadmin]
+ - AdminChat: [sysadmin]
+ - ViewHiddenGlobalBadges: [sysadmin]
+ - Announcer: [sysadmin]
+ - Effects: [sysadmin]
+ - FriendlyFireDetectorImmunity: [sysadmin]
+ - FriendlyFireDetectorTempDisable: [sysadmin]
+ - ServerLogLiveFeed: [sysadmin]
+ - Vanish: [sysadmin]

@@ -1,0 +1,28 @@
+#This config is used only if you are hosting multiple servers on one machine with shared config path and you want to share some configuration across servers
+#Put sharing group to enable sharing that data or set to "disable" to disable it
+
+bans: disable
+mutes: disable
+whitelist: disable
+reserved_slots: disable
+groups: disable
+groups_members: disable
+gameplay_database: disable
+
+
+#Section below is only for groups sharing. If you have disabled it above, ignore this section
+
+#Valid modes: all, opt-in (share only selected), opt-out (share all without selected)
+groups_sharing_mode: all
+
+#only if groups_sharing_mode is set to "opt-in"
+groups_opt_in_list:
+ - some list
+ - of opted-in
+ - groups
+
+#only if groups_sharing_mode is set to "opt-out"
+groups_opt_out_list:
+ - some list
+ - of opted-out
+ - groups

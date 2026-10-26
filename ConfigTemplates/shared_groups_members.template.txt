@@ -1,0 +1,6 @@
+#You can assign both local and shared groups
+#UserID format is SteamId64Here@steam, DiscordUserIDHere@discord, etc...
+SharedMembers:
+ - SteamId64OfSomeoneImportant@steam: owner
+ - YetAnotherSteamId64@steam: sysadmin
+ - SomeDiscordUserId@discord: admin

@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!72 &7200000
+ComputeShader:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: DebugLightVolumes
+  variants:
+  - serializedVersion: 2
+    targetRenderer: 2
+    targetLevel: 0
+    kernels:
+    - serializedVersion: 3
+      name: LightVolumeGradient
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    - serializedVersion: 3
+      name: LightVolumeColors
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    constantBuffers: []
+    resourcesResolved: 0
+    compilerPlatform: 0
+    needsReflectionData: 0
+  - serializedVersion: 2
+    targetRenderer: 18
+    targetLevel: 0
+    kernels:
+    - serializedVersion: 3
+      name: LightVolumeGradient
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    - serializedVersion: 3
+      name: LightVolumeColors
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    constantBuffers: []
+    resourcesResolved: 0
+    compilerPlatform: 0
+    needsReflectionData: 0
+  - serializedVersion: 2
+    targetRenderer: 21
+    targetLevel: 0
+    kernels:
+    - serializedVersion: 3
+      name: LightVolumeGradient
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    - serializedVersion: 3
+      name: LightVolumeColors
+      uniqueVariants: []
+      variantIndices: []
+      globalKeywords: []
+      localKeywords: []
+      dynamicKeywords: []
+    constantBuffers: []
+    resourcesResolved: 0
+    compilerPlatform: 0
+    needsReflectionData: 0
+  m_CompilationContext:
+    serializedVersion: 2
+    buildTarget:
+      platform: 0
+      subTarget: 0
+      extendedPlatform: 0
+      isEditor: 0
+    platformGroup: 0
+    sourceFileName:
+    source:
+    sourceFile:
+    kernels: []
+    kernelMacros: []
+    compilationFlags: 0
+    supportedAPIs: 0
+    useDxcAPIs: 0
+    neverUseDxcAPIs: 0
+    includeHash0: 0
+    includeHash1: 0
+    includeHash2: 0
+    includeHash3: 0
+  errors: []
