@@ -1,0 +1,645 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!2058629509 &2058629509
+VisualEffectAsset:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Extinguisher_Smoke
+  m_Infos:
+    m_RendererSettings:
+      motionVectorGenerationMode: 0
+      shadowCastingMode: 0
+      rayTracingMode: 0
+      receiveShadows: 0
+      reflectionProbeUsage: 0
+      lightProbeUsage: 0
+    m_CullingFlags: 0
+    m_UpdateMode: 0
+    m_PreWarmDeltaTime: 0.05
+    m_PreWarmStepCount: 0
+    m_InitialEventName: OnPlay
+    m_InstancingMode: -1
+    m_InstancingCapacity: 64
+    m_Expressions:
+      m_Expressions:
+      - op: 1
+        valueIndex: 0
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 15
+      - op: 1
+        valueIndex: 1
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 14
+      - op: 1
+        valueIndex: 2
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 18
+      - op: 1
+        valueIndex: 3
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 4
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 7
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 10
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 16
+      - op: 1
+        valueIndex: 11
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 6
+      - op: 1
+        valueIndex: 12
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 15
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 16
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 76
+        valueIndex: 17
+        data[0]: 1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 0
+      - op: 1
+        valueIndex: 21
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 22
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 23
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 6
+        valueIndex: 24
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: -1
+      - op: 1
+        valueIndex: 25
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 28
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 77
+        valueIndex: 31
+        data[0]: 0
+        data[1]: -1
+        data[2]: -1
+        data[3]: 0
+      - op: 1
+        valueIndex: 34
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 2
+      - op: 1
+        valueIndex: 36
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 2
+      - op: 1
+        valueIndex: 38
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 7
+      - op: 1
+        valueIndex: 39
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 40
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 7
+      - op: 9
+        valueIndex: 41
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: -1
+      - op: 10
+        valueIndex: 57
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: -1
+      m_MaxCommonExpressionsIndex: 26
+      m_ConstantBakeCurveCount: 1
+      m_ConstantBakeGradientCount: 0
+      m_DynamicBakeCurveCount: 0
+      m_DynamicBakeGradientCount: 1
+      m_NeedsLocalToWorld: 1
+      m_NeedsWorldToLocal: 1
+      m_NeedsMainCamera: 0
+      m_NeededMainCameraBuffers: 0
+    m_PropertySheet:
+      m_Float:
+        m_Array:
+        - m_ExpressionIndex: 3
+          m_Value: 3
+        - m_ExpressionIndex: 9
+          m_Value: 1
+        - m_ExpressionIndex: 10
+          m_Value: 2
+        - m_ExpressionIndex: 12
+          m_Value: 0
+        - m_ExpressionIndex: 13
+          m_Value: 64
+        - m_ExpressionIndex: 14
+          m_Value: 5
+        - m_ExpressionIndex: 22
+          m_Value: 0.05
+      m_Vector2f:
+        m_Array:
+        - m_ExpressionIndex: 19
+          m_Value: {x: 8, y: 8}
+        - m_ExpressionIndex: 20
+          m_Value: {x: 0.125, y: 0.125}
+      m_Vector3f:
+        m_Array:
+        - m_ExpressionIndex: 4
+          m_Value: {x: 0, y: 0, z: 0}
+        - m_ExpressionIndex: 5
+          m_Value: {x: 2, y: 2, z: 2}
+        - m_ExpressionIndex: 8
+          m_Value: {x: 0, y: 0.1, z: 0}
+        - m_ExpressionIndex: 16
+          m_Value: {x: 0, y: 1, z: 0}
+        - m_ExpressionIndex: 17
+          m_Value: {x: 0, y: 0, z: 1}
+      m_Vector4f:
+        m_Array: []
+      m_Uint:
+        m_Array:
+        - m_ExpressionIndex: 7
+          m_Value: 4294967295
+      m_Int:
+        m_Array: []
+      m_Matrix4x4f:
+        m_Array: []
+      m_AnimationCurve:
+        m_Array:
+        - m_ExpressionIndex: 1
+          m_Value:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 0.25
+              value: 0.25
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+      m_Gradient:
+        m_Array:
+        - m_ExpressionIndex: 0
+          m_Value:
+            serializedVersion: 2
+            key0: {r: 0.40392157, g: 0.50980395, b: 0.6431373, a: 0}
+            key1: {r: 0.40392157, g: 0.50980395, b: 0.6431373, a: 0.08627451}
+            key2: {r: 0, g: 0, b: 0, a: 0}
+            key3: {r: 0, g: 0, b: 0, a: 0}
+            key4: {r: 0, g: 0, b: 0, a: 0}
+            key5: {r: 0, g: 0, b: 0, a: 0}
+            key6: {r: 0, g: 0, b: 0, a: 0}
+            key7: {r: 0, g: 0, b: 0, a: 0}
+            ctime0: 0
+            ctime1: 65535
+            ctime2: 0
+            ctime3: 0
+            ctime4: 0
+            ctime5: 0
+            ctime6: 0
+            ctime7: 0
+            atime0: 0
+            atime1: 28311
+            atime2: 65535
+            atime3: 0
+            atime4: 0
+            atime5: 0
+            atime6: 0
+            atime7: 0
+            m_Mode: 0
+            m_ColorSpace: -1
+            m_NumColorKeys: 2
+            m_NumAlphaKeys: 3
+      m_NamedObject:
+        m_Array:
+        - m_ExpressionIndex: 21
+          m_Value: {fileID: 2800000, guid: c054b475fed17de459169de3abe70321, type: 3}
+        - m_ExpressionIndex: 23
+          m_Value: {fileID: 2800000, guid: 55a3dba8f4f588243a54e16664ecf7a4, type: 3}
+        - m_ExpressionIndex: 6
+          m_Value: {fileID: 4300000, guid: 9319c64bc1cbde34da07b042169e6a84, type: 2}
+      m_Bool:
+        m_Array:
+        - m_ExpressionIndex: 2
+          m_Value: 1
+    m_ExposedExpressions:
+    - mapping:
+        nameId: Color Gradient
+        index: 0
+      space: -1
+    m_Buffers:
+    - target: 32
+      size: 192
+      layout:
+      - name: velocity
+        type: 3
+        offset:
+          bucket: 0
+          structure: 4
+          element: 0
+      - name: lifetime
+        type: 1
+        offset:
+          bucket: 48
+          structure: 1
+          element: 0
+      - name: size
+        type: 1
+        offset:
+          bucket: 60
+          structure: 1
+          element: 0
+      - name: alpha
+        type: 1
+        offset:
+          bucket: 72
+          structure: 1
+          element: 0
+      - name: position
+        type: 3
+        offset:
+          bucket: 84
+          structure: 8
+          element: 0
+      - name: age
+        type: 1
+        offset:
+          bucket: 84
+          structure: 8
+          element: 3
+      - name: alive
+        type: 18
+        offset:
+          bucket: 84
+          structure: 8
+          element: 4
+      - name: texIndex
+        type: 1
+        offset:
+          bucket: 180
+          structure: 1
+          element: 0
+      capacity: 12
+      stride: 4
+      mode: 0
+    - target: 32
+      size: 0
+      layout: []
+      capacity: 1
+      stride: 4
+      mode: 1
+    - target: 16
+      size: 12
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 0
+    - target: 16
+      size: 4
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 1
+    - target: 16
+      size: 11
+      layout: []
+      capacity: 0
+      stride: 8
+      mode: 0
+    - target: 16
+      size: 11
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 0
+    - target: 32
+      size: 44
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 1
+    - target: 16
+      size: 4
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 1
+    - target: 16
+      size: 2
+      layout: []
+      capacity: 0
+      stride: 4
+      mode: 1
+    m_TemporaryBuffers: []
+    m_CPUBuffers:
+    - capacity: 1
+      stride: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      initialData:
+        data: 0000803f
+    - capacity: 1
+      stride: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      initialData:
+        data: 0000803f
+    m_Events:
+    - name: OnPlay
+      playSystems: 00000000
+      stopSystems:
+      initSystems:
+    - name: OnStop
+      playSystems:
+      stopSystems: 00000000
+      initSystems:
+    m_InstancingDisabledReason: 0
+    m_RuntimeVersion: 38
+    m_CompilationVersion: 7
+  m_Systems:
+  - type: 0
+    flags: 0
+    capacity: 0
+    layer: 4294967295
+    name: Spawn system
+    buffers:
+    - nameId: spawner_output
+      index: 1
+    values: []
+    tasks:
+    - type: 268435456
+      buffers: []
+      temporaryBuffers: []
+      values:
+      - nameId: _vfx_enabled
+        index: 2
+      - nameId: Rate
+        index: 3
+      params: []
+      processor: {fileID: 0}
+      instanceSplitIndex: 0
+    instanceSplitDescs: []
+  - type: 1
+    flags: 771
+    capacity: 10
+    layer: 0
+    name: System
+    buffers:
+    - nameId: attributeBuffer
+      index: 0
+    - nameId: sourceAttributeBuffer
+      index: 1
+    - nameId: deadList
+      index: 2
+    - nameId: instancingIndirectAndActiveIndirect
+      index: 3
+    - nameId: spawner_input
+      index: 1
+    - nameId: indirectBuffer0_aPerCamera
+      index: 4
+    - nameId: graphValuesBuffer
+      index: 6
+    - nameId: instancingPrefixSum
+      index: 7
+    - nameId: spawnBuffer
+      index: 8
+    values:
+    - nameId: bounds_center
+      index: 4
+    - nameId: bounds_size
+      index: 5
+    - nameId: boundsPadding
+      index: 4
+    - nameId: graphValuesOffset
+      index: 4
+    - nameId: localToWorld_a
+      index: 24
+    - nameId: worldToLocal_a
+      index: 25
+    - nameId: Alpha_a
+      index: 11
+    - nameId: Color_a
+      index: 18
+    - nameId: deltaTime_a
+      index: 15
+    tasks:
+    - type: 536870912
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: graphValuesBuffer
+        index: 6
+      - nameId: deadList
+        index: 2
+      - nameId: sourceAttributeBuffer
+        index: 1
+      - nameId: spawnBuffer
+        index: 8
+      - nameId: instancingPrefixSum
+        index: 7
+      - nameId: instancingIndirectAndActiveIndirect
+        index: 3
+      temporaryBuffers: []
+      values: []
+      params:
+      - nameId: bounds_center
+        index: 4
+      - nameId: boundsPadding
+        index: 4
+      - nameId: bounds_size
+        index: 5
+      processor: {fileID: 7200000, guid: 48513c0a050c85b48aa31f057507145e, type: 2}
+      instanceSplitIndex: 0
+    - type: 805306368
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: graphValuesBuffer
+        index: 6
+      - nameId: deadList
+        index: 2
+      - nameId: instancingIndirectAndActiveIndirect
+        index: 3
+      temporaryBuffers: []
+      values: []
+      params: []
+      processor: {fileID: 7200000, guid: 3e3f3a2f4b9c53d4ab3ef8c7c891ff96, type: 2}
+      instanceSplitIndex: 0
+    - type: 805306370
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: graphValuesBuffer
+        index: 6
+      - nameId: instancingIndirectAndActiveIndirect
+        index: 3
+      - nameId: outputBuffer0
+        index: 4
+      - nameId: sortedIndirectBuffer
+        index: 5
+      temporaryBuffers: []
+      values: []
+      params: []
+      processor: {fileID: 7200000, guid: b519da32fb75ec3459d1f63d9e435699, type: 2}
+      instanceSplitIndex: 0
+    - type: 805306372
+      buffers:
+      - nameId: srcBuffer
+        index: 4
+      - nameId: scratchBuffer
+        index: -1
+      - nameId: dstBuffer
+        index: 5
+      temporaryBuffers: []
+      values: []
+      params:
+      - nameId: globalSort
+        index: 0
+      - nameId: isPerCameraSort
+        index: 1
+      processor: {fileID: 0}
+      instanceSplitIndex: 0
+    - type: 1073741828
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: graphValuesBuffer
+        index: 6
+      - nameId: indirectBuffer
+        index: 5
+      temporaryBuffers: []
+      values:
+      - nameId: motionVectorMap
+        index: 21
+      - nameId: mainTexture
+        index: 23
+      params:
+      - nameId: mesh
+        index: 6
+      - nameId: subMeshMask
+        index: 7
+      - nameId: sortPriority
+        index: 0
+      - nameId: indirectDraw
+        index: 1
+      - nameId: indirectPerCamera
+        index: 1
+      - nameId: indirectIndex
+        index: 4
+      processor: {fileID: 2100000, guid: 673d46d80dfaf914daedd32cc65153f6, type: 2}
+      instanceSplitIndex: 2
+    instanceSplitDescs:
+    - values:
+    - values: 06000000
+    - values: 060000000600000007000000
+  m_RendererSettings:
+    motionVectorGenerationMode: 0
+    shadowCastingMode: 0
+    rayTracingMode: 0
+    receiveShadows: 0
+    reflectionProbeUsage: 0
+    lightProbeUsage: 0
+  m_CullingFlags: 0
