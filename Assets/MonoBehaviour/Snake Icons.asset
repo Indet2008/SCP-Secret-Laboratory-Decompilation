@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc79a20f960aeb6a61e84cd79f2d659f, type: 3}
+  m_Name: Snake Icons
+  m_EditorClassIdentifier:
+  _icons:
+  - Type: 1
+    Orientations:
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: -1, y: 0}
+      Sprite: {fileID: 21300000, guid: 6d55e192acfdfd149a3bbeb4c7bd07cf, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 1, y: 0}
+      Sprite: {fileID: 21300000, guid: dd1519f3a3d9a8a4891d9361eb022d1f, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 0, y: 1}
+      Sprite: {fileID: 21300000, guid: 3811f7797b8aa3746957919520353222, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 0, y: -1}
+      Sprite: {fileID: 21300000, guid: 4ae12221706ef234c9357c3e72f4a10e, type: 2}
+      AllowInverting: 0
+    Fallback: {fileID: 0}
+  - Type: 2
+    Orientations:
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: -1, y: 0}
+      Sprite: {fileID: 21300000, guid: 2e49978bc3b01164f8f9cdd5830f9e81, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 1, y: 0}
+      Sprite: {fileID: 21300000, guid: 5cc89cd5d306c7a4c822000e3c7ff2cb, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 0, y: 1}
+      Sprite: {fileID: 21300000, guid: c77d33c4e705d0b4887b7486daa4cee5, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 0}
+      NextNeighbor: {x: 0, y: -1}
+      Sprite: {fileID: 21300000, guid: 20f9b1b5309bf6844904af6cbd5bb49b, type: 2}
+      AllowInverting: 0
+    Fallback: {fileID: 0}
+  - Type: 3
+    Orientations:
+    - PreviousNeighbor: {x: 1, y: 0}
+      NextNeighbor: {x: -1, y: 0}
+      Sprite: {fileID: 21300000, guid: c0424d34979372f4986cd85b82254a30, type: 2}
+      AllowInverting: 1
+    - PreviousNeighbor: {x: 0, y: 1}
+      NextNeighbor: {x: 0, y: -1}
+      Sprite: {fileID: 21300000, guid: 2893651797bdcfb44b477aad67096d26, type: 2}
+      AllowInverting: 1
+    - PreviousNeighbor: {x: -1, y: 0}
+      NextNeighbor: {x: 0, y: -1}
+      Sprite: {fileID: 21300000, guid: 7f5cbaa411fd2c045ab5044ac3e6eb03, type: 2}
+      AllowInverting: 1
+    - PreviousNeighbor: {x: -1, y: 0}
+      NextNeighbor: {x: 0, y: 1}
+      Sprite: {fileID: 21300000, guid: 965ab4de6c05ba1428161b605f9f0516, type: 2}
+      AllowInverting: 1
+    - PreviousNeighbor: {x: 0, y: -1}
+      NextNeighbor: {x: 1, y: 0}
+      Sprite: {fileID: 21300000, guid: 3f40be7ef7c3d184891855a5964f1b24, type: 2}
+      AllowInverting: 1
+    - PreviousNeighbor: {x: 0, y: 1}
+      NextNeighbor: {x: 1, y: 0}
+      Sprite: {fileID: 21300000, guid: 74c68394c827881428bbb2712d957de9, type: 2}
+      AllowInverting: 1
+    Fallback: {fileID: 0}
+  - Type: 4
+    Orientations: []
+    Fallback: {fileID: 21300000, guid: ad36751abe51aeb4c8c38a2e768178db, type: 2}
+  - Type: 5
+    Orientations:
+    - PreviousNeighbor: {x: -1, y: 0}
+      NextNeighbor: {x: 0, y: 0}
+      Sprite: {fileID: 21300000, guid: a15e21aac8d63fb49abb5cce59402bf3, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 1, y: 0}
+      NextNeighbor: {x: 0, y: 0}
+      Sprite: {fileID: 21300000, guid: 3200416c302da5a4d9e76bc230593416, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: 1}
+      NextNeighbor: {x: 0, y: 0}
+      Sprite: {fileID: 21300000, guid: 2f1a191029f2774419b2228f84286f32, type: 2}
+      AllowInverting: 0
+    - PreviousNeighbor: {x: 0, y: -1}
+      NextNeighbor: {x: 0, y: 0}
+      Sprite: {fileID: 21300000, guid: 117b43c7e23029d48bcc3a598d60aee7, type: 2}
+      AllowInverting: 0
+    Fallback: {fileID: 0}

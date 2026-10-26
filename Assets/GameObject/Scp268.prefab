@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Scp268
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebde971e95d173acbb2fd6084d94d97e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 32
+  Category: 6
+  TierFlags: 4
+  ThirdpersonModel: {fileID: 114618682377417806, guid: e8cf9babd7fff4749b73b80bf7ed907f, type: 2}
+  ViewModel: {fileID: 114291844617409189, guid: 5c08055a86f7a20429e604aa9aefe740, type: 2}
+  Icon: {fileID: 2800000, guid: 7400d2793353d6e4f89af26d81949e29, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114884547391421755, guid: d2cea021a34e00448a5d1efd2724bd28, type: 2}
+  VariantsModule: {fileID: 0}
+  UseTime: 1.3
+  MaxCancellableTime: 0.8
+  _weight: 0.3
+  UsingSfxClip: {fileID: 8300000, guid: 073a19600e39bf04b808c4a513b1bf1d, type: 3}
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2614c954bbf394f9472fda82addc6460, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 20000000
+  _oneToOneOutputs: 20000000
+  _fineOutputs: 20000000
+  _veryFineOutputs: 20000000
+  _fireUpgradeTrigger: 0

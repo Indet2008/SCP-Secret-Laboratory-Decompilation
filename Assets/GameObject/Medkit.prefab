@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Medkit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18fa5c2d0fc26d532a0bf86e0b2324f1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 14
+  Category: 2
+  TierFlags: 0
+  ThirdpersonModel: {fileID: 114002669891404536, guid: 4226e98d3d423a84a91f349029f46085, type: 2}
+  ViewModel: {fileID: 114397768327470545, guid: 97e9a3c5664f15748b44d20a1c908191, type: 2}
+  Icon: {fileID: 2800000, guid: ace77f8278111d748a0f46b75ea5eacf, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114002669891404536, guid: c7e707c324c3cc749b0ae13966636b4f, type: 2}
+  VariantsModule: {fileID: 0}
+  UseTime: 4
+  MaxCancellableTime: 2
+  _weight: 0.7
+  UsingSfxClip: {fileID: 8300000, guid: 8f7342d628afa084ca7351f7f4dc0471, type: 3}
+  _activationTime: 4
+  _showProgressBar: 1
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2614c954bbf394f9472fda82addc6460, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 22000000
+  _oneToOneOutputs: 0e000000
+  _fineOutputs: 21000000
+  _veryFineOutputs: 0e000000ffffffff11000000
+  _fireUpgradeTrigger: 0

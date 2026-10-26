@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Painkillers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d67656250ae339505677d2a90351bd3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 34
+  Category: 2
+  TierFlags: 0
+  ThirdpersonModel: {fileID: 114243736805655561, guid: a57cfc070d1df9f43b412ad1aea9ec62, type: 2}
+  ViewModel: {fileID: 114726790013014859, guid: e8a164f45bec1eb419cbf432734872e5, type: 2}
+  Icon: {fileID: 2800000, guid: 46c2a4f89977f184995f9c29b3c8d2c3, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114587765826080250, guid: f011083e6a3da7642b2eab9520b74e19, type: 2}
+  VariantsModule: {fileID: 0}
+  UseTime: 1.33
+  MaxCancellableTime: 0.5
+  _weight: 0.25
+  UsingSfxClip: {fileID: 8300000, guid: 5c8a4e40c478a7548baa5b89c5bfb656, type: 3}
+  _activationTime: 0.8
+  _showProgressBar: 1
+  _healProgress:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.0028173954
+      outSlope: 0.0028173954
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.5424404
+    - serializedVersion: 3
+      time: 0.32632005
+      value: 0.4995926
+      inSlope: 3.3288875
+      outSlope: 3.3288875
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.16268036
+      outWeight: 0.19454214
+    - serializedVersion: 3
+      time: 0.648435
+      value: 1.7718585
+      inSlope: 0.6142179
+      outSlope: 0.6142179
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.310783
+      outWeight: 0.28628343
+    - serializedVersion: 3
+      time: 0.91647875
+      value: 1.7969496
+      inSlope: -0.6199575
+      outSlope: -0.6199575
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.32511172
+      outWeight: 0.9943458
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0.002660334
+      outSlope: 0.002660334
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2614c954bbf394f9472fda82addc6460, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 22000000ffffffff
+  _oneToOneOutputs: 0e00000022000000
+  _fineOutputs: 0e000000
+  _veryFineOutputs: 0e00000021000000
+  _fireUpgradeTrigger: 0

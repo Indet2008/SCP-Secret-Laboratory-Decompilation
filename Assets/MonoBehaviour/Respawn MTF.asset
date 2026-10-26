@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c2db80d3a4959311e1899a1ed375dd2, type: 3}
+  m_Name: Respawn MTF
+  m_EditorClassIdentifier:
+  RoleLines: []
+  TeamLines:
+  - Teams: 0103
+    AllowGeneric: 0
+    Lines:
+    - {fileID: 8300000, guid: d7215da17a292fa488aaf794b2b11b18, type: 3}
+    - {fileID: 8300000, guid: 9b2be128a51c8f04e98710afc31b2a19, type: 3}
+    - {fileID: 8300000, guid: e5c47ef940a08274ba308fb1a7d7c0ba, type: 3}
+  - Teams: 03
+    AllowGeneric: 0
+    Lines:
+    - {fileID: 8300000, guid: 1ba059fae48171e4b8fc033b0b89203a, type: 3}
+    - {fileID: 8300000, guid: 39034302035f8ab428586875e622229c, type: 3}
+  GenericLines:
+  - {fileID: 8300000, guid: 1ba059fae48171e4b8fc033b0b89203a, type: 3}
+  - {fileID: 8300000, guid: 0d60af1cd7bb144419d397fcc840b374, type: 3}
+  - {fileID: 8300000, guid: f677dc94fb4728b43a1bdb8ea1a1bc01, type: 3}
+  - {fileID: 8300000, guid: 62e32ef6f006a5d4891a6b6c03c84ccd, type: 3}
+  - {fileID: 8300000, guid: 39034302035f8ab428586875e622229c, type: 3}
+  AvoidRepetition: 1

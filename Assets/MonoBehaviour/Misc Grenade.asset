@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79fd6bf29df887c96a5293797ca8d47e, type: 3}
+  m_Name: Misc Grenade
+  m_EditorClassIdentifier:
+  _sounds:
+  - Range: 20
+    Duration: 2.4
+    Repeat: {x: 1, y: 1}
+    Clips:
+    - {fileID: 8300000, guid: 6cf10a855d2d68249b4d76d5c76c2ac7, type: 3}
+    Channel: 0
+  - Range: 40
+    Duration: 5
+    Repeat: {x: 1, y: 1}
+    Clips:
+    - {fileID: 8300000, guid: 18a212a40056b7a40984c14b66af7f2e, type: 3}
+    Channel: 2

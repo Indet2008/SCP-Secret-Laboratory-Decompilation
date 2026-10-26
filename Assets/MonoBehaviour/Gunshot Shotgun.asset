@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79fd6bf29df887c96a5293797ca8d47e, type: 3}
+  m_Name: Gunshot Shotgun
+  m_EditorClassIdentifier:
+  _sounds:
+  - Range: 76
+    Duration: 0.2
+    Repeat: {x: 1, y: 1}
+    Clips:
+    - {fileID: 8300000, guid: d02b061c7a7b67f409f6c9b39e2de24f, type: 3}
+    Channel: 2
+  - Range: 76
+    Duration: 0.05
+    Repeat: {x: 1, y: 1}
+    Clips:
+    - {fileID: 0}
+    Channel: 2
+  - Range: 76
+    Duration: 0.2
+    Repeat: {x: 1, y: 1}
+    Clips:
+    - {fileID: 8300000, guid: 17c8090c20c8e6449984d8cc1ad0390e, type: 3}
+    Channel: 2

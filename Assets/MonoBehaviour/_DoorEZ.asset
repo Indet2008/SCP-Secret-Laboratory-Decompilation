@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f542e8087090d26aae75c2d1a25b8b20, type: 3}
+  m_Name: _DoorEZ
+  m_EditorClassIdentifier:
+  DoorOpeningSound:
+  - {fileID: 8300000, guid: 1962ef9ff09f9654b90fb5f9ac144346, type: 3}
+  DoorClosingSound:
+  - {fileID: 8300000, guid: 6b655b6c6bc00814f9bcc9ababa55fc5, type: 3}
+  AccessDenied: {fileID: 8300000, guid: ee8a8078b1cf08d4193b673317580417, type: 3}
+  AccessGranted: {fileID: 8300000, guid: 0fcc6aabf3a998d4fb6552dbd88946bf, type: 3}

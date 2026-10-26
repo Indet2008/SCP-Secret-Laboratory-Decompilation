@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  m_Layer: 0
+  m_Name: TapePlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21d21e1e15fcdfea43c2e0ab9f0cf668, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 59
+  Category: 0
+  TierFlags: 4
+  ThirdpersonModel: {fileID: 114099118695303065, guid: 7d52332a191dbe24ab74013a71bbc6d1, type: 2}
+  ViewModel: {fileID: 114743393880019028, guid: 3e475c144aa240745b1f319d5eabf8f7, type: 2}
+  Icon: {fileID: 2800000, guid: b3cd7943a64f9ff4a9ce3e458bc966be, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114061268324235159, guid: 1aedbed728c92ab42acc20dbb4e9e923, type: 2}
+  VariantsModule: {fileID: 0}
+  _successSound: {fileID: 8300000, guid: bd39e219d46b17e41ba26434386fd8c5, type: 3}
+  _failSound: {fileID: 8300000, guid: b30c57bb75a58ab4bb4bc99e743bdcc3, type: 3}
+  _useClips:
+  - {fileID: 8300000, guid: 93ab4620c88e0dc448d45f772eb2c2f6, type: 3}
+  - {fileID: 8300000, guid: 7fcd5f60860252b4eb939f15dbcc321f, type: 3}

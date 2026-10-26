@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 412abca0714d20df9ecdb200052b4968, type: 3}
+  m_Name: VignetteRefraction
+  m_EditorClassIdentifier:
+  active: 1
+  ColorStart:
+    m_OverrideState: 1
+    m_Value: {r: 0.6597539, g: 0.6597539, b: 0.6597539, a: 1}
+  ColorEnd:
+    m_OverrideState: 1
+    m_Value: {r: 1.911182, g: 3.312716, b: 4.281048, a: 1}
+  RefractionTexture:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: 2d538516ac4fd5d4c9c4ff238f1d547b, type: 3}
+    dimension: 1
+  RefractionPower:
+    m_OverrideState: 1
+    m_Value: 0.888
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 0.018
+  Frosting:
+    m_OverrideState: 1
+    m_Value: 0.99
+  Fade:
+    m_OverrideState: 1
+    m_Value: 0.923

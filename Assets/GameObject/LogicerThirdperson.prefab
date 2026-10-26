@@ -1,0 +1,194 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4618682377417806}
+  - component: {fileID: 114703437598541787}
+  - component: {fileID: 114884547391421755}
+  - component: {fileID: 114099118695303065}
+  m_Layer: 0
+  m_Name: LogicerThirdperson
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1730242686860875
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4243736805655561}
+  m_Layer: 0
+  m_Name: Left Hand IK Normal
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!1 &1724804207875695
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4061268324235159}
+  m_Layer: 0
+  m_Name: Left Hand IK Grip
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4618682377417806
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4243736805655561}
+  - {fileID: 4061268324235159}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114703437598541787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6ed814698baec602d7d199014dbb355, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  InitialPoolSize: 10
+  OverflowMode: 2
+  _hipAnim: {fileID: 7400000, guid: 2c90717008491184f9a90304bfefb234, type: 2}
+  _adsAnim: {fileID: 7400000, guid: 2e2069d84d9c5f645aff51513bbdb7b8, type: 2}
+  _reloadAnim: {fileID: 7400000, guid: 2c621cb5cb2e6d340b7f911196c0da9b, type: 2}
+  _additionalOverrideClips:
+  - State: 6
+    Override: {fileID: 7400000, guid: 1393ea8fbe3bb9346b9fc239572ab0dc, type: 2}
+  _isAdsing: 0
+  _isReloading: 0
+  _maxReloadTimeSeconds: 4.8
+  _regularLayerProcessor: {fileID: 114884547391421755}
+  _reloadLayerProcessor: {fileID: 114099118695303065}
+  _ikLayerRightHand:
+    Value: 62332
+  _ikLayerLeftHand:
+    Value: 80838
+  _bodyIkMultiplier: 2
+  _bodyIkAbsolute: 0.8
+  _localPosition: {x: -0.0909, y: 0.243, z: -0.1067}
+  _localRotation: {x: 337.44043, y: 86.7936, z: 282.3631}
+  _leftHandIK:
+    _anchors:
+    - Point: {fileID: 4061268324235159}
+      PoseTime: 0.7
+      PoseOverride: 0.24
+      Condition:
+        AttachmentConditions:
+        - Link:
+            Id: -44994
+          DesiredStatus: 1
+        OtherConditions:
+        Any: 0
+    - Point: {fileID: 4243736805655561}
+      PoseTime: 0
+      PoseOverride: 0
+      Condition:
+        AttachmentConditions: []
+        OtherConditions:
+        Any: 0
+  _rightHandIK:
+    _handRotation: {x: -8.7, y: 21.6, z: -90}
+    _hipSettings: []
+    _adsSettings: []
+    _aimCorrectionIntensity: 1
+  _editorPauseIK: 0
+--- !u!114 &114884547391421755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5573a1254f150eee5304d61f7573c54, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _rightHandOnly: 0
+  _handStationaryIntensity: 1
+  _handWalkIntensity: 1
+  _chestStationaryIntensity: 1
+  _chestWalkIntensity: 0.5
+  _overlayBlockMask: 01000000
+--- !u!114 &114099118695303065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5573a1254f150eee5304d61f7573c54, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _rightHandOnly: 0
+  _handStationaryIntensity: 1
+  _handWalkIntensity: 1
+  _chestStationaryIntensity: 1
+  _chestWalkIntensity: 0.3
+  _overlayBlockMask: 000000000100000002000000
+--- !u!4 &4243736805655561
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1730242686860875}
+  m_LocalRotation: {x: 0.20966515, y: 0.2880201, z: 0.8480598, w: 0.39227486}
+  m_LocalPosition: {x: -0.1992, y: 0.2871, z: -0.0339}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618682377417806}
+  m_LocalEulerAnglesHint: {x: 41.190735, y: 7.4494295, z: -127.5509}
+--- !u!4 &4061268324235159
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724804207875695}
+  m_LocalRotation: {x: -0.4323482, y: 0.4529454, z: 0.67920244, w: 0.38288316}
+  m_LocalPosition: {x: -0.1805, y: 0.3076, z: 0.0971}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4618682377417806}
+  m_LocalEulerAnglesHint: {x: 52.78629, y: -69.09194, z: -158.90375}

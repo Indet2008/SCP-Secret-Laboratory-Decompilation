@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  - component: {fileID: 114703437598541787}
+  m_Layer: 0
+  m_Name: Scp018
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0ec859ca8a2d0747b2bce6c2e9b562f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 31
+  Category: 6
+  TierFlags: 4
+  ThirdpersonModel: {fileID: 114587765826080250, guid: 80acee0e904bd814e98c3bb8f4cc164e, type: 2}
+  ViewModel: {fileID: 114344419225485095, guid: 31aa52494b713b341a15b1f321ba37b2, type: 2}
+  Icon: {fileID: 2800000, guid: 2570c884f3860b6419dd09c0caf072e7, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114372920208702427, guid: 2bd050e2b6e2bbc4e844da7d9ba70303, type: 2}
+  VariantsModule: {fileID: 114703437598541787}
+  <TargetHolidays>k__BackingField:
+  Projectile: {fileID: 114372920208702427, guid: 2bd050e2b6e2bbc4e844da7d9ba70303, type: 2}
+  Phantom: {fileID: 114709867586078768, guid: 658b54dd28136f14f8f4f6f53e609937, type: 2}
+  WeakThrowSettings:
+    StartVelocity: 4
+    UpwardsFactor: 0.7
+    TriggerTime: 0.32
+    StartTorque: {x: 0, y: 0, z: 0}
+    RelativePosition: {x: 0.083, y: -0.189, z: 0.3}
+  FullThrowSettings:
+    StartVelocity: 15
+    UpwardsFactor: 0.2
+    TriggerTime: 0.25
+    StartTorque: {x: 0, y: 0, z: 0}
+    RelativePosition: {x: 0.049, y: 0.038, z: 0.291}
+  ThrowingAnimTime: 0.46
+  CancelAnimTime: 0.4
+  ThrowClip: {fileID: 8300000, guid: 894206806e01bd04194f50c56a3de0de, type: 3}
+  BeginClip: {fileID: 8300000, guid: 569d30f6ecc11864b8c0778ea6246e5d, type: 3}
+  CancelClip: {fileID: 8300000, guid: 03257f819b365a44ea897d9024b58b89, type: 3}
+  _weight: 0.5
+  _pinPullTime: 0.1
+  _postThrownAnimationTime: 0.7
+  _repickupable: 0
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76352a25a35665526934e844d46385c8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: 1a000000
+  _coarseOutputs: 1a000000
+  _oneToOneOutputs: 1f000000
+  _fineOutputs: 19000000
+  _veryFineOutputs: 23000000
+  _fireUpgradeTrigger: 0
+--- !u!114 &114703437598541787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deea527ac6d9db47d285ccff4173b686, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _variants:
+  - <Holiday>k__BackingField: 2
+    <Result>k__BackingField: {fileID: 114724804207875695, guid: 2fb9e6486e657864d97311e0a3034dd1, type: 2}
+  - <Holiday>k__BackingField: 1
+    <Result>k__BackingField: {fileID: 114724804207875695, guid: 240a9b02a92193843bed5c378ad8d273, type: 2}

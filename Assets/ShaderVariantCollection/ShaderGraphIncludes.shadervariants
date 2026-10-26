@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ShaderGraphIncludes
+  m_Shaders:
+  - first: {fileID: 4800000, guid: 9e1f5e3a482c0e4469ff317bd37a27a1, type: 3}
+    second:
+      variants:
+      - keywords: _BLENDMODE_OFF _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 8
+  - first: {fileID: 4800000, guid: 365853dbd3328a64f8107cabf2e8fc7d, type: 3}
+    second:
+      variants:
+      - keywords: _ALPHATEST_ON _DOUBLESIDED_ON _BLENDMODE_OFF _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_OFF
+        passType: 8
+  - first: {fileID: 4800000, guid: 936c3368f2e85984199de1461bfaeac2, type: 3}
+    second:
+      variants:
+      - keywords: _BLENDMODE_OFF _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 8
+  - first: {fileID: 4800000, guid: 4f796b3babeeec2429e6fbb12e596f24, type: 3}
+    second:
+      variants:
+      - keywords: _BLENDMODE_OFF _DISABLE_DECALS _ENABLE_FOG_ON_TRANSPARENT _REFRACTION_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 8
+  - first: {fileID: 4800000, guid: d1552540d635e454ea37be6e5bd2099e, type: 3}
+    second:
+      variants:
+      - keywords: INSTANCING_ON _ALPHATEST_ON _REFRACTION_SPHERE
+        passType: 8

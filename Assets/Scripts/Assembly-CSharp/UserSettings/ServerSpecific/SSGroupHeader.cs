@@ -1,0 +1,42 @@
+using Mirror;
+
+namespace UserSettings.ServerSpecific
+{
+	public class SSGroupHeader : ServerSpecificSettingBase
+	{
+		public override UserResponseMode ResponseMode => UserResponseMode.None;
+
+		public bool ReducedPadding { get; private set; }
+
+		public override string DebugValue => "N/A";
+
+		public SSGroupHeader(string label, bool reducedPadding = false, string hint = null)
+			: this(null, label, reducedPadding, hint)
+		{
+		}
+
+		public SSGroupHeader(int? id, string label, bool reducedPadding = false, string hint = null)
+		{
+			SetId(id, label);
+			base.Label = label;
+			base.HintDescription = hint;
+			ReducedPadding = reducedPadding;
+		}
+
+		public override void ApplyDefaultValues()
+		{
+		}
+
+		public override void SerializeEntry(NetworkWriter writer)
+		{
+			base.SerializeEntry(writer);
+			writer.WriteBool(ReducedPadding);
+		}
+
+		public override void DeserializeEntry(NetworkReader reader)
+		{
+			base.DeserializeEntry(reader);
+			ReducedPadding = reader.ReadBool();
+		}
+	}
+}

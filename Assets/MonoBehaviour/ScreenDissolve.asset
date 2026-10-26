@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4ec72e6d6d1eef06037b118d48f731c, type: 3}
+  m_Name: ScreenDissolve
+  m_EditorClassIdentifier:
+  active: 1
+  DissolveAmount:
+    m_OverrideState: 1
+    m_Value: 0
+  BlendTexture:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: c369f23ffca055e4f92725fdfc4fc1b7, type: 3}
+    dimension: 1
+  OverlayTexture:
+    m_OverrideState: 1
+    m_Value: {fileID: 2800000, guid: c56d75d993bc8d84289b7ce6dfdfeecc, type: 3}
+    dimension: 1

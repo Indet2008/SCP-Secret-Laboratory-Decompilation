@@ -1,0 +1,40 @@
+namespace Subtitles
+{
+	public enum SubtitleType : byte
+	{
+		NTFEntrance = 0,
+		AwaitContainPlural = 1,
+		AwaitContainSingle = 2,
+		ThreatRemains = 3,
+		TerminationCauseUnspecified = 4,
+		TerminatedBySCP = 5,
+		TerminatedBySecuritySystem = 6,
+		TerminatedByWarhead = 7,
+		ContainedByScientist = 8,
+		ContainedByClassD = 9,
+		ContainedByChaos = 10,
+		SCP = 11,
+		ContainUnitUnknown = 12,
+		ContainUnit = 13,
+		LostInDecontamination = 14,
+		GeneratorsActivated = 15,
+		AllGeneratorsEngaged = 16,
+		OverchargeIn = 17,
+		OperationalMode = 18,
+		DecontaminationStart = 19,
+		DecontaminationMinutes = 20,
+		Decontamination1Minute = 21,
+		DecontaminationCountdown = 22,
+		DecontaminationLockdown = 23,
+		AlphaWarheadEngage = 24,
+		AlphaWarheadCancelled = 25,
+		AlphaWarheadResumed = 26,
+		TerminatedByMarshmallowMan = 27,
+		NTFMiniwaveEntrance = 28,
+		ChaosEntrance = 29,
+		ChaosMiniwaveEntrance = 30,
+		DeadMansSwitch = 31,
+		Custom = 254,
+		None = byte.MaxValue
+	}
+}

@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Scp500
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 257.76675, y: 472.581, z: -122.189926}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed6fab1d7d197182beeb7df6771f7f2e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 17
+  Category: 6
+  TierFlags: 2
+  ThirdpersonModel: {fileID: 114703437598541787, guid: 4f9f9b57bfd4ad44e9e6454e48b18443, type: 2}
+  ViewModel: {fileID: 114833703512093738, guid: 16a3c1f55cbb6734b93f9593fe0be18e, type: 2}
+  Icon: {fileID: 2800000, guid: 10ba59e264120884c825cf14bdc332cd, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114243736805655561, guid: 7fe37e54c8c5115419d0c64f6f65f221, type: 2}
+  VariantsModule: {fileID: 0}
+  UseTime: 1.35
+  MaxCancellableTime: 0.5
+  _weight: 0.3
+  UsingSfxClip: {fileID: 8300000, guid: 92d7ac56e01308f49bea18335c279c67, type: 3}
+  _activationTime: 0.8
+  _showProgressBar: 1
+  _healProgress:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1.6
+      inSlope: -0.47582716
+      outSlope: -0.47582716
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.10408922
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -2.9144316
+      outSlope: -2.9144316
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.059479535
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2614c954bbf394f9472fda82addc6460, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: 220000000e000000
+  _coarseOutputs: 21000000
+  _oneToOneOutputs: 11000000
+  _fineOutputs: ffffffff11000000
+  _veryFineOutputs: ffffffff
+  _fireUpgradeTrigger: 0

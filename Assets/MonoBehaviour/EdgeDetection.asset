@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee9215a086cf7c53de3af32c4372295, type: 3}
+  m_Name: EdgeDetection
+  m_EditorClassIdentifier:
+  active: 1
+  Debug:
+    m_OverrideState: 1
+    m_Value: 0
+  Mode:
+    m_OverrideState: 1
+    m_Value: 0
+  InvertFadeDistance:
+    m_OverrideState: 1
+    m_Value: 0
+  DistanceFade:
+    m_OverrideState: 1
+    m_Value: 0
+  StartFadeDistance:
+    m_OverrideState: 1
+    m_Value: 0
+  EndFadeDistance:
+    m_OverrideState: 1
+    m_Value: 1000
+  SensitivityDepth:
+    m_OverrideState: 1
+    m_Value: 0
+  SensitivityNormals:
+    m_OverrideState: 1
+    m_Value: 1
+  LumThreshold:
+    m_OverrideState: 1
+    m_Value: 0.01
+  EdgeColor:
+    m_OverrideState: 1
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+  EdgeExp:
+    m_OverrideState: 1
+    m_Value: 1
+  EdgeSize:
+    m_OverrideState: 1
+    m_Value: 1
+  EdgeOpacity:
+    m_OverrideState: 1
+    m_Value: 0
+  SobelThin:
+    m_OverrideState: 1
+    m_Value: 0

@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: Scp1509
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44df2bc10ca90711f57cd92501a52be3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 68
+  Category: 6
+  TierFlags: 4
+  ThirdpersonModel: {fileID: 114061268324235159, guid: 3286ea0549c4fc042aa0c5894b9a8a08, type: 2}
+  ViewModel: {fileID: 114043919389829319, guid: a47db52fc3624324b8f0974acdc3acbd, type: 2}
+  Icon: {fileID: 2800000, guid: 7d84bff50e752c14db29c072e731992e, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: 0, y: 0, z: 0}
+    RandomTorqueB: {x: 0, y: 0, z: 0}
+  PickupDropModel: {fileID: 114587765826080250, guid: eb0fbad684fd3424786b96adf6da4b8c, type: 2}
+  VariantsModule: {fileID: 0}
+  MeleeDamage: 50
+  <ShieldRegenRate>k__BackingField: 3
+  <ShieldDecayRate>k__BackingField: 10
+  <ShieldOnDamagePause>k__BackingField: 5
+  <UnequipDecayDelay>k__BackingField: 3
+  <NextResurrectTime>k__BackingField: 0
+  <ReviveCooldown>k__BackingField: 30
+  <EquippedHS>k__BackingField: 35
+  <RevivedPlayerBlurTime>k__BackingField: 3
+  <RevivedPlayerAOEBonusAHP>k__BackingField: 25
+  <RevivedPlayerAOEBonusAHPDistance>k__BackingField: 7.5
+  _hitPlayerClips:
+  - {fileID: 8300000, guid: 8da1c164befd2574ab1f194cc1114f80, type: 3}
+  - {fileID: 8300000, guid: 6ae0f1e9f72b18f46b4b6cfec595bd1e, type: 3}
+  - {fileID: 8300000, guid: b0678ec4125e37146a925902b36396da, type: 3}
+  _meleeDelay: 0.4
+  _meleeCooldown: 0.6
+  _resurrectParticlesPrefab: {fileID: 1709254077376921, guid: b8e20822253f5a94facfcd6d05d2f36c, type: 2}
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76352a25a35665526934e844d46385c8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 31000000
+  _oneToOneOutputs: 44000000
+  _fineOutputs: 44000000
+  _veryFineOutputs: 32000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+  _fireUpgradeTrigger: 1

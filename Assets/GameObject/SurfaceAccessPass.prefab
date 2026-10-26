@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  - component: {fileID: 114618682377417806}
+  m_Layer: 0
+  m_Name: SurfaceAccessPass
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85d76a6710890a7444e1b4568a010829, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  ItemTypeId: 61
+  Category: 1
+  TierFlags: 2
+  ThirdpersonModel: {fileID: 114618682377417806, guid: 9d2249fdd4479c9479381ada112f562a, type: 2}
+  ViewModel: {fileID: 114150646884989824, guid: 794269da2cf56e949852616384b04f6c, type: 2}
+  Icon: {fileID: 2800000, guid: 4996dfc6a6440cd46ae161e8b160b11e, type: 3}
+  ThrowSettings:
+    RandomTorqueA: {x: -2, y: 2, z: 0}
+    RandomTorqueB: {x: 2, y: 7, z: 3}
+  PickupDropModel: {fileID: 114243736805655561, guid: f77073b980047c54fa63d597f5319dc6, type: 2}
+  VariantsModule: {fileID: 0}
+  _descriptionType: 0
+  _allowInspect: 0
+  <OpenDoorsOnThrow>k__BackingField: 0
+  <KeycardGfx>k__BackingField: {fileID: 114618682377417806, guid: 3b07e27ec4581754a866fa344e5328c2, type: 2}
+  <Details>k__BackingField: []
+  <Customizable>k__BackingField: 0
+  _timeToDestroy: 2.38
+  _singleUsePermissions: 2
+  _allowClosingDoors: 0
+--- !u!114 &114618682377417806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76352a25a35665526934e844d46385c8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  _roughOutputs: ffffffff
+  _coarseOutputs: 03000000
+  _oneToOneOutputs: 02000000
+  _fineOutputs: 09000000
+  _veryFineOutputs: ffffffffffffffff0b000000
+  _fireUpgradeTrigger: 0
