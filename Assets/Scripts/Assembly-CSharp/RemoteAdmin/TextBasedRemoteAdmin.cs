@@ -40,6 +40,39 @@ namespace RemoteAdmin
 
 		private bool _dirty;
 
+		private const string TimeSeparator = "\u0001";
+
+		private static bool ShowTimestamps
+		{
+			get
+			{
+				Menus.RaSettings raSettings = Menus.RaSettings.Singleton;
+				if (raSettings != null)
+				{
+					return raSettings.ToggleTimestamps.Value;
+				}
+				return true;
+			}
+		}
+
+		private static bool ShowSuggestions
+		{
+			get
+			{
+				Menus.RaSettings raSettings = Menus.RaSettings.Singleton;
+				if (raSettings != null)
+				{
+					return raSettings.ToggleSuggestions.Value;
+				}
+				return true;
+			}
+		}
+
+		private void MarkDirty()
+		{
+			_dirty = true;
+		}
+
 		private void Awake()
 		{
 			singleton = this;
@@ -62,11 +95,17 @@ namespace RemoteAdmin
 			{
 				commandSuggest.SetActive(value: false);
 			}
+			Menus.RaSettings.OnSave += MarkDirty;
+			Menus.RaSettings.OnLoad += MarkDirty;
+			Menus.RaSettings.OnReset += MarkDirty;
 			RefreshConsole();
 		}
 
 		private void OnDestroy()
 		{
+			Menus.RaSettings.OnSave -= MarkDirty;
+			Menus.RaSettings.OnLoad -= MarkDirty;
+			Menus.RaSettings.OnReset -= MarkDirty;
 			if (singleton == this)
 			{
 				singleton = null;
@@ -79,7 +118,8 @@ namespace RemoteAdmin
 			{
 				return;
 			}
-			string item = "<color=#9a9a9a>[" + DateTime.Now.ToString("HH:mm:ss") + "]</color> " + log;
+			// The time prefix is split off at render time so the "Console Timestamps" setting applies to old lines too.
+			string item = DateTime.Now.ToString("HH:mm:ss") + TimeSeparator + log;
 			if (singleton == null)
 			{
 				PendingLogs.Add(item);
@@ -102,10 +142,21 @@ namespace RemoteAdmin
 			_dirty = false;
 			if (!(consoleWindow == null))
 			{
+				bool flag = ShowTimestamps;
 				StringBuilder stringBuilder = new StringBuilder();
 				foreach (string log in _logs)
 				{
-					stringBuilder.AppendLine(log);
+					int num = log.IndexOf(TimeSeparator, StringComparison.Ordinal);
+					if (num < 0)
+					{
+						stringBuilder.AppendLine(log);
+						continue;
+					}
+					if (flag)
+					{
+						stringBuilder.Append("<color=#9a9a9a>[").Append(log, 0, num).Append("]</color> ");
+					}
+					stringBuilder.AppendLine(log.Substring(num + TimeSeparator.Length));
 				}
 				consoleWindow.text = stringBuilder.ToString();
 			}
@@ -192,7 +243,7 @@ namespace RemoteAdmin
 		private void OnCommandValueChanged(string value)
 		{
 			_suggestions.Clear();
-			if (!string.IsNullOrWhiteSpace(value) && Commands.Count != 0)
+			if (ShowSuggestions && !string.IsNullOrWhiteSpace(value) && Commands.Count != 0)
 			{
 				string text = value.TrimStart();
 				int num = text.IndexOf(' ');

@@ -1,39 +1,29 @@
+using UnityEngine;
+
 namespace Tooltips
 {
-	public class CustomTooltipData : global::UnityEngine.MonoBehaviour, global::Tooltips.ITooltipHolder
+	// Client-only in v14 (shell in the server build): registers its authored tips with the manager.
+	public class CustomTooltipData : MonoBehaviour, ITooltipHolder
 	{
-		public global::Tooltips.TooltipData[] StoredInfo
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			set
-			{
-			}
-		}
+		[field: SerializeField]
+		public TooltipData[] StoredInfo { get; set; }
 
-		public global::Tooltips.TooltipManager Manager
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			set
-			{
-			}
-		}
+		[field: SerializeField]
+		public TooltipManager Manager { get; set; }
 
 		private void Awake()
 		{
-		}
-
-		public CustomTooltipData()
-		{
+			if (Manager == null || StoredInfo == null)
+			{
+				return;
+			}
+			foreach (TooltipData tooltipData in StoredInfo)
+			{
+				if (tooltipData.Key != null)
+				{
+					Manager.StoredTips[tooltipData.Key] = tooltipData.Text;
+				}
+			}
 		}
 	}
 }

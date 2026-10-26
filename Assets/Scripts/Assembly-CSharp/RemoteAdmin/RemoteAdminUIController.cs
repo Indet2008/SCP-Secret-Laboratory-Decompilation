@@ -66,11 +66,17 @@ namespace RemoteAdmin
 		{
 			get
 			{
-				if (IsEnabled)
+				if (!IsEnabled)
 				{
-					return IsAnyInputFieldFocused();
+					return false;
 				}
-				return false;
+				// "Toggle Movement" in the RA settings lets the player keep walking with the panel open.
+				Menus.RaSettings singleton = Menus.RaSettings.Singleton;
+				if (singleton != null && !singleton.ToggleMovement.Value)
+				{
+					return true;
+				}
+				return IsAnyInputFieldFocused();
 			}
 		}
 

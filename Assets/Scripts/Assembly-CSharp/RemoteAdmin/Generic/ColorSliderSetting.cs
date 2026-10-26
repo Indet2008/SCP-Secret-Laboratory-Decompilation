@@ -7,6 +7,7 @@ namespace RemoteAdmin.Generic
 	[Serializable]
 	public abstract class ColorSliderSetting : CustomSliderSetting
 	{
+		// The value is kept in slider units (the scene's colour sliders run 0-100), not as a 0-1 channel.
 		public override float Value
 		{
 			get
@@ -15,7 +16,19 @@ namespace RemoteAdmin.Generic
 			}
 			set
 			{
-				base.Value = Mathf.Clamp01(value);
+				base.Value = Mathf.Clamp(value, 0f, Scale);
+			}
+		}
+
+		private float Scale
+		{
+			get
+			{
+				if (RepresentingSlider != null && RepresentingSlider.maxValue > 0f)
+				{
+					return RepresentingSlider.maxValue;
+				}
+				return 100f;
 			}
 		}
 
@@ -37,13 +50,20 @@ namespace RemoteAdmin.Generic
 					{
 						if (rawImage != null)
 						{
-							_authoredValue = GetChannel(rawImage.color);
+							_authoredValue = Mathf.Round(GetChannel(rawImage.color) * Scale);
 							return _authoredValue.Value;
 						}
 					}
 				}
-				return 1f;
+				return Scale;
 			}
+		}
+
+		protected override void OnLoad()
+		{
+			float stored = PlayerPrefsSl.Get(Path, DefaultValue);
+			// Earlier builds of this port saved the raw 0-1 channel; read those as a fraction of the slider.
+			Value = (stored > 0f && stored <= 1f) ? (stored * Scale) : stored;
 		}
 
 		[field: SerializeField]
@@ -55,12 +75,13 @@ namespace RemoteAdmin.Generic
 			{
 				return;
 			}
+			float channel = value / Scale;
 			RawImage[] raUIElements = RaUIElements;
 			foreach (RawImage rawImage in raUIElements)
 			{
 				if (rawImage != null)
 				{
-					rawImage.color = CreateColor(rawImage.color, value);
+					rawImage.color = CreateColor(rawImage.color, channel);
 				}
 			}
 		}

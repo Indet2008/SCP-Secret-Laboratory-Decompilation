@@ -19,6 +19,8 @@ namespace InventorySystem.Items.Keycards
 
 		private static readonly int IgnoreDistanceTintHash = Shader.PropertyToID("_IgnoreDistanceTint");
 
+		private static readonly int BaseColorHash = Shader.PropertyToID("_BaseColor");
+
 		private static readonly float[] LevelToStep = new float[4] { 1f, 0.45f, 0.1f, 0f };
 
 		private IIdentifierProvider _idProvider;
@@ -58,6 +60,12 @@ namespace InventorySystem.Items.Keycards
 		{
 			Material instance = Material.Instance;
 			instance.SetColor(TintColorHash, color);
+			// The KeycardTint shader graph did not survive the decompile and the materials fell back to HDRP/Lit,
+			// which ignores _Tint; tint its base colour instead so cards keep their colours.
+			if (!instance.shader.name.Contains("KeycardTint") && instance.HasProperty(BaseColorHash))
+			{
+				instance.SetColor(BaseColorHash, new Color(color.r, color.g, color.b, 1f));
+			}
 			if (IsSubjectForIconRendering)
 			{
 				instance.SetFloat(IgnoreDistanceTintHash, 1f);

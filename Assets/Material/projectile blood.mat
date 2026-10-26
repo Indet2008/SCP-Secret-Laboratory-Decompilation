@@ -23,7 +23,9 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2050
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - DecalMeshForwardEmissive
+  - DecalProjectorForwardEmissive
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3

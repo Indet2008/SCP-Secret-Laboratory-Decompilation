@@ -55,6 +55,33 @@ namespace RadialMenus
 				highlightSafe.enabled = true;
 			}
 			RingImage.sprite = _settings.MainRings[cur];
+			for (int k = 0; k < cur; k++)
+			{
+				FitHighlightToSprite(Highlights[k]);
+			}
+		}
+
+		// The highlight sprites are ripped atlas pieces whose pivot sits on the ring centre and whose wedge shape
+		// lives in the sprite mesh. A UI Image ignores both, so size and pivot the rect from the sprite itself,
+		// at the same pixels-to-UI scale as the ring.
+		private void FitHighlightToSprite(Image highlight)
+		{
+			Sprite sprite = highlight.sprite;
+			Sprite ring = RingImage.sprite;
+			if (sprite == null || ring == null || ring.rect.width <= 0f)
+			{
+				return;
+			}
+			float scale = RingImage.rectTransform.rect.width / ring.rect.width;
+			RectTransform rt = highlight.rectTransform;
+			rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+			rt.pivot = new Vector2(sprite.pivot.x / sprite.rect.width, sprite.pivot.y / sprite.rect.height);
+			rt.sizeDelta = sprite.rect.size * scale;
+			rt.localPosition = Vector3.zero;
+			rt.localScale = Vector3.one;
+			highlight.type = Image.Type.Simple;
+			highlight.preserveAspect = false;
+			highlight.useSpriteMesh = true;
 		}
 
 		protected bool InRingRange(out float angle)

@@ -93,6 +93,20 @@ namespace RemoteAdmin.Menus
 		[field: SerializeField]
 		public AlphaWindowSetting WindowAlpha { get; set; } = new AlphaWindowSetting();
 
+		// Seconds between the Round/Map menus' status requests ("Bandwidth Cooldown").
+		public static float CurrentBandwidthCooldown
+		{
+			get
+			{
+				RaSettings singleton = Singleton;
+				if (singleton != null && singleton.BandwidthCooldown.Value > 0f)
+				{
+					return singleton.BandwidthCooldown.Value;
+				}
+				return 1f;
+			}
+		}
+
 		public static event Action OnLoad;
 
 		public static event Action OnReset;
@@ -231,6 +245,7 @@ namespace RemoteAdmin.Menus
 		{
 			EnsureLoaded();
 			ToggleTimestamps.Toggle();
+			RaSettings.OnSave?.Invoke();
 		}
 
 		public void RefreshBandwithCooldown()

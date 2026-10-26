@@ -46,6 +46,8 @@ namespace InventorySystem.Items.Firearms.Modules.Misc
 
 		private Stopwatch _stopwatch;
 
+		private BulletTracerLine _line;
+
 		protected override bool IsBusy
 		{
 			get
@@ -74,6 +76,12 @@ namespace InventorySystem.Items.Firearms.Modules.Misc
 			_tr = base.transform;
 			_supportsWhizz = TryGetComponent<BulletWhizzHandler>(out _whizzHandler);
 			_stopwatch = Stopwatch.StartNew();
+			// The ripped BulletTracer VFX Graph cannot run; draw the tracer with a line instead.
+			if (_vfx != null)
+			{
+				_vfx.enabled = false;
+			}
+			_line = BulletTracerLine.Create(_tr);
 		}
 
 		protected override void OnDequeued()
@@ -93,11 +101,9 @@ namespace InventorySystem.Items.Firearms.Modules.Misc
 			Vector3 position = MainCameraController.CurrentCamera.position;
 			if (global::Misc.TryGetClosestLineSegment(base.OriginPosition, worldspacePosition, position, 1f, 15f, out var newStart, out var newEnd, out var closestPointOnLine, out var normalizedDir) && ValidateRandom(Mathf.Abs(normalizedDir.y), flag, base.Template.FirearmCategory))
 			{
-				_vfx.SetVector3(TracerOriginHash, newStart - newEnd);
-				_vfx.SetBool(TracerFriendlyHash, flag);
-				_vfx.Play();
 				_tr.SetPositionAndRotation(newEnd, Quaternion.identity);
 				_tr.SetParent(wp.transform);
+				_line.Play(newStart, newEnd, flag);
 				if (!flag && _supportsWhizz && !((closestPointOnLine - position).sqrMagnitude > 25f))
 				{
 					_whizzHandler.Play(normalizedDir, closestPointOnLine);

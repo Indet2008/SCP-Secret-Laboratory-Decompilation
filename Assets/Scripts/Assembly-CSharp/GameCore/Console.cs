@@ -194,18 +194,16 @@ namespace GameCore
 
 		internal string TypeCommand(string cmd, CommandSender sender = null)
 		{
-			if (!NetworkServer.active)
+			if (sender == null)
 			{
-				Debug.Log(">>> " + cmd);
-				if (sender == null)
+				// A listen-server host types here too; only a dedicated server should answer on ServerConsole,
+				// otherwise the responses vanish and the console looks dead.
+				sender = ServerStatic.IsDedicated ? ServerConsole.Scs : Ccs;
+				if (!ServerStatic.IsDedicated)
 				{
-					sender = Ccs;
+					AddLog("> " + cmd, Color.white);
+					_clientCommandLogs.Add(cmd);
 				}
-				_clientCommandLogs.Add(cmd);
-			}
-			else if (sender == null)
-			{
-				sender = ServerConsole.Scs;
 			}
 			if (cmd.StartsWith('.') && cmd.Length > 1)
 			{
@@ -424,6 +422,11 @@ namespace GameCore
 			Singleton = this;
 			UnityEngine.Object.DontDestroyOnLoad(base.gameObject);
 			base.Awake();
+			if (_commandField != null)
+			{
+				// The toggle key's character would otherwise land in the field the moment the console opens.
+				_commandField.onValidateInput = (string text, int index, char c) => (c == '`' || c == '~') ? '\0' : c;
+			}
 		}
 
 		private void Start()

@@ -154,7 +154,7 @@ namespace RemoteAdmin.Menus
 		{
 			if (!(_updateTimer > Time.unscaledTime))
 			{
-				_updateTimer = Time.unscaledTime + 1f;
+				_updateTimer = Time.unscaledTime + RaSettings.CurrentBandwidthCooldown;
 				if (_spawnedDoorCount != DoorNametagExtension.NamedDoors.Count)
 				{
 					SpawnButtons();

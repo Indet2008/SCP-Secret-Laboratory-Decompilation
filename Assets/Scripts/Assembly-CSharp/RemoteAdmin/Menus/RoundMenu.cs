@@ -95,7 +95,7 @@ namespace RemoteAdmin.Menus
 		{
 			if (!(Time.unscaledTime < _updateTimer))
 			{
-				_updateTimer = Time.unscaledTime + 1f;
+				_updateTimer = Time.unscaledTime + RaSettings.CurrentBandwidthCooldown;
 				RequestData();
 			}
 		}

@@ -29,10 +29,10 @@ public class DebugScreenController : MonoBehaviour
 
 	private void Awake()
 	{
-		Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(Application.dataPath)));
-		if (!Environment.GetCommandLineArgs().Contains<string>("-nographics"))
+		// The server build quit here whenever graphics were enabled; that check is wrong for the client.
+		if (!Application.isEditor)
 		{
-			Shutdown.Quit();
+			Directory.SetCurrentDirectory(Path.GetDirectoryName(Path.GetFullPath(Application.dataPath)));
 		}
 	}
 

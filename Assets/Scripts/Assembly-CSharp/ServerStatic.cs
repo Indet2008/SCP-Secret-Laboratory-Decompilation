@@ -77,7 +77,7 @@ public class ServerStatic : MonoBehaviour
 		ProcessServerArgs();
 		if (!IsDedicated)
 		{
-			Shutdown.Quit();
+			// The server build quits when started without the dedicated flag; a client just has nothing to do here.
 			return;
 		}
 		if (ServerOutput == null)
