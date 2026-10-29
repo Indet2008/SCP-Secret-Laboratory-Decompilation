@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using InventorySystem;
 using Mirror;
+using Mirror.LiteNetLib4Mirror;
 using ToggleableMenus;
 using UnityEngine;
 using UnityEngine.UI;
@@ -134,12 +135,57 @@ namespace VoiceChat
 			{
 				_groupsByFlags.Add(toggleGroup.Flags, toggleGroup);
 			}
+			CustomNetworkManager.TryStartClientChecks.Add(delegate
+			{
+				if ((PrivacyFlags & VcPrivacyFlags.SettingsSelected) != 0)
+				{
+					return true;
+				}
+				Open(advanced: false, forceOpen: true);
+				return false;
+			});
+			HideHUDController.ToggleHUD += delegate(bool show)
+			{
+				_hideHudCanvas.enabled = show || _forceOpen;
+			};
 			Singleton = this;
 			UpdateToggles();
 		}
 
 		protected override void OnToggled()
 		{
+			_dimmerBackground.enabled = IsEnabled;
+			if (IsEnabled)
+			{
+				return;
+			}
+			if (base.IsEnabled)
+			{
+				base.IsEnabled = false;
+			}
+			PrivacyFlags |= VcPrivacyFlags.SettingsSelected;
+			_simplifiedRoot.SetActive(value: false);
+			_advancedRoot.SetActive(value: false);
+			if (_forceOpen)
+			{
+				_forceOpen = false;
+				LiteNetLib4MirrorNetworkManager.singleton.StartClient();
+				ToggleableMenuController.HideCurrent();
+			}
+		}
+
+		public void Open(bool advanced, bool forceOpen)
+		{
+			ToggleableMenuController.HideCurrent();
+			ToggleableMenuController.ToggleMenu(this);
+			_simplifiedRoot.SetActive(!advanced);
+			_advancedRoot.SetActive(advanced);
+			_returnButton.SetActive(forceOpen);
+			_forceOpen = forceOpen;
+			if (forceOpen)
+			{
+				_hideHudCanvas.enabled = true;
+			}
 		}
 
 		public void UpdateToggles()

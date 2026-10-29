@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using InventorySystem.Items.Firearms.Modules;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace InventorySystem.Items.Firearms.Extensions
 {
@@ -61,6 +62,14 @@ namespace InventorySystem.Items.Firearms.Extensions
 			_matInstance = MaterialInstances.GetOrAdd(sharedMat, () => new Material(sharedMat));
 			_matInstance.SetTexture(RenderTexHash, _fovCamera.targetTexture);
 			_targetRenderer.sharedMaterial = _matInstance;
+			// The scope camera is re-enabled every time the player aims, which restarts HDRP's automatic exposure from
+			// scratch: the zoomed view stayed black for several seconds before adapting. Render it without exposure control.
+			if (_cameraSetupRoot.TryGetComponent<HDAdditionalCameraData>(out var cameraData))
+			{
+				cameraData.customRenderingSettings = true;
+				cameraData.renderingPathCustomFrameSettingsOverrideMask.mask[(uint)FrameSettingsField.ExposureControl] = true;
+				cameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.ExposureControl, false);
+			}
 		}
 
 		protected virtual void LateUpdate()

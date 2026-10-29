@@ -167,11 +167,11 @@ namespace PlayerRoles.FirstPersonControl
 			}
 			if (Input.GetKey(_keyUpw))
 			{
-				zero += Vector3.up;
+				zero += playerCameraReference.up;
 			}
 			if (Input.GetKey(_keyDnw))
 			{
-				zero -= Vector3.up;
+				zero -= playerCameraReference.up;
 			}
 			if (!(zero.sqrMagnitude < 0.0001f))
 			{
