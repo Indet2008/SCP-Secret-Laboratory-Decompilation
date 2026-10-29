@@ -142,7 +142,12 @@ namespace RemoteAdmin
 				return "#FFFFFF";
 			}
 			PlayerRoleBase currentRole = hub.roleManager.CurrentRole;
-			if (currentRole == null || currentRole.RoleTypeId == RoleTypeId.Spectator)
+			if (currentRole == null)
+			{
+				return "#FFFFFF";
+			}
+			// Original (ResponsePlayerList): only facility guards get the fixed grey; spectators use their white role color.
+			if (currentRole.RoleTypeId == RoleTypeId.FacilityGuard)
 			{
 				return "#737373";
 			}

@@ -39,7 +39,8 @@ namespace PlayerRoles.PlayableScps.Scp939
 			{
 				return true;
 			}
-			if (!(_hub.roleManager.CurrentRole is Scp939Role role))
+			// The base constructor clamps CurrentHorizontal before _hub is assigned.
+			if (_hub == null || !(_hub.roleManager.CurrentRole is Scp939Role role))
 			{
 				return false;
 			}

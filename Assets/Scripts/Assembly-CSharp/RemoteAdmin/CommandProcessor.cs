@@ -126,6 +126,7 @@ namespace RemoteAdmin
 				}
 				catch (Exception ex)
 				{
+					Debug.LogException(ex);
 					string response2 = "Command execution failed! Error: " + Misc.RemoveStacktraceZeroes(ex.ToString());
 					CommandExecutedEventArgs e3 = new CommandExecutedEventArgs(sender, CommandType.RemoteAdmin, command, arguments, successful: false, response2);
 					ServerEvents.OnCommandExecuted(e3);

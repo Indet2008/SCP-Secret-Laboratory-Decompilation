@@ -70,7 +70,16 @@ namespace GameObjectPools
 			global::GameObjectPools.IPoolSpawnable[] poolSpawnables = _poolSpawnables;
 			for (int i = 0; i < poolSpawnables.Length; i++)
 			{
-				poolSpawnables[i].SpawnObject();
+				// One failing spawnable used to abort the loop, leaving every later component
+				// (subroutines, hume shield, ...) without an owner and throwing every frame.
+				try
+				{
+					poolSpawnables[i].SpawnObject();
+				}
+				catch (global::System.Exception exception)
+				{
+					global::UnityEngine.Debug.LogException(exception, poolSpawnables[i] as global::UnityEngine.Object);
+				}
 			}
 		}
 	}

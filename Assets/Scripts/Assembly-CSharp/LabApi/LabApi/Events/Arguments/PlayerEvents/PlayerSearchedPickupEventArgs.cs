@@ -1,0 +1,15 @@
+namespace LabApi.Events.Arguments.PlayerEvents
+{
+	public class PlayerSearchedPickupEventArgs : global::System.EventArgs, global::LabApi.Events.Arguments.Interfaces.IPlayerEvent, global::LabApi.Events.Arguments.Interfaces.IPickupEvent
+	{
+		public global::LabApi.Features.Wrappers.Player Player { get; }
+
+		public global::LabApi.Features.Wrappers.Pickup Pickup { get; }
+
+		public PlayerSearchedPickupEventArgs(ReferenceHub hub, global::InventorySystem.Items.Pickups.ItemPickupBase pickup)
+		{
+			Player = global::LabApi.Features.Wrappers.Player.Get(hub);
+			Pickup = global::LabApi.Features.Wrappers.Pickup.Get(pickup);
+		}
+	}
+}

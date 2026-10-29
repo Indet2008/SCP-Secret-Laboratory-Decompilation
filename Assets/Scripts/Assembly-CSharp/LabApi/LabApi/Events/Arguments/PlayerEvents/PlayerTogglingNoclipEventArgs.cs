@@ -1,0 +1,18 @@
+namespace LabApi.Events.Arguments.PlayerEvents
+{
+	public class PlayerTogglingNoclipEventArgs : global::System.EventArgs, global::LabApi.Events.Arguments.Interfaces.IPlayerEvent, global::LabApi.Events.Arguments.Interfaces.ICancellableEvent
+	{
+		public global::LabApi.Features.Wrappers.Player Player { get; }
+
+		public bool NewNoclipState { get; }
+
+		public bool IsAllowed { get; set; }
+
+		public PlayerTogglingNoclipEventArgs(ReferenceHub hub, bool newState)
+		{
+			IsAllowed = true;
+			Player = global::LabApi.Features.Wrappers.Player.Get(hub);
+			NewNoclipState = newState;
+		}
+	}
+}

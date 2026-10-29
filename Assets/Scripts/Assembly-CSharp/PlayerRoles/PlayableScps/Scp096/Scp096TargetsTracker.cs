@@ -77,10 +77,12 @@ namespace PlayerRoles.PlayableScps.Scp096
 			else if (target.isLocalPlayer)
 			{
 				PlayTargetSound(_seenJumpscareSound);
+				global::CameraShaking.CameraShakeController.AddEffect(new Scp096BecomeTargetShake());
 			}
 			Targets.Add(target);
 			Current096Targets++;
-			if (!NetworkServer.active && !_markers.ContainsKey(target))
+			// The original skips this when NetworkServer.active, so a listen-server host never saw markers.
+			if (NetworkClient.active && !_markers.ContainsKey(target))
 			{
 				_markers.Add(target, UnityEngine.Object.Instantiate(TargetMarker, target.transform));
 			}
