@@ -1,28 +1,22 @@
 using System;
 using Mirror;
-using UnityEngine;
 
 namespace CommandSystem.Commands.Console
 {
-	// Not part of the original game: a shortcut for the main menu's "Create server" button.
+	// The original StartServerCommand ("host", aliases "startserver"/"starthost"): calls
+	// CustomNetworkManager.StartNondedicated and answers "Started a non-dedicated server.".
+	// "now" (not in the original) skips the "Create server" window.
 	[CommandHandler(typeof(GameConsoleCommandHandler))]
-	public class HostCommand : ICommand, IUsageProvider
+	public class HostCommand : ICommand
 	{
 		public string Command { get; } = "host";
 
-		public string[] Aliases { get; } = new string[1] { "createserver" };
+		public string[] Aliases { get; } = new string[2] { "startserver", "starthost" };
 
-		public string Description { get; } = "Opens the \"Create server\" window, or starts a local server right away with \"now\".";
-
-		public string[] Usage { get; } = new string[1] { "now (Optional)" };
+		public string Description { get; } = "Starts a non-dedicated server.";
 
 		public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
 		{
-			if (ServerStatic.IsDedicated)
-			{
-				response = "This command can only be used on a game client.";
-				return false;
-			}
 			if (NetworkServer.active || NetworkClient.active)
 			{
 				response = "Disconnect from the current server first.";
@@ -37,16 +31,12 @@ namespace CommandSystem.Commands.Console
 			if (arguments.Count > 0 && arguments.At(0).Equals("now", StringComparison.OrdinalIgnoreCase))
 			{
 				manager.CreateMatch();
-				response = "Starting a local server...";
-				return true;
 			}
-			manager.ShowCreateServerPopup();
-			if (GameCore.Console.Singleton != null && GameCore.Console.Singleton.IsEnabled)
+			else
 			{
-				// Close the console so the window isn't hidden behind it.
-				ToggleableMenus.ToggleableMenuController.HideCurrent();
+				manager.ShowCreateServerPopup();
 			}
-			response = "Opened the \"Create server\" window.";
+			response = "Started a non-dedicated server.";
 			return true;
 		}
 	}

@@ -1,47 +1,33 @@
+using System;
+using Tooltips;
+using UnityEngine;
+
 namespace Respawning.Graphics
 {
-	public class RespawningTooltips : global::UnityEngine.MonoBehaviour
+	public class RespawningTooltips : MonoBehaviour
 	{
-		[global::System.Serializable]
+		[Serializable]
 		private struct Tooltip
 		{
-			public global::UnityEngine.GameObject Key;
+			public GameObject Key;
 
-			public global::Respawning.Graphics.RespawnTooltipTranslation Translation;
+			public RespawnTooltipTranslation Translation;
 		}
 
-		private global::Respawning.Graphics.RespawningTooltips.Tooltip[] StoredInfo
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			set
-			{
-			}
-		}
+		[field: SerializeField]
+		private Tooltip[] StoredInfo { get; set; }
 
-		protected global::Tooltips.TooltipManager TooltipManager
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			set
-			{
-			}
-		}
+		[field: SerializeField]
+		protected TooltipManager TooltipManager { get; set; }
 
 		private void Start()
 		{
-		}
-
-		public RespawningTooltips()
-		{
+			Tooltip[] storedInfo = StoredInfo;
+			for (int i = 0; i < storedInfo.Length; i++)
+			{
+				Tooltip tooltip = storedInfo[i];
+				TooltipManager.StoredTips.Add(tooltip.Key, Translations.Get(tooltip.Translation));
+			}
 		}
 	}
 }

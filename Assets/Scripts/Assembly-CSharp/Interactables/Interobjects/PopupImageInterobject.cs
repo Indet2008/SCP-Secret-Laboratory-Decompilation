@@ -20,6 +20,7 @@ namespace Interactables.Interobjects
 
 		protected override void OnClientUpdate(float enableRatio)
 		{
+			UserMainInterface.singleton.imageDisplayGroup.alpha = enableRatio;
 		}
 	}
 }

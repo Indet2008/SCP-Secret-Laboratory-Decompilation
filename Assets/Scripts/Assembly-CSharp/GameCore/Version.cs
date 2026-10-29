@@ -90,7 +90,8 @@ namespace GameCore
 			Revision = 8;
 			AlwaysAcceptReleaseBuilds = false;
 			BuildType = VersionType.Release;
-			ActiveHoliday = HolidayType.Halloween;
+			// Original build: HolidayType.Halloween. Disabled on request so maps, props, items and sounds use their regular versions.
+			ActiveHoliday = HolidayType.None;
 			BackwardCompatibility = false;
 			BackwardRevision = 0;
 			DescriptionOverride = null;

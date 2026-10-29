@@ -1,11 +1,13 @@
 using System;
 using System.Text;
+using AudioPooling;
 using LabApi.Events.Arguments.Scp079Events;
 using LabApi.Events.Handlers;
 using MapGeneration;
 using Mirror;
 using PlayerRoles.PlayableScps.Scp079.GUI;
 using PlayerRoles.PlayableScps.Scp079.Map;
+using PlayerRoles.Spectating;
 using PlayerRoles.Subroutines;
 using UnityEngine;
 
@@ -213,7 +215,25 @@ namespace PlayerRoles.PlayableScps.Scp079
 
 		public override void ClientProcessRpc(NetworkReader reader)
 		{
-			base.ClientProcessRpc(reader);
+			_syncZone = (FacilityZone)reader.ReadByte();
+			_cooldownTimer.ReadCooldown(reader);
+			OnClientZoneBlackout?.Invoke(base.Owner, _syncZone);
+			if (!base.CastRole.SubroutineModule.TryGetSubroutine<Scp079BlackoutRoomAbility>(out var subroutine))
+			{
+				return;
+			}
+			if (base.Owner.isLocalPlayer || base.Owner.IsLocallySpectated())
+			{
+				AudioSourcePoolManager.Play2D(subroutine.ConfirmationSound);
+				return;
+			}
+			foreach (RoomLightController instance in RoomLightController.Instances)
+			{
+				if (instance.Room.Zone == _syncZone)
+				{
+					subroutine.PlaySoundForController(instance);
+				}
+			}
 		}
 	}
 }

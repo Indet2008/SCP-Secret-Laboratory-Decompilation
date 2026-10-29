@@ -1,5 +1,11 @@
+using System.Diagnostics;
+using System.Text;
+using UnityEngine;
+
 namespace PlayerRoles.PlayableScps.Scp079.GUI
 {
+	// Restored from the client build (IL2CPP): typewriter intro shown to the local SCP-079, skippable after a delay;
+	// when it ends the regular role start screen is shown.
 	public class Scp079IntroCutscene : Scp079GuiElementBase
 	{
 		[global::System.Serializable]
@@ -45,23 +51,75 @@ namespace PlayerRoles.PlayableScps.Scp079.GUI
 			{
 				get
 				{
-					return default;
+					return _timeToType + _duration - _elapsed;
 				}
 				set
 				{
+					_elapsed = _timeToType + _duration - value;
 				}
 			}
 
-			public void AppendText(global::System.Text.StringBuilder sb, global::UnityEngine.Transform soundTr)
+			public void Advance(float time)
 			{
+				_elapsed = Mathf.Min(_elapsed + time, _timeToType + _duration);
 			}
 
-			private void Setup(global::System.Text.StringBuilder sb, global::UnityEngine.Transform t)
+			public void AppendText(StringBuilder sb, Transform soundTr)
 			{
+				if (!_isSetup)
+				{
+					Setup(sb, soundTr);
+				}
+				AppendCharacters(sb);
 			}
 
-			private void AppendCharacters(global::System.Text.StringBuilder sb)
+			private void Setup(StringBuilder sb, Transform t)
 			{
+				_isSetup = true;
+				if (_clear)
+				{
+					sb.Clear();
+				}
+				_textToPrint = _text ?? string.Empty;
+				_lettersPerSecond = _timeToType > 0f ? _textToPrint.Length / _timeToType : float.MaxValue;
+				_lettersOffset = 0;
+				_totalWritten = 0;
+				_tagOpen = false;
+				if (_sound != null)
+				{
+					AudioPooling.AudioSourcePoolManager.Play2DWithParent(_sound, t);
+				}
+			}
+
+			private void AppendCharacters(StringBuilder sb)
+			{
+				int target = Mathf.Min(_textToPrint.Length, _lettersPerSecond == float.MaxValue ? _textToPrint.Length : Mathf.FloorToInt(_lettersPerSecond * _elapsed));
+				while (_lettersOffset < _textToPrint.Length && (_totalWritten < target || _tagOpen))
+				{
+					char c = _textToPrint[_lettersOffset];
+					_lettersOffset++;
+					switch (c)
+					{
+					case OpenTagSymbol:
+						_tagOpen = true;
+						sb.Append(c);
+						continue;
+					case CloseTagSymbol:
+						_tagOpen = false;
+						sb.Append(c);
+						continue;
+					case NewLineSymbol:
+						sb.Append('\n');
+						break;
+					default:
+						sb.Append(c);
+						break;
+					}
+					if (!_tagOpen)
+					{
+						_totalWritten++;
+					}
+				}
 			}
 
 			public Entry()
@@ -69,7 +127,6 @@ namespace PlayerRoles.PlayableScps.Scp079.GUI
 			}
 		}
 
-		// Client-only serialized fields restored from the v14 client layout (server build stripped them).
 		[global::UnityEngine.SerializeField]
 		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079IntroCutscene.Entry[] _entries;
 
@@ -85,7 +142,90 @@ namespace PlayerRoles.PlayableScps.Scp079.GUI
 		[global::UnityEngine.SerializeField]
 		private float _minSkipTime;
 
+		private readonly Stopwatch _stopwatch = new Stopwatch();
+
+		private readonly StringBuilder _sb = new StringBuilder();
+
+		private int _curEntry;
+
+		private float _speed;
+
+		private Scp079LostSignalHandler _lostSignalHandler;
 
 		public static bool IsPlaying { get; private set; }
+
+		internal override void Init(Scp079Role role, ReferenceHub owner)
+		{
+			base.Init(role, owner);
+			if (!role.IsLocalPlayer || _entries == null || _entries.Length == 0)
+			{
+				base.gameObject.SetActive(false);
+				return;
+			}
+			_stopwatch.Restart();
+			_curEntry = 0;
+			_sb.Clear();
+			IsPlaying = true;
+			if (role.SubroutineModule.TryGetSubroutine(out _lostSignalHandler))
+			{
+				_lostSignalHandler.OnStatusChanged += StopPlaying;
+			}
+		}
+
+		private void Start()
+		{
+			_speed = _normalSpeed > 0f ? _normalSpeed : 1f;
+		}
+
+		private void OnDestroy()
+		{
+			if (_lostSignalHandler != null)
+			{
+				_lostSignalHandler.OnStatusChanged -= StopPlaying;
+			}
+			IsPlaying = false;
+		}
+
+		private void Update()
+		{
+			if (!IsPlaying)
+			{
+				return;
+			}
+			if (CheckSkipping() || _curEntry >= _entries.Length)
+			{
+				StopPlaying();
+				return;
+			}
+			Entry entry = _entries[_curEntry];
+			entry.Advance(Time.deltaTime * _speed);
+			entry.AppendText(_sb, base.transform);
+			_text.text = _sb.ToString();
+			if (entry.RemainingDuration <= 0f)
+			{
+				_curEntry++;
+			}
+		}
+
+		private void StopPlaying()
+		{
+			if (!IsPlaying)
+			{
+				return;
+			}
+			IsPlaying = false;
+			StartScreen.Show(base.Role);
+			base.gameObject.SetActive(false);
+		}
+
+		private bool CheckSkipping()
+		{
+			if (_stopwatch.Elapsed.TotalSeconds < _minSkipTime || !Input.anyKeyDown)
+			{
+				return false;
+			}
+			// Mouse buttons and Escape do not skip (they are used for menus).
+			return !Input.GetKeyDown(KeyCode.Escape) && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1);
+		}
 	}
 }

@@ -1,29 +1,29 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace OperationalGuide
 {
-	public class ButtonColorTilt : global::UnityEngine.MonoBehaviour
+	public class ButtonColorTilt : MonoBehaviour
 	{
-		public global::UnityEngine.Color DefaultColor;
+		public Color DefaultColor;
 
-		public global::UnityEngine.Color SelectedColor;
+		public Color SelectedColor;
 
-		public global::TMPro.TextMeshProUGUI Text;
+		public TextMeshProUGUI Text;
 
-		public global::UnityEngine.UI.Image Image;
+		public Image Image;
 
 		public void PointerEnter()
 		{
+			Text.color = SelectedColor;
+			Image.color = SelectedColor;
 		}
 
 		public void PointerExit()
 		{
-		}
-
-		private void OnEnable()
-		{
-		}
-
-		public ButtonColorTilt()
-		{
+			Text.color = DefaultColor;
+			Image.color = DefaultColor;
 		}
 	}
 }

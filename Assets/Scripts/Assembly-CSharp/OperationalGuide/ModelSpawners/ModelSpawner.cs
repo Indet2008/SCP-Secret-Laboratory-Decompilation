@@ -1,18 +1,19 @@
+using System.Collections.Generic;
+using PlayerRoles;
+using UnityEngine;
+
 namespace OperationalGuide.ModelSpawners
 {
-	public class ModelSpawner : global::UnityEngine.MonoBehaviour
+	public class ModelSpawner : MonoBehaviour
 	{
-		public global::UnityEngine.GameObject StandPrefab;
+		public GameObject StandPrefab;
 
-		protected global::System.Collections.Generic.Dictionary<global::PlayerRoles.RoleTypeId, global::OperationalGuide.PannableObject> AlreadySpawnedRoles;
+		protected Dictionary<RoleTypeId, PannableObject> AlreadySpawnedRoles = new Dictionary<RoleTypeId, PannableObject>();
 
-		public virtual bool TrySpawnRole(global::PlayerRoles.RoleTypeId role, out global::OperationalGuide.PannableObject pannableObject)
-		{ pannableObject = default;
-			return default;
-		}
-
-		public ModelSpawner()
+		public virtual bool TrySpawnRole(RoleTypeId role, out PannableObject pannableObject)
 		{
+			pannableObject = null;
+			return false;
 		}
 	}
 }

@@ -536,6 +536,8 @@ namespace PlayerRoles.PlayableScps.Scp939
 
 		private void ClientApplyDecalSize()
 		{
+			_decalProjector.size = Vector3.Scale(_decalProjector.size, base.transform.localScale);
+			base.transform.localScale = Vector3.one;
 		}
 
 		[Server]

@@ -1,50 +1,48 @@
+using System.Collections.Generic;
+using InventorySystem.Items;
+using UnityEngine;
+
 namespace InventorySystem.Hotkeys.Customization
 {
-	public class HotkeyRememberPreviousOverride : global::InventorySystem.Hotkeys.Customization.HotkeyOverrideBase
+	public class HotkeyRememberPreviousOverride : HotkeyOverrideBase
 	{
-		private static readonly global::System.Collections.Generic.Dictionary<global::UnityEngine.KeyCode, ushort> PrevItems;
+		private static readonly Dictionary<KeyCode, ushort> PrevItems = new Dictionary<KeyCode, ushort>();
 
-		public override global::InventorySystem.Hotkeys.Customization.HotkeyOverrideOption OptionType
-		{
-			get
-			{
-				return default;
-			}
-		}
+		public override HotkeyOverrideOption OptionType => HotkeyOverrideOption.RememberPrevious;
 
-		public override global::InventorySystem.Hotkeys.HotkeysTranslation OptionName
-		{
-			get
-			{
-				return default;
-			}
-		}
+		public override HotkeysTranslation OptionName => HotkeysTranslation.OverrideRememberPrev;
 
-		public override global::InventorySystem.Hotkeys.HotkeysTranslation? Description
-		{
-			get
-			{
-				return default;
-			}
-		}
+		public override HotkeysTranslation? Description => HotkeysTranslation.OverrideRememberPrevHint;
 
-		[global::UnityEngine.RuntimeInitializeOnLoadMethod]
+		[RuntimeInitializeOnLoadMethod]
 		private static void Init()
 		{
+			Inventory.OnLocalClientStarted += PrevItems.Clear;
+			HotkeyStorage.OnHotkeysSaved += PrevItems.Clear;
+			HotkeyController.OnHotkeyTriggered += delegate(int index, ItemBase item)
+			{
+				List<SavedHotkey> hotkeys = HotkeyStorage.Hotkeys;
+				if (index < hotkeys.Count && item != null)
+				{
+					PrevItems[hotkeys[index].AssignedKey] = item.ItemSerial;
+				}
+			};
 		}
 
-		public override bool CheckAvailability(global::System.Collections.Generic.List<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements)
+		public override bool CheckAvailability(List<PoolElementData> elements)
 		{
-			return default;
+			return elements.CountMatches(elements.GetItemsByQueue()) > 1;
 		}
 
-		public override bool TryGetOverride(ReferenceHub player, int hotkeyId, global::System.Collections.Generic.List<global::InventorySystem.Items.ItemBase> matches, out global::InventorySystem.Items.ItemBase result)
-		{ result = default;
-			return default;
-		}
-
-		public HotkeyRememberPreviousOverride()
+		public override bool TryGetOverride(ReferenceHub player, int hotkeyId, List<ItemBase> matches, out ItemBase result)
 		{
+			KeyCode assignedKey = HotkeyStorage.Hotkeys[hotkeyId].AssignedKey;
+			if (PrevItems.TryGetValue(assignedKey, out var value) && player.inventory.UserInventory.Items.TryGetValue(value, out result))
+			{
+				return true;
+			}
+			result = null;
+			return false;
 		}
 	}
 }

@@ -53,6 +53,72 @@ Shader "SCPSL/Liquid"
 			[HideInInspector] _UnlitColorMap_MipInfo ("_UnlitColorMap_MipInfo", Vector) = (0,0,0,0)
 			[Enum(Auto, 0, On, 1, Off, 2)] [HideInInspector] _DoubleSidedGIMode ("Double sided GI mode", Float) = 0
 		}
-	// Decompiled program was unusable (vertex/fragment variants split); kept as a fallback shell.
-	Fallback "HDRP/Lit"
+	// Hand-written replacement for the original Amplify "SCPSL/Liquid" shader (wobbling fill-level liquid).
+	// Pixels above the fill plane (world height relative to the object's pivot, tilted by WobbleX/Z) are clipped;
+	// back faces show the liquid surface. LiquidWobble drives _WobbleX/_WobbleZ at runtime.
+	SubShader
+	{
+		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" }
+		Pass
+		{
+			Name "ForwardOnly"
+			Tags { "LightMode" = "ForwardOnly" }
+			Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+			// The liquid is opaque (alpha 1) even on transparent-queue materials (first-person 207 etc.); without depth
+			// its back faces and the bottle glass sort wrongly and the bottle looks see-through.
+			ZWrite On
+			Cull Off
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.5
+			#pragma multi_compile_instancing
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+			float _Fill;
+			float4 _Color;
+			float4 _EmissiveColor;
+			float _WobbleX;
+			float _WobbleZ;
+			float _SurfaceType;
+			float _BlendMode;
+
+			struct Attributes { float4 vertex : POSITION; float3 normal : NORMAL; UNITY_VERTEX_INPUT_INSTANCE_ID };
+			struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float fillHeight : TEXCOORD2; UNITY_VERTEX_OUTPUT_STEREO };
+
+			Varyings vert(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
+				float3 pivotWS = TransformObjectToWorld(float3(0, 0, 0));
+				float3 rel = positionWS - pivotWS;
+				o.fillHeight = rel.y + rel.x * _WobbleX + rel.z * _WobbleZ;
+				o.positionWS = positionWS;
+				o.normalWS = TransformObjectToWorldNormal(v.normal);
+				o.positionCS = TransformWorldToHClip(positionWS);
+				return o;
+			}
+
+			float4 frag(Varyings i, bool isFrontFace : SV_IsFrontFace) : SV_Target
+			{
+				clip(_Fill - i.fillHeight);
+				float3 viewDir = normalize(-i.positionWS);   // camera-relative rendering: camera at origin
+				float3 n = normalize(isFrontFace ? i.normalWS : -i.normalWS);
+				float rim = pow(1 - saturate(dot(n, viewDir)), 3);
+				float3 col = _Color.rgb;
+				if (!isFrontFace)
+					col *= 1.6;                            // liquid surface seen through the top
+				col += rim * 0.15 + _EmissiveColor.rgb * GetCurrentExposureMultiplier();
+				float a = _Color.a;
+				if (_SurfaceType > 0.5 && abs(_BlendMode - 4) > 0.5) col *= a;
+				return float4(col, a);
+			}
+			ENDHLSL
+		}
+	}
 }

@@ -1,3 +1,4 @@
+using Interactables;
 using InventorySystem.Items.Firearms.Modules;
 using UnityEngine;
 
@@ -102,6 +103,16 @@ namespace InventorySystem.Items.Firearms.Extensions
 			_lightSource.color = _laserColor * num2;
 		}
 
+		private void OnCenterRaycastMissed()
+		{
+			_distanceFromWall = 15f;
+		}
+
+		private void OnCenterRaycastHit(RaycastHit hit)
+		{
+			_distanceFromWall = hit.distance;
+		}
+
 		public void InitViewmodel(AnimatedFirearmViewmodel viewmodel)
 		{
 			_firearm = viewmodel.ParentFirearm;
@@ -111,10 +122,14 @@ namespace InventorySystem.Items.Firearms.Extensions
 			_selfTr = base.transform;
 			_localPos = _selfTr.localPosition;
 			_hasBarrelTip = viewmodel.TryGetExtension<BarrelTipExtension>(out _barrelTip);
+			CenterScreenRaycast.OnCenterRaycastHit += OnCenterRaycastHit;
+			CenterScreenRaycast.OnCenterRaycastMissed += OnCenterRaycastMissed;
 		}
 
 		public void OnDestroyExtension()
 		{
+			CenterScreenRaycast.OnCenterRaycastHit -= OnCenterRaycastHit;
+			CenterScreenRaycast.OnCenterRaycastMissed -= OnCenterRaycastMissed;
 		}
 	}
 }

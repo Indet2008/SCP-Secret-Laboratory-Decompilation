@@ -76,18 +76,28 @@ public class UserMainInterface : MonoBehaviour
 	{
 		FpcNoclip fpcNoclip = ((hub.roleManager.CurrentRole is IFpcRole fpcRole) ? fpcRole.FpcModule.Noclip : null);
 		bool flag = fpcNoclip != null && fpcNoclip.IsActive;
-		SetActiveSafe(noclipUI, flag);
-		if (flag)
+		if (noclipUI != null && (flag || noclipUI.activeSelf))
 		{
-			if (noclipIndicator != null)
-			{
-				noclipIndicator.text = "NOCLIP ENABLED - SPEED: " + FpcNoclip.CurSpeed.ToString("0.#");
-			}
-			if (fogIndicator != null)
-			{
-				fogIndicator.text = "FOG: " + (FpcNoclip.FogDisabled ? "OFF" : "ON");
-			}
+			SetNoclipIndicator(flag, FpcNoclip.CurSpeed);
 		}
+	}
+
+	// Original (called by FpcNoclip.UpdateNoclip in the client build).
+	public void SetNoclipIndicator(bool state, float speed)
+	{
+		noclipUI.SetActive(state);
+		if (state)
+		{
+			noclipIndicator.text = string.Format("Noclip speed: {0:0.##} m/s", speed);
+			UpdateFogIndicator();
+			noclipHelpText.text = string.Format("Toggle Noclip: <b>{0}</b>\n", new ReadableKeyCode(NewInput.GetKey(ActionName.Noclip))) + "Change Speed: <b>Mouse Wheel</b>\n" + string.Format("Toggle Fog: <b>{0}</b>", new ReadableKeyCode(NewInput.GetKey(ActionName.NoClipFogToggle)));
+		}
+	}
+
+	public void UpdateFogIndicator()
+	{
+		CustomRendering.FogController singleton = CustomRendering.FogController.Singleton;
+		fogIndicator.text = ((singleton != null && singleton.gameObject.activeSelf) ? "Fog Enabled" : "Fog Disabled");
 	}
 
 	private static void SetActiveSafe(GameObject go, bool state)

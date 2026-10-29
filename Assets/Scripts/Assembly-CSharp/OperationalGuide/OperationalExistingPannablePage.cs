@@ -1,15 +1,14 @@
+using PlayerRoles;
+
 namespace OperationalGuide
 {
-	public class OperationalExistingPannablePage : global::OperationalGuide.OperationalPannablePage
+	public class OperationalExistingPannablePage : OperationalPannablePage
 	{
-		public global::PlayerRoles.RoleTypeId RoleToSpawn;
+		public RoleTypeId RoleToSpawn;
 
 		public override void SpawnPannable()
 		{
-		}
-
-		public OperationalExistingPannablePage()
-		{
+			PannableObject = OperationalGuide.Instance.SpawnModelRoleForCamera(RoleToSpawn);
 		}
 	}
 }

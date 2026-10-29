@@ -176,10 +176,19 @@ namespace Scp914
 
 		private void Update()
 		{
+			UpdateClientsideEffects();
 			if (NetworkServer.active)
 			{
 				UpdateServerside();
 			}
+		}
+
+		// Restored from the client build: the knob eases towards the notch of the synced setting (OneToOne = 0).
+		private void UpdateClientsideEffects()
+		{
+			Vector3 euler = _knobTransform.localEulerAngles;
+			Quaternion target = Quaternion.Euler(euler.x, euler.y, (float)(_knobSetting - 2) * _knobNotchAngle);
+			_knobTransform.localRotation = Quaternion.Lerp(_knobTransform.localRotation, target, Time.deltaTime * _knobTurningSpeed);
 		}
 
 		[Server]

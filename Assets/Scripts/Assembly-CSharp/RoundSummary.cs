@@ -102,6 +102,11 @@ public class RoundSummary : NetworkBehaviour
 
 	private CoroutineHandle _roundEndCoroutine;
 
+	private CoroutineHandle _roundSummaryCoroutine;
+
+	private CoroutineHandle _dimScreenCoroutine;
+
+
 	public bool KeepRoundOnOne;
 
 	public bool IsRoundEnded;
@@ -475,6 +480,21 @@ public class RoundSummary : NetworkBehaviour
 		}
 	}
 
+	private IEnumerator<float> _FadeScreenOut()
+	{
+		if (ServerStatic.IsDedicated)
+		{
+			yield break;
+		}
+		float alpha = 0f;
+		while (alpha < 1f)
+		{
+			alpha += 0.04f;
+			fadeOutImage.color = Color.Lerp(Color.clear, Color.black, alpha);
+			yield return Timing.WaitForOneFrame;
+		}
+	}
+
 	private IEnumerator<float> InitiateRoundEnd(int timeToRoundRestart)
 	{
 		yield return Timing.WaitForSeconds(timeToRoundRestart - 1);
@@ -546,7 +566,78 @@ public class RoundSummary : NetworkBehaviour
 
 	protected void UserCode_RpcShowRoundSummary__SumInfo_ClassList__SumInfo_ClassList__LeadingTeam__Int32__Int32__Int32__Int32__Int32(SumInfo_ClassList listStart, SumInfo_ClassList listFinish, LeadingTeam leadingTeam, int eDS, int eSc, int scpKills, int roundCd, int seconds)
 	{
+		_roundSummaryCoroutine = Timing.RunCoroutine(_ShowRoundSummary(listStart, listFinish, leadingTeam, eDS, eSc, scpKills, roundCd, seconds), Segment.Update);
 		_summaryActive = true;
+	}
+
+	// Client-only in the original (stripped from the server build): fills and fades in the round summary.
+	private IEnumerator<float> _ShowRoundSummary(SumInfo_ClassList list_start, SumInfo_ClassList list_finish, LeadingTeam leadingTeam, int e_ds, int e_sc, int scp_kills, int round_cd, int seconds)
+	{
+		IsRoundEnded = true;
+		if (ServerStatic.IsDedicated)
+		{
+			yield break;
+		}
+		string text;
+		switch (leadingTeam)
+		{
+		case LeadingTeam.FacilityForces:
+			ui_text_who_won.text = "<color=#0096FF> " + TranslationReader.Get("Summary", 2);
+			text = TranslationReader.Get("Summary", 6);
+			break;
+		case LeadingTeam.ChaosInsurgency:
+			ui_text_who_won.text = "<color=#008F1E> " + TranslationReader.Get("Summary", 3);
+			text = TranslationReader.Get("Summary", 7);
+			break;
+		case LeadingTeam.Anomalies:
+			ui_text_who_won.text = "<color=red> " + TranslationReader.Get("Summary", 1);
+			text = TranslationReader.Get("Summary", 5);
+			break;
+		case LeadingTeam.Flamingos:
+			ui_text_who_won.text = "<color=#FF59CA> " + TranslationReader.Get("Summary", 17);
+			text = TranslationReader.Get("Summary", 18);
+			break;
+		case LeadingTeam.Draw:
+			ui_text_who_won.text = "<color=#FEFEFE> " + TranslationReader.Get("Summary", 4);
+			text = TranslationReader.Get("Summary", 8);
+			break;
+		default:
+			text = string.Empty;
+			break;
+		}
+		ui_text_who_won.text += "</color>";
+		int minutes = 0;
+		while (seconds >= 60)
+		{
+			seconds -= 60;
+			minutes++;
+		}
+		string warhead = ((list_finish.warhead_kills == -1) ? TranslationReader.Get("Summary", 12) : TranslationReader.GetFormatted("Summary", 11, string.Empty, "<color=red>" + list_finish.warhead_kills + "</color>"));
+		text = text + "\n" + warhead;
+		text = text + "\n" + TranslationReader.GetFormatted("Summary", 9, string.Empty, "<color=red>" + (e_ds + list_finish.class_ds) + "</color>/<color=red>" + list_start.class_ds + "</color>");
+		text = text + "\n" + TranslationReader.GetFormatted("Summary", 10, string.Empty, "<color=red>" + (list_finish.scientists + e_sc) + "</color>/<color=red>" + list_start.scientists + "</color>");
+		int startScps = list_start.zombies + list_start.scps_except_zombies;
+		int finishScps = list_finish.zombies + list_finish.scps_except_zombies;
+		text = text + "\n" + TranslationReader.GetFormatted("Summary", 14, string.Empty, "<color=red>" + (startScps - finishScps) + "</color>/<color=red>" + startScps + "</color>");
+		text = text + "\n\n" + TranslationReader.GetFormatted("Summary", 13, string.Empty, "<color=red>" + minutes + "</color>", "<color=red>" + seconds + "</color>");
+		text = text + "\n" + TranslationReader.GetFormatted("Summary", 15, string.Empty, "<color=red>" + round_cd + "</color>");
+		text = text + "\n" + TranslationReader.GetFormatted("Summary", 16, string.Empty, "<color=red>" + scp_kills + "</color>");
+		ui_text_info.text = text;
+		ui_root.SetActive(value: true);
+		GetComponent<RectTransform>().localPosition = Vector3.zero;
+		ui_root.GetComponent<RectTransform>().localPosition = Vector3.zero;
+		AudioClip clip = RoundEndSfx.GetClip();
+		if (clip != null)
+		{
+			AudioPooling.AudioSourcePoolManager.Play2D(clip);
+		}
+		for (float deltaTime = 0f; deltaTime < 0.8f; deltaTime += 0.02f)
+		{
+			ui_text_header.alpha = deltaTime;
+			ui_text_info.alpha = deltaTime;
+			ui_text_who_won.alpha = deltaTime;
+			yield return 0f;
+		}
 	}
 
 	protected static void InvokeUserCode_RpcShowRoundSummary__SumInfo_ClassList__SumInfo_ClassList__LeadingTeam__Int32__Int32__Int32__Int32__Int32(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -563,6 +654,8 @@ public class RoundSummary : NetworkBehaviour
 
 	protected void UserCode_RpcHideRoundSummary()
 	{
+		Timing.KillCoroutines(_roundSummaryCoroutine);
+		ui_root.SetActive(value: false);
 		_summaryActive = false;
 	}
 
@@ -580,6 +673,7 @@ public class RoundSummary : NetworkBehaviour
 
 	protected void UserCode_RpcDimScreen()
 	{
+		_dimScreenCoroutine = Timing.RunCoroutine(_FadeScreenOut(), Segment.Update);
 	}
 
 	protected static void InvokeUserCode_RpcDimScreen(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -596,6 +690,8 @@ public class RoundSummary : NetworkBehaviour
 
 	protected void UserCode_RpcUndimScreen()
 	{
+		Timing.KillCoroutines(_dimScreenCoroutine);
+		fadeOutImage.color = Color.clear;
 	}
 
 	protected static void InvokeUserCode_RpcUndimScreen(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

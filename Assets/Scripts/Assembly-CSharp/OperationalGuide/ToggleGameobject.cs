@@ -1,8 +1,10 @@
+using UnityEngine;
+
 namespace OperationalGuide
 {
-	public class ToggleGameobject : global::UnityEngine.MonoBehaviour
+	public class ToggleGameobject : MonoBehaviour
 	{
-		public global::UnityEngine.GameObject[] TogglableObjects;
+		public GameObject[] TogglableObjects;
 
 		public bool DefaultState;
 
@@ -10,14 +12,22 @@ namespace OperationalGuide
 
 		public void Toggle()
 		{
+			_toggle = !_toggle;
+			GameObject[] togglableObjects = TogglableObjects;
+			for (int i = 0; i < togglableObjects.Length; i++)
+			{
+				togglableObjects[i].SetActive(_toggle);
+			}
 		}
 
 		private void Awake()
 		{
-		}
-
-		public ToggleGameobject()
-		{
+			_toggle = DefaultState;
+			GameObject[] togglableObjects = TogglableObjects;
+			for (int i = 0; i < togglableObjects.Length; i++)
+			{
+				togglableObjects[i].SetActive(_toggle);
+			}
 		}
 	}
 }

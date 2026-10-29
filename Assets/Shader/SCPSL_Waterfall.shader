@@ -14,8 +14,8 @@ Shader "SCPSL/Waterfall"
 		_Speed_2 ("Layer 2 Speed", Vector) = (-0.1,0.2,0,0)
 		_Distort_Speed ("Distortion Speed", Vector) = (1,0,0,0)
 		_Distortion_Intensity ("Distortion Intensity", Float) = -0.02
-		_Brightness ("Brightness", Float) = 0.35
-		_Opacity ("Opacity", Range(0,1)) = 0.85
+		_Brightness ("Brightness", Float) = 0.12
+		_Opacity ("Opacity", Range(0,1)) = 0.97
 	}
 	SubShader
 	{
@@ -65,14 +65,22 @@ Shader "SCPSL/Waterfall"
 			{
 				float t = _Time.y;
 				float2 distUv = input.uv * _Distortion_text_tiling.xy + _Distort_Speed.xy * t * 0.1;
-				float2 warp = (SAMPLE_TEXTURE2D(_Distortion_text, sampler_Distortion_text, distUv).rg - 0.5) * _Distortion_Intensity * 10.0;
-				float2 uv1 = input.uv * _Base_text_tiling.xy + _Speed.xy * t + warp;
-				float2 uv2 = input.uv * _Base_text_tiling.xy * 0.7 + _Speed_2.xy * t - warp;
+				// Gentle warp only: the original reads as a smooth heavy sheet, not boiling noise.
+				float2 warp = (SAMPLE_TEXTURE2D(_Distortion_text, sampler_Distortion_text, distUv).rg - 0.5) * _Distortion_Intensity;
+				// Stretch the noise vertically into long thin streaks instead of blotches.
+				float2 tiling = float2(_Base_text_tiling.x, _Base_text_tiling.y * 0.25);
+				// Both layers scroll straight down (no sideways drift) at different rates.
+				float2 uv1 = input.uv * tiling + float2(0, abs(_Speed.y) * 4.0 * t) + warp;
+				float2 uv2 = input.uv * tiling * float2(1.3, 0.8) + float2(0, abs(_Speed_2.y) * 3.0 * t) - warp;
 				float n1 = SAMPLE_TEXTURE2D(_Base_text, sampler_Base_text, uv1).r;
 				float n2 = SAMPLE_TEXTURE2D(_Base_text, sampler_Base_text, uv2).r;
-				float streaks = saturate(n1 * 0.6 + n2 * 0.6);
-				float3 col = _BaseColor.rgb * (0.35 + streaks * 0.9) * _Brightness;
-				float alpha = saturate((0.45 + streaks * 0.55) * _Opacity * _BaseColor.a);
+				float streaks = saturate((n1 + n2) * 0.5);
+				// Dense thin vertical folds of the falling sheet, slightly wobbling as it flows.
+				float folds = 0.5 + 0.5 * sin(input.uv.x * _Base_text_tiling.x * 25.13 + warp.x * 10.0);
+				folds *= folds;
+				float shade = 0.45 + streaks * 0.35 + folds * 0.25;
+				float3 col = _BaseColor.rgb * shade * _Brightness;
+				float alpha = saturate(_Opacity * _BaseColor.a);
 				return float4(col * GetCurrentExposureMultiplier(), alpha);
 			}
 			ENDHLSL

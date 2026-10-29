@@ -1,3 +1,4 @@
+using AudioPooling;
 using Hazards;
 using MapGeneration.Holidays;
 using Mirror;
@@ -164,6 +165,10 @@ namespace CustomPlayerEffects
 
 		private static void OnBreak(BreakMessage msg)
 		{
+			if (ReferenceHub.TryGetLocalHub(out var hub) && hub.playerEffectsController.TryGetEffect<Prismatic>(out var playerEffect))
+			{
+				AudioSourcePoolManager.PlayAtPosition(playerEffect._effectBreakSound, msg.SoundPos, BreakSoundDistance, BreakVolumeModifier);
+			}
 		}
 
 		[RuntimeInitializeOnLoadMethod]

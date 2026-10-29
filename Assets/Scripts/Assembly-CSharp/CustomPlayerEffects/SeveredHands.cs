@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using AudioPooling;
+using Footprinting;
 using InventorySystem;
 using InventorySystem.Items;
 using Mirror;
@@ -28,6 +31,8 @@ namespace CustomPlayerEffects
 
 		private static readonly int HashSeveredHands = Animator.StringToHash("SeveredHands");
 
+		public static readonly List<Footprint> AllSeveredHands = new List<Footprint>();
+
 		[SerializeField]
 		private float _tickDamage;
 
@@ -41,6 +46,11 @@ namespace CustomPlayerEffects
 		{
 			base.Enabled();
 			base.Hub.interCoordinator.AddBlocker(this);
+			AllSeveredHands.Add(new Footprint(base.Hub));
+			Transform transform = base.Hub.transform;
+			Object.Instantiate(_severedHandsPrefab, transform.position, transform.rotation);
+			AudioSourcePoolManager.PlayOnTransform(_severClip, base.Hub.transform, _severSoundDistance, 1f, FalloffType.Exponential);
+			base.Hub.GetComponent<BloodDrawer>().PlaceUnderneath(base.transform.position, 2.5f);
 			ChangeHandsState(handsCut: true);
 		}
 

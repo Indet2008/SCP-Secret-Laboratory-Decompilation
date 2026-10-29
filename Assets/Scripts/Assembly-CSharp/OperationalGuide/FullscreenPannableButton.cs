@@ -1,13 +1,13 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+
 namespace OperationalGuide
 {
-	public class FullscreenPannableButton : global::UnityEngine.MonoBehaviour, global::UnityEngine.EventSystems.IPointerClickHandler, global::UnityEngine.EventSystems.IEventSystemHandler
+	public class FullscreenPannableButton : MonoBehaviour, IPointerClickHandler, IEventSystemHandler
 	{
-		public void OnPointerClick(global::UnityEngine.EventSystems.PointerEventData eventData)
+		public void OnPointerClick(PointerEventData eventData)
 		{
-		}
-
-		public FullscreenPannableButton()
-		{
+			OperationalGuide.Instance.SetFullscreen(state: true);
 		}
 	}
 }

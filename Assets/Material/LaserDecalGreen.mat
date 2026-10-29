@@ -14,7 +14,7 @@ Material:
   m_ValidKeywords:
   - _COLORMAP
   - _EMISSIVEMAP
-  - _MATERIAL_AFFECTS_ALBEDO
+  - _MATERIAL_AFFECTS_MASKMAP
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
@@ -57,9 +57,9 @@ Material:
     - _ATDistance: 1
     - _AddPrecomputedVelocity: 0
     - _AffectAO: 0
-    - _AffectAlbedo: 1
-    - _AffectEmission: 0
-    - _AffectMetal: 0
+    - _AffectAlbedo: 0
+    - _AffectEmission: 1
+    - _AffectMetal: 1
     - _AffectNormal: 0
     - _AffectSmoothness: 0
     - _AlbedoAffectEmissive: 0
@@ -79,10 +79,10 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DecalBlend: 0.5
-    - _DecalColorMask0: 15
+    - _DecalColorMask0: 0
     - _DecalColorMask1: 0
-    - _DecalColorMask2: 0
-    - _DecalColorMask3: 0
+    - _DecalColorMask2: 8
+    - _DecalColorMask3: 8
     - _DecalMaskMapBlueScale: 1
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: 0

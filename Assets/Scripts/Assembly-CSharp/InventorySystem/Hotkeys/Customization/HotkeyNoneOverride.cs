@@ -1,43 +1,25 @@
+using System.Collections.Generic;
+using InventorySystem.Items;
+
 namespace InventorySystem.Hotkeys.Customization
 {
-	public class HotkeyNoneOverride : global::InventorySystem.Hotkeys.Customization.HotkeyOverrideBase
+	public class HotkeyNoneOverride : HotkeyOverrideBase
 	{
-		public override global::InventorySystem.Hotkeys.Customization.HotkeyOverrideOption OptionType
+		public override HotkeyOverrideOption OptionType => HotkeyOverrideOption.NoOverride;
+
+		public override HotkeysTranslation OptionName => HotkeysTranslation.OverrideNone;
+
+		public override HotkeysTranslation? Description => null;
+
+		public override bool TryGetOverride(ReferenceHub player, int hotkeyId, List<ItemBase> matches, out ItemBase result)
 		{
-			get
-			{
-				return default;
-			}
+			result = null;
+			return false;
 		}
 
-		public override global::InventorySystem.Hotkeys.HotkeysTranslation OptionName
+		public override bool CheckAvailability(List<PoolElementData> elements)
 		{
-			get
-			{
-				return default;
-			}
-		}
-
-		public override global::InventorySystem.Hotkeys.HotkeysTranslation? Description
-		{
-			get
-			{
-				return default;
-			}
-		}
-
-		public override bool TryGetOverride(ReferenceHub player, int hotkeyId, global::System.Collections.Generic.List<global::InventorySystem.Items.ItemBase> matches, out global::InventorySystem.Items.ItemBase result)
-		{ result = default;
-			return default;
-		}
-
-		public override bool CheckAvailability(global::System.Collections.Generic.List<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements)
-		{
-			return default;
-		}
-
-		public HotkeyNoneOverride()
-		{
+			return true;
 		}
 	}
 }

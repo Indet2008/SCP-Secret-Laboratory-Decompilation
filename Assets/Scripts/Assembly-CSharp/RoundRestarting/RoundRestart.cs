@@ -34,6 +34,46 @@ namespace RoundRestarting
 
 		private static void OnMessageReceived(RoundRestartMessage msg)
 		{
+			if (IsRoundRestarting || NetworkServer.active)
+			{
+				return;
+			}
+			IsRoundRestarting = true;
+			PoolManager.Singleton.ReturnAllPoolObjects();
+			Color color = new Color(0f, 1f, 1f, 1f);
+			switch (msg.Type)
+			{
+			case RoundRestartType.RedirectRestart:
+				GameCore.Console.AddLog(string.Format("Server is performing a full round restart with connection redirection to port {0}. Reconnection time: {1}.", msg.NewPort, msg.TimeOffset), color);
+				Mirror.LiteNetLib4Mirror.LiteNetLib4MirrorTransport.Singleton.port = msg.NewPort;
+				break;
+			case RoundRestartType.FastRestart:
+			case RoundRestartType.FullRestart:
+				if (msg.Type == RoundRestartType.FastRestart)
+				{
+					GameCore.Console.AddLog("Server has requested to kill all coroutines by triggering a fast round restart.", color);
+					FastRoundRestartController.FastRestartInProgress = true;
+					if (MEC.Timing.Instance != null)
+					{
+						MEC.Timing.Instance.KillCoroutinesOnInstance();
+					}
+				}
+				if (!msg.Reconnect)
+				{
+					GameCore.Console.AddLog("Server is shutting down.", color);
+					return;
+				}
+				GameCore.Console.AddLog(string.Format("Server is performing a full round restart. Reconnection time: {0}.", msg.TimeOffset), color);
+				break;
+			default:
+				CustomNetworkManager.reconnectTime = msg.TimeOffset;
+				ChangeLevel(noShutdownMessage: false);
+				return;
+			}
+			CustomLiteNetLib4MirrorTransport.SetReconnectionParameters(msg.ExtendedReconnectionPeriod);
+			CustomNetworkManager.reconnecting = true;
+			CustomNetworkManager.reconnectTime = msg.TimeOffset;
+			ChangeLevel(noShutdownMessage: false);
 		}
 
 		private static void OnClientStarted()

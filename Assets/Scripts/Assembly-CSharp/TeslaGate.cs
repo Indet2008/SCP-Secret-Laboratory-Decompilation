@@ -156,6 +156,11 @@ public class TeslaGate : NetworkBehaviour
 
 	private void Update()
 	{
+		if (NetworkServer.active && !(ledLights == null))
+		{
+			ledLights.SetBool(_animatorShockHash, InProgress);
+			ledLights.SetBool(_animatorIdleHash, isIdling);
+		}
 	}
 
 	private void Start()
@@ -246,9 +251,18 @@ public class TeslaGate : NetworkBehaviour
 		{
 			yield return float.NegativeInfinity;
 		}
-		_ = hub.gameObject;
-		yield return Timing.WaitForSeconds(0.25f);
-		yield return Timing.WaitForSeconds(0.25f);
+		// Client-authoritative hit restored from the client build: the local player checks the killer boxes
+		// during the burst and reports a hit to the server (TeslaGateController applies the damage).
+		GameObject ply = hub.gameObject;
+		for (int i = 0; i < 2; i++)
+		{
+			if (PlayerInHurtRange(ply))
+			{
+				ElectrocutePlayer();
+				break;
+			}
+			yield return Timing.WaitForSeconds(0.25f);
+		}
 		float num = 0f;
 		array2 = smokeParticles;
 		foreach (ParticleSystem particleSystem3 in array2)
@@ -274,6 +288,43 @@ public class TeslaGate : NetworkBehaviour
 			}
 		}
 		yield return Timing.WaitForSeconds(num);
+	}
+
+	private readonly Collider[] _hurtBuffer = new Collider[32];
+
+	private bool PlayerInHurtRange(GameObject ply)
+	{
+		if (ply == null || killers == null)
+		{
+			return false;
+		}
+		foreach (GameObject killer in killers)
+		{
+			if (killer == null)
+			{
+				continue;
+			}
+			Transform t = killer.transform;
+			Vector3 center = t.position + Vector3.up * (sizeOfKiller.y / 2f);
+			int count = Physics.OverlapBoxNonAlloc(center, sizeOfKiller / 2f, _hurtBuffer, t.rotation, killerMask);
+			for (int i = 0; i < count; i++)
+			{
+				Collider col = _hurtBuffer[i];
+				if (col != null && (col.gameObject == ply || col.transform.root.gameObject == ply))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private void ElectrocutePlayer()
+	{
+		if (NetworkClient.active)
+		{
+			NetworkClient.Send(new TeslaHitMsg(this));
+		}
 	}
 
 	private IEnumerator<float> _PlayAnimation()

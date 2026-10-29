@@ -11,6 +11,10 @@ namespace Rounds.Options
 
 		public void Invoke()
 		{
+			if (global::Mirror.NetworkServer.active && ReferenceHub.TryGetLocalHub(out var hub))
+			{
+				hub.queryProcessor.CmdSendQuery(Command);
+			}
 		}
 	}
 }

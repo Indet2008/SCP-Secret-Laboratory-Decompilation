@@ -1,31 +1,34 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+
 namespace OperationalGuide
 {
-	public class AnimationTextFader : global::UnityEngine.MonoBehaviour, global::UnityEngine.EventSystems.IPointerEnterHandler, global::UnityEngine.EventSystems.IEventSystemHandler, global::UnityEngine.EventSystems.IPointerExitHandler
+	public class AnimationTextFader : MonoBehaviour, IPointerEnterHandler, IEventSystemHandler, IPointerExitHandler
 	{
-		private static readonly int FadeAnimationID;
+		private static readonly int FadeAnimationID = Animator.StringToHash("fade");
 
 		private const string FadeAnimKey = "fade";
 
-		public global::UnityEngine.Animator Animator;
+		public Animator Animator;
 
-		public void OnPointerEnter(global::UnityEngine.EventSystems.PointerEventData eventData)
+		public void OnPointerEnter(PointerEventData eventData)
 		{
+			Animator.SetBool(FadeAnimationID, value: true);
 		}
 
-		public void OnPointerExit(global::UnityEngine.EventSystems.PointerEventData eventData)
+		public void OnPointerExit(PointerEventData eventData)
 		{
+			Animator.SetBool(FadeAnimationID, value: false);
 		}
 
 		private void OnDisable()
 		{
+			Animator.SetBool(FadeAnimationID, value: false);
 		}
 
 		private void OnEnable()
 		{
-		}
-
-		public AnimationTextFader()
-		{
+			Animator.SetBool(FadeAnimationID, value: false);
 		}
 	}
 }

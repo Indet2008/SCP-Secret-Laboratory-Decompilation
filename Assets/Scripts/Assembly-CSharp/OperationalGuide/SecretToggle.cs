@@ -1,25 +1,33 @@
+using System;
+using UnityEngine;
+
 namespace OperationalGuide
 {
-	public class SecretToggle : global::UnityEngine.MonoBehaviour
+	public class SecretToggle : MonoBehaviour
 	{
-		public global::UnityEngine.GameObject[] Toggleables;
+		public GameObject[] Toggleables;
 
-		public global::OperationalGuide.SecretPhrase SecretPhrase;
+		public SecretPhrase SecretPhrase;
 
 		private void Awake()
 		{
+			SecretPhrase secretPhrase = SecretPhrase;
+			secretPhrase.OnSecretChanged = (Action<bool>)Delegate.Combine(secretPhrase.OnSecretChanged, new Action<bool>(OnSecretChanged));
 		}
 
 		private void OnDestroy()
 		{
+			SecretPhrase secretPhrase = SecretPhrase;
+			secretPhrase.OnSecretChanged = (Action<bool>)Delegate.Remove(secretPhrase.OnSecretChanged, new Action<bool>(OnSecretChanged));
 		}
 
-		private void OnSecretChanged(bool status)
+		private void OnSecretChanged(bool state)
 		{
-		}
-
-		public SecretToggle()
-		{
+			GameObject[] toggleables = Toggleables;
+			for (int i = 0; i < toggleables.Length; i++)
+			{
+				toggleables[i].SetActive(state);
+			}
 		}
 	}
 }

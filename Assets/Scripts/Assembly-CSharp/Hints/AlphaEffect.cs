@@ -4,6 +4,8 @@ namespace Hints
 {
 	public class AlphaEffect : HintEffect
 	{
+		private float _oldAlpha;
+
 		protected float Alpha { get; private set; }
 
 		public static AlphaEffect FromNetwork(NetworkReader reader)
@@ -33,6 +35,21 @@ namespace Hints
 		{
 			base.Serialize(writer);
 			writer.WriteFloat(Alpha);
+		}
+
+		protected override void Start()
+		{
+			_oldAlpha = base.Data.Textbox.alpha;
+		}
+
+		protected override void Destroy()
+		{
+			base.Data.Textbox.alpha = _oldAlpha;
+		}
+
+		protected override void UpdateState(float progress)
+		{
+			base.Data.Textbox.alpha = Alpha;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Hints;
 using Interactables;
 using Interactables.Verification;
 using InventorySystem.Items.Usables;
@@ -89,6 +90,46 @@ public class Coffee : NetworkBehaviour, IClientInteractable, IInteractable, ISer
 
 	public void ClientInteract(InteractableCollider collider)
 	{
+		bool flag = Translations.TryGet(CoffeeTranslation.EnoughCoffee, out string tr);
+		if (!IsConsumed)
+		{
+			bool flag2 = Translations.TryGet(_drinkText, out string tr2);
+			ReferenceHub localHub = ReferenceHub.LocalHub;
+			bool flag3 = BlacklistedPlayers.Contains(localHub);
+			if (flag && flag2)
+			{
+				ShowMessage(tr, tr2, flag3);
+			}
+			if (!flag3)
+			{
+				BlacklistedPlayers.Add(localHub);
+			}
+		}
+	}
+
+	private void ShowMessage(string enoughCoffee, string drinkText, bool blacklisted)
+	{
+		if (ReferenceHub.TryGetLocalHub(out var hub))
+		{
+			string text;
+			if (blacklisted)
+			{
+				text = "\n\n\n\n" + enoughCoffee;
+			}
+			else
+			{
+				text = "\n\n\n\n" + drinkText;
+				if (_author.Length > 0)
+				{
+					text = text + "\n\n<i>— " + _author + "</i>";
+				}
+			}
+			float durationScalar = Mathf.Clamp((float)text.Length * 0.035f, 4f, 7f);
+			hub.hints.Show(new TextHint(text, new HintParameter[1]
+			{
+				new StringHintParameter(text)
+			}, null, durationScalar));
+		}
 	}
 
 	private void SyncCoffeeState(bool wasConsumed, bool isConsumed)

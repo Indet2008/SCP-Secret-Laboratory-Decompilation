@@ -23,5 +23,10 @@ namespace Hints
 			base.Serialize(writer);
 			writer.WriteFloat(StartScalar);
 		}
+
+		protected override float UpdateProgress(float rawTime)
+		{
+			return (rawTime - StartScalar) / base.DurationScalar;
+		}
 	}
 }

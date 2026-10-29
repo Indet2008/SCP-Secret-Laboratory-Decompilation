@@ -45,6 +45,10 @@ namespace FacilitySoundtrack
 
 		private void OnTargetChanged()
 		{
+			float curFadeAdjustSpeed = CurFadeAdjustSpeed;
+			_weight = (LastHumanTracker.IsLocalLastTarget ? 0.125f : 0f);
+			float target = (LastHumanTracker.IsLocalLastTarget ? 0.25f : 0f) * _weight;
+			_audioSource.volume = Mathf.MoveTowards(_audioSource.volume, target, curFadeAdjustSpeed);
 		}
 
 		private void OnDestroy()
@@ -55,6 +59,11 @@ namespace FacilitySoundtrack
 
 		private void Update()
 		{
+			float curFadeAdjustSpeed = CurFadeAdjustSpeed;
+			bool isLocalLastTarget = LastHumanTracker.IsLocalLastTarget;
+			_weight = Mathf.MoveTowards(_weight, isLocalLastTarget ? 1 : 0, curFadeAdjustSpeed);
+			float target = _weight * (isLocalLastTarget ? 0.25f : 0f);
+			_audioSource.volume = Mathf.MoveTowards(_audioSource.volume, target, curFadeAdjustSpeed);
 		}
 
 		private void OnRoleChanged(ReferenceHub userHub, PlayerRoleBase prevRole, PlayerRoleBase newRole)

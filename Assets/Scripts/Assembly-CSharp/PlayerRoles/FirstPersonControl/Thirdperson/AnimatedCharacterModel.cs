@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using AnimatorLayerManagement;
 using AudioPooling;
+using CameraShaking;
 using CustomPlayerEffects;
 using PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers;
 using PlayerRoles.Spectating;
@@ -295,6 +296,11 @@ namespace PlayerRoles.FirstPersonControl.Thirdperson
 
 		private void UpdateHeadBob(float time)
 		{
+			if (!base.Pooled && (base.OwnerHub.isLocalPlayer || base.OwnerHub.IsLocallySpectated()))
+			{
+				Vector2 animDirection = new Vector2(Animator.GetFloat(HashStrafe), Animator.GetFloat(HashForward));
+				HeadBobPosition = SharedSettings.GetHeadBob(time, animDirection);
+			}
 		}
 
 		private void UpdateFootsteps(float time)
@@ -434,6 +440,10 @@ namespace PlayerRoles.FirstPersonControl.Thirdperson
 			for (int i = 0; i < subcontrollers.Length; i++)
 			{
 				subcontrollers[i].OnReassigned();
+			}
+			if (ApplyHeadBobbingShake)
+			{
+				CameraShakeController.AddEffect(new HeadbobShake(this));
 			}
 		}
 

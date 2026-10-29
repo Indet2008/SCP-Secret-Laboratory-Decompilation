@@ -67,6 +67,17 @@ public class AmbientSoundPlayer : NetworkBehaviour
 		Invoke("GenerateRandom", UnityEngine.Random.Range(minTime, maxTime));
 	}
 
+	private void PlaySound(int clipId)
+	{
+		GameObject gameObject = UnityEngine.Object.Instantiate(audioPrefab);
+		Vector3 vector = new Vector3(UnityEngine.Random.Range(-1, 1), 0f, UnityEngine.Random.Range(-1, 1)).normalized * 200f;
+		gameObject.transform.position = base.transform.position + vector;
+		gameObject.GetComponent<AudioSource>().clip = clips[clipId].clip;
+		gameObject.GetComponent<AudioSource>().spatialBlend = (clips[clipId].is3D ? 1 : 0);
+		gameObject.GetComponent<AudioSource>().Play();
+		UnityEngine.Object.Destroy(gameObject, 10f);
+	}
+
 	[ClientRpc]
 	private void RpcPlaySound(int id)
 	{
@@ -83,6 +94,10 @@ public class AmbientSoundPlayer : NetworkBehaviour
 
 	protected void UserCode_RpcPlaySound__Int32(int id)
 	{
+		if (_ambientSoundRateLimit.CanExecute())
+		{
+			PlaySound(id);
+		}
 	}
 
 	protected static void InvokeUserCode_RpcPlaySound__Int32(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

@@ -194,29 +194,16 @@ namespace PlayerRoles.FirstPersonControl
 
 		public static bool FogDisabled { get; private set; }
 
-		private static UnityEngine.Rendering.Volume _noFogVolume;
-
-		// A top-priority global volume that switches HDRP fog off while it has weight.
+		// The game's fog is the FogController custom pass; deactivating its object removes the fog
+		// (FogController.OnDisable pushes the fog distance to infinity) and is what the noclip UI reads.
 		private static void SetFogDisabled(bool state)
 		{
 			FogDisabled = state;
-			if (_noFogVolume == null)
+			CustomRendering.FogController singleton = CustomRendering.FogController.Singleton;
+			if (singleton != null && singleton.gameObject.activeSelf == state)
 			{
-				if (!state)
-				{
-					return;
-				}
-				GameObject obj = new GameObject("Noclip Fog Override");
-				UnityEngine.Object.DontDestroyOnLoad(obj);
-				_noFogVolume = obj.AddComponent<UnityEngine.Rendering.Volume>();
-				_noFogVolume.isGlobal = true;
-				_noFogVolume.priority = 10000f;
-				UnityEngine.Rendering.VolumeProfile volumeProfile = ScriptableObject.CreateInstance<UnityEngine.Rendering.VolumeProfile>();
-				UnityEngine.Rendering.HighDefinition.Fog fog = volumeProfile.Add<UnityEngine.Rendering.HighDefinition.Fog>(overrides: true);
-				fog.enabled.Override(x: false);
-				_noFogVolume.sharedProfile = volumeProfile;
+				singleton.gameObject.SetActive(!state);
 			}
-			_noFogVolume.weight = (state ? 1f : 0f);
 		}
 
 		public static bool IsPermitted(ReferenceHub ply)

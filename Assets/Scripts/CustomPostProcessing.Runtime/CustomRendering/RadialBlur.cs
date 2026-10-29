@@ -22,7 +22,7 @@ namespace CustomRendering
 
 		protected override void SetProperties(Material material, HDCamera camera)
 		{
-			material.SetFloat("_Amount", Amount.value);
+			material.SetFloat("_Amount", Amount.value / 50f);
 			material.SetFloat("_Iterations", Iterations.value);
 		}
 	}

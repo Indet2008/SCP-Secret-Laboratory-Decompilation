@@ -20,7 +20,7 @@ namespace MapGeneration.Decoration
 		{
 			get
 			{
-				if (!_hasRoom)
+				if (!_hasRoom || CurrentRoom == null)
 				{
 					return base.transform.position;
 				}

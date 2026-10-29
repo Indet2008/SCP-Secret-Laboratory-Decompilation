@@ -37,7 +37,16 @@ namespace RemoteAdmin
 				Color roleColor = role.RoleColor;
 				if (_avatar != null)
 				{
-					_avatar.texture = ((role is IAvatarRole avatarRole) ? avatarRole.RoleAvatar : null);
+					// Roles without an avatar keep the prefab's "?" icon, tinted with the role color.
+					_avatar.color = Color.white;
+					if (role is IAvatarRole avatarRole)
+					{
+						_avatar.texture = avatarRole.RoleAvatar;
+					}
+					else
+					{
+						_avatar.color = roleColor;
+					}
 				}
 				if (_border != null)
 				{

@@ -920,6 +920,17 @@ public class ServerRoles : NetworkBehaviour
 
 	private void HidePlayerList(bool oldValue, bool newValue)
 	{
+		if (ReferenceHub.TryGetHub(base.gameObject, out var hub) && hub.authManager.InstanceMode == ClientInstanceMode.Dummy)
+		{
+			if (newValue)
+			{
+				PlayerList.DestroyPlayer(hub);
+			}
+			else
+			{
+				PlayerList.AddPlayer(hub);
+			}
+		}
 	}
 
 	[Server]

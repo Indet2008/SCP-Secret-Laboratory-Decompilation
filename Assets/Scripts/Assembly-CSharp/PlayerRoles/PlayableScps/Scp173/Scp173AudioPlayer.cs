@@ -18,6 +18,54 @@ namespace PlayerRoles.PlayableScps.Scp173
 			public Scp173SoundId Id;
 
 			public float MaxDistance;
+
+			// Client-only members restored from the client build (the server build stripped them; the prefab still has the data).
+			[SerializeField]
+			private AudioClip[] _targetClips;
+
+			[SerializeField]
+			private AudioPooling.MixerChannel _channel;
+
+			[SerializeField]
+			private float _volume;
+
+			[SerializeField]
+			private float _rateLimit;
+
+			private readonly System.Diagnostics.Stopwatch _sw = System.Diagnostics.Stopwatch.StartNew();
+
+			private AudioClip Random => _targetClips[UnityEngine.Random.Range(0, _targetClips.Length)];
+
+			private bool CheckRateLimit()
+			{
+				if (_rateLimit == 0f)
+				{
+					return true;
+				}
+				if (1f / _rateLimit > _sw.Elapsed.TotalSeconds)
+				{
+					return false;
+				}
+				_sw.Restart();
+				return true;
+			}
+
+			public void PlayLocal()
+			{
+				if (CheckRateLimit())
+				{
+					AudioPooling.AudioSourcePoolManager.Play2D(Random);
+				}
+			}
+
+			public void PlayThirdperson(NetworkReader reader)
+			{
+				if (CheckRateLimit())
+				{
+					RelativePosition relativePosition = reader.ReadRelativePosition();
+					AudioPooling.AudioSourcePoolManager.PlayAtPosition(Random, relativePosition, MaxDistance, _volume, FalloffType.Exponential, _channel);
+				}
+			}
 		}
 
 		public enum Scp173SoundId : byte
@@ -55,6 +103,17 @@ namespace PlayerRoles.PlayableScps.Scp173
 		public override void ClientProcessRpc(NetworkReader reader)
 		{
 			base.ClientProcessRpc(reader);
+			if (Sounds.TryGetValue(reader.ReadByte(), out var sound))
+			{
+				if (base.Role.IsLocalPlayer)
+				{
+					sound.PlayLocal();
+				}
+				else
+				{
+					sound.PlayThirdperson(reader);
+				}
+			}
 		}
 
 		public override void ServerWriteRpc(NetworkWriter writer)

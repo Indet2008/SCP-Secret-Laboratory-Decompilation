@@ -102,10 +102,8 @@ namespace MapGeneration.Spawnables
 		private void OnDestroy()
 		{
 			Instances.Remove(this);
-			if (NetworkServer.active)
-			{
-				ReferenceHub.OnPlayerAdded -= ServerSyncClip;
-			}
+			// Unconditional: the server can already be stopped here, which leaked the handler onto a destroyed log.
+			ReferenceHub.OnPlayerAdded -= ServerSyncClip;
 		}
 
 		static AudioLog()

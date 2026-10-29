@@ -154,7 +154,34 @@ namespace PlayerRoles.Spectating
 
 		public void ReadSpawnData(NetworkReader reader)
 		{
-			_ = base.IsLocalPlayer;
+			if (!base.IsLocalPlayer)
+			{
+				return;
+			}
+			switch (reader.ReadSpawnReason())
+			{
+			case SpectatorSpawnReason.None:
+				StartScreen.Show(this);
+				break;
+			case SpectatorSpawnReason.KilledByPlayer:
+			{
+				uint killerId = reader.ReadUInt();
+				string attacker = reader.ReadString();
+				RoleTypeId roleTypeId = reader.ReadRoleType();
+				string attackerRole = (PlayerRoleLoader.TryGetRoleTemplate<PlayerRoleBase>(roleTypeId, out var result) ? result.RoleName : null);
+				MEC.Timing.RunCoroutine(YouWereKilled.Singleton._Play(null, attacker, attackerRole), MEC.Segment.FixedUpdate);
+				ScheduleNextTarget(killerId);
+				break;
+			}
+			case SpectatorSpawnReason.Other:
+			{
+				reader.ReadUInt();
+				DamageHandlerBase damageHandlerBase = reader.ReadDamageHandler();
+				MEC.Timing.RunCoroutine(YouWereKilled.Singleton._Play(damageHandlerBase.DeathScreenText, null, null), MEC.Segment.FixedUpdate);
+				ScheduleNextTarget(0u);
+				break;
+			}
+			}
 		}
 
 		public void ServerSetData(DamageHandlerBase dhb)
@@ -174,10 +201,27 @@ namespace PlayerRoles.Spectating
 
 		protected virtual void ScheduleNextTarget(uint killerId)
 		{
+			if (AutomaticSpectatorSwitch.Value)
+			{
+				_timeTillAutomaticSwitch = Time.time + 5f;
+				_killerId = killerId;
+				_switchAutomatically = true;
+			}
 		}
 
 		protected virtual void Update()
 		{
+			if (_switchAutomatically && base.IsLocalPlayer && !base.Pooled && SpectatableListManager.Initialized && !(_timeTillAutomaticSwitch > Time.time))
+			{
+				if (TryGetKiller(out var spectatableRole) && spectatableRole.SpectatorModule.IsSpectatingAllowed)
+				{
+					SpectatableListManager.Instance.TrySetTarget(spectatableRole.SpectatorModule.TargetHub);
+				}
+				else
+				{
+					SpectatableListManager.Instance.NextTarget();
+				}
+			}
 		}
 
 		private void ResetAutomaticSwitch()

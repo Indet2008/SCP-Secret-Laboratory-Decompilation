@@ -1,17 +1,36 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace PlayerRoles.Spectating
 {
 	public class FullSizeSpectatableListElement : SpectatableListElementBase
 	{
 		// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.UI.Image _mainBackground;
+		[SerializeField]
+		private Image _mainBackground;
 
-		[global::UnityEngine.SerializeField]
-		private global::TMPro.TextMeshProUGUI _nicknameText;
+		[SerializeField]
+		private TextMeshProUGUI _nicknameText;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.GameObject _currentIndicator;
+		[SerializeField]
+		private GameObject _currentIndicator;
 
-
+		protected override void Update()
+		{
+			base.Update();
+			PlayerRoleBase mainRole = base.Target.MainRole;
+			if (mainRole.Pooled)
+			{
+				return;
+			}
+			if (_nicknameText != null && mainRole.TryGetOwner(out var hub))
+			{
+				_nicknameText.text = hub.nicknameSync.DisplayName;
+			}
+			bool isCurrent = base.IsCurrent;
+			_currentIndicator.SetActive(isCurrent);
+			_mainBackground.color = (isCurrent ? SpectatableListColors.BgSelected : SpectatableListColors.BgRegular);
+		}
 	}
 }

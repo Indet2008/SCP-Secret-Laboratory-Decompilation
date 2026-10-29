@@ -40,25 +40,25 @@ namespace CustomRendering
 			UserSetting<bool>.RemoveListener(MiscVideoSetting.ExplosionShake, UpdateShake);
 		}
 
+		// Original maps the brightness setting (-1..1) onto LiftGammaGain gamma/gain luminance offsets.
 		private void UpdateBrightness(float brightness)
 		{
-			if (_volumeProfile.TryGet<ColorAdjustments>(out var component) || (component = _volumeProfile.Add<ColorAdjustments>()) != null)
+			if (!_volumeProfile.TryGet<LiftGammaGain>(out var component))
 			{
-				component.active = true;
-				component.postExposure.Override(brightness);
+				component = _volumeProfile.Add<LiftGammaGain>();
 			}
+			float num = Mathf.Clamp(brightness, -1f, 1f);
+			float num2 = ((brightness > 0f) ? 0.155f : 0.6f) * num - 0.15f;
+			component.active = true;
+			component.gamma.Override(new Vector4(1f, 1f, 1f, num2 * 0.2f));
+			component.gain.Override(new Vector4(1f, 1f, 1f, num2 * 1.05f));
 		}
 
-		// Quality 0 disables the effect; 1-3 map to HDRP's Low/Medium/High scalable levels.
 		private void UpdateBloom(int qualityLevel)
 		{
 			if (_volumeProfile.TryGet<Bloom>(out var component))
 			{
-				component.active = qualityLevel > 0;
-				if (qualityLevel > 0)
-				{
-					component.quality.Override(Mathf.Clamp(qualityLevel - 1, 0, 2));
-				}
+				component.quality.Override(qualityLevel);
 			}
 		}
 

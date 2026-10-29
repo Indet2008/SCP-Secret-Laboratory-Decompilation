@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Achievements;
+using CustomRendering;
 using Footprinting;
 using GameCore;
 using Interactables.Interobjects;
@@ -223,7 +224,7 @@ public class AlphaWarheadController : NetworkBehaviour
 			_lastAnnouncer.UpdateActive();
 		}
 		UpdateFog();
-		UpdateScreens();
+		AlphaWarheadOutsitePanel.ClientUpdateDisplays();
 		ServerUpdateDetonationTime();
 		ServerUpdateAutonuke();
 	}
@@ -505,6 +506,20 @@ public class AlphaWarheadController : NetworkBehaviour
 
 	private void UpdateFog()
 	{
+		if (!_fogEnabled || FogController.Singleton == null)
+		{
+			return;
+		}
+		FogSetting fogSetting = FogController.Singleton.GetFogSetting(FogType.Nuke);
+		if (fogSetting.IsEnabled && !(fogSetting.Weight < 1f))
+		{
+			FogController.DisableFogType(FogType.Nuke, 20f);
+			_fogEnabled = false;
+			if (BloodEffectsSystem.LocalPlayerSingleton != null)
+			{
+				BloodEffectsSystem.LocalPlayerSingleton.DisableHurtEffect = false;
+			}
+		}
 	}
 
 	[ServerCallback]
@@ -549,6 +564,27 @@ public class AlphaWarheadController : NetworkBehaviour
 
 	protected void UserCode_RpcShake__Boolean(bool achieve)
 	{
+		if (ExplosionCameraShake.singleton != null && ExplosionCameraShake.singleton.force < 1f)
+		{
+			ExplosionCameraShake.singleton.force = 1f;
+		}
+		if (MainCameraController.CurrentCamera == null)
+		{
+			return;
+		}
+		if (CanBeDetonated(MainCameraController.CurrentCamera.position))
+		{
+			_fogEnabled = true;
+			FogController.EnableFogType(FogType.Nuke, 0.6f);
+			if (BloodEffectsSystem.LocalPlayerSingleton != null)
+			{
+				BloodEffectsSystem.LocalPlayerSingleton.DisableHurtEffect = true;
+			}
+		}
+		else if (achieve && ReferenceHub.TryGetLocalHub(out var hub) && hub.GetTeam() != Team.Dead)
+		{
+			AchievementHandlerBase.ClientAchieve(AchievementName.TMinus);
+		}
 	}
 
 	protected static void InvokeUserCode_RpcShake__Boolean(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

@@ -54,5 +54,10 @@ namespace Hints
 			base.Serialize(writer);
 			writer.WriteAnimationCurve(Curve);
 		}
+
+		protected float EvaluateCurve(float progress)
+		{
+			return _curve.Evaluate(progress * IterationScalar);
+		}
 	}
 }

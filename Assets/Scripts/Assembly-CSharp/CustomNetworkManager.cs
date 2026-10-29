@@ -554,11 +554,16 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 		}
 	}
 
+	private static bool _labApiWrappersInitialized;
+
 	public override void OnStartServer()
 	{
 		base.OnStartServer();
-		if (!ServerStatic.IsDedicated)
+		// The wrappers register into static dictionaries, so only initialize them once per domain
+		// (re-hosting in the same Play session threw "same key has already been added").
+		if (!ServerStatic.IsDedicated && !_labApiWrappersInitialized)
 		{
+			_labApiWrappersInitialized = true;
 			try
 			{
 				typeof(LabApi.Loader.PluginLoader).GetMethod("InitializeWrappers", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)?.Invoke(null, null);
@@ -623,7 +628,6 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 			canvas.sortingOrder = 40;
 		}
 		createpop.SetActive(value: true);
-		GameCore.Console.AddLog("Started a non-dedicated server.", Color.green);
 	}
 
 	public void CreateMatch()

@@ -15,11 +15,11 @@ namespace CustomRendering
 
 		protected override string ShaderName => "Hidden/Shader/Grayscale";
 
-		protected override int ShaderPass => DistanceFade.value ? 1 : 0;
+		protected override int ShaderPass => (DistanceFade.value && FadeIntensity.value > 0f) ? 1 : 0;
 
 		public override bool IsActive()
 		{
-			return Intensity.value > 0f;
+			return EffectMaterial != null && Intensity.value > 0f;
 		}
 
 		protected override void SetProperties(Material material, HDCamera camera)

@@ -87,6 +87,23 @@ namespace PlayerRoles.Filmmaker
 
 		private void Update()
 		{
+			if (!WantsToFly || Cursor.visible)
+			{
+				_userInfo.text = string.Empty;
+				IsFlying = false;
+				return;
+			}
+			if (HideHUDController.IsHUDVisible && Input.GetKeyDown(_keyChangePrecMode))
+			{
+				_curPrecisionMode++;
+			}
+			PrecisionMode precisionMode = _precisionModes[_curPrecisionMode % _precisionModes.Length];
+			UpdateMovement(precisionMode.MovementSpeed);
+			UpdateRotation(precisionMode.RollAmount);
+			UpdateZoom(precisionMode.ZoomSize);
+			Vector3 eulerAngles = Quaternion.Euler(_role.VerticalRotation, _role.HorizontalRotation, _role.RollRotation).eulerAngles;
+			_userInfo.text = string.Format("Precision mode: {0}\nPosition: {1}\nRotation: {2}\nZoom: {3}", precisionMode.Name, _role.CameraPosition, eulerAngles, FilmmakerRole.ZoomScale);
+			IsFlying = true;
 		}
 
 		private void UpdateMovement(float movementSpeed)

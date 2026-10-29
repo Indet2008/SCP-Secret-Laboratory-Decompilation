@@ -1,3 +1,4 @@
+using AudioPooling;
 using CustomPlayerEffects;
 using Mirror;
 using PlayerRoles.FirstPersonControl.Thirdperson;
@@ -59,6 +60,17 @@ namespace PlayerRoles.FirstPersonControl.NetworkMessages
 
 		public void ProcessMessage()
 		{
+			if (TryGetFallSound(out var clip, out var volume))
+			{
+				if (_hub != null)
+				{
+					AudioSourcePoolManager.PlayOnTransform(clip, _hub.transform, 14f, volume);
+				}
+				else
+				{
+					AudioSourcePoolManager.PlayAtPosition(clip, _prevPos, 14f, volume);
+				}
+			}
 		}
 
 		private bool TryGetFallSound(out AudioClip clip, out float volume)

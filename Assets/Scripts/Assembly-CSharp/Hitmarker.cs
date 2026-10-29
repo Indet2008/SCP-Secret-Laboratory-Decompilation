@@ -1,3 +1,4 @@
+using AudioPooling;
 using CustomPlayerEffects;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
@@ -36,6 +37,12 @@ public class Hitmarker : MonoBehaviour
 	[global::UnityEngine.SerializeField]
 	private global::UnityEngine.AudioClip[] _antiHitmarkerSounds;
 
+	private float _timer;
+
+	private float _targetSize;
+
+	private static Hitmarker _singleton;
+
 
 	public struct HitmarkerMessage : NetworkMessage
 	{
@@ -55,8 +62,47 @@ public class Hitmarker : MonoBehaviour
 
 	private const float MaxSize = 2.55f;
 
+	[RuntimeInitializeOnLoadMethod]
+	private static void Init()
+	{
+		CustomNetworkManager.OnClientReady += () =>
+		{
+			NetworkClient.ReplaceHandler<HitmarkerMessage>(HitmarkerMsgReceived);
+		};
+	}
+
+	private static void HitmarkerMsgReceived(HitmarkerMessage msg)
+	{
+		PlayHitmarker((float)(int)msg.Size / 255f * 2.55f, msg.Audio, msg.Hitmarker);
+	}
+
+	private void Awake()
+	{
+		_singleton = this;
+	}
+
+	private void Update()
+	{
+		if (!(_timer > _animationTime))
+		{
+			_timer += Time.deltaTime;
+			_targetImage.SetAlpha(_opacityOverTime.Evaluate(_timer));
+			_targetImage.transform.localScale = Vector3.one * (_targetSize * _sizeOverTime.Evaluate(_timer));
+		}
+	}
+
 	public static void PlayHitmarker(float size, bool playAudio = true, HitmarkerType hitmarkerType = HitmarkerType.Regular)
 	{
+		if (hitmarkerType != HitmarkerType.None)
+		{
+			_singleton._targetSize = size;
+			_singleton._timer = 0f;
+			_singleton._hitmarkerImage.texture = ((hitmarkerType == HitmarkerType.Blocked) ? _singleton._antiHitmarkerTexture : _singleton._hitmarkerTexture);
+			if (playAudio)
+			{
+				AudioSourcePoolManager.Play2D(((hitmarkerType == HitmarkerType.Blocked) ? _singleton._antiHitmarkerSounds : _singleton._hitmarkerSounds).RandomItem(), 1f, MixerChannel.NoDucking);
+			}
+		}
 	}
 
 	public static void SendHitmarkerDirectly(ReferenceHub hub, float size, bool playAudio = true, HitmarkerType hitmarkerType = HitmarkerType.Regular)

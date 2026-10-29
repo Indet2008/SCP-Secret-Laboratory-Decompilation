@@ -53,6 +53,11 @@ namespace InventorySystem.Items.Usables.Scp1344
 
 			public void DisableEffects()
 			{
+				// The orb (and its particle system) may already be gone when players are removed on scene unload.
+				if (_orbDestroyed || _orbInstance == null || _orbInstance.ParticleSystem == null)
+				{
+					return;
+				}
 				_orbInstance.ParticleEmissionEnabled = false;
 			}
 

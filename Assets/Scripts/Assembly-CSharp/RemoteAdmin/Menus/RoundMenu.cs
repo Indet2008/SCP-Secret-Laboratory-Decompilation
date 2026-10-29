@@ -154,11 +154,11 @@ namespace RemoteAdmin.Menus
 			string[] array = StripHeader(obj).Split(',');
 			if (array.Length >= 5)
 			{
-				UpdateIcon(_roundLock, array[0] == "1");
-				UpdateIcon(_lobbyLock, array[1] == "1");
-				UpdateIcon(_warheadLock, array[2] == "1");
-				UpdateIcon(_friendlyFire, array[3] == "1", changeIcon: false, inversedColors: true);
-				UpdateIcon(_spawnProtect, array[4] == "1", changeIcon: false, inversedColors: true);
+				UpdateIcon(_roundLock, array[0] == "0", changeIcon: true, inversedColors: true);
+				UpdateIcon(_lobbyLock, array[1] == "0", changeIcon: true, inversedColors: true);
+				UpdateIcon(_warheadLock, array[2] == "0", changeIcon: true, inversedColors: true);
+				UpdateIcon(_friendlyFire, array[3] == "1", changeIcon: false);
+				UpdateIcon(_spawnProtect, array[4] == "1", changeIcon: false);
 			}
 		}
 
@@ -166,12 +166,13 @@ namespace RemoteAdmin.Menus
 		{
 			if (!(textComponent == null))
 			{
-				// Active (locked / enabled) state shows the green icon.
+				// Original: enabled shows the open lock, disabled the closed one; inversed swaps the colours
+				// (lock options pass "value == 0", so an unlocked round shows a red open lock).
 				if (changeIcon)
 				{
 					textComponent.text = (isEnabled ? EnabledCode : DisabledCode);
 				}
-				textComponent.color = (isEnabled ? _enabledStatus : _disabledStatus);
+				textComponent.color = ((isEnabled != inversedColors) ? _enabledStatus : _disabledStatus);
 			}
 		}
 	}

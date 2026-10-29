@@ -11,7 +11,7 @@ namespace CustomRendering
 	{
 		public ClampedFloatParameter Intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
-		public ClampedFloatParameter Amount = new ClampedFloatParameter(0f, 0f, 2048f);
+		public ClampedFloatParameter Amount = new ClampedFloatParameter(700f, 0f, 2048f);
 
 		public ClampedFloatParameter Speed = new ClampedFloatParameter(0f, 0f, 10f);
 
@@ -24,7 +24,7 @@ namespace CustomRendering
 
 		protected override void SetProperties(Material material, HDCamera camera)
 		{
-			material.SetVector("_Params", new Vector4(Intensity.value, Amount.value, Speed.value, 0f));
+			material.SetVector("_Params", new Vector4(Amount.value, Intensity.value / 1000f, Speed.value * 8f, 0f));
 		}
 	}
 }

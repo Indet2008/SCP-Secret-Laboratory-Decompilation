@@ -99,6 +99,12 @@ public class CustomLiteNetLib4MirrorTransport : LiteNetLib4MirrorTransport
 
 	public static bool PreVerifySignatures { get; set; }
 
+	internal static void SetReconnectionParameters(bool extended)
+	{
+		LiteNetLib4MirrorTransport.Singleton.reconnectDelay = (extended ? 1200 : 600);
+		LiteNetLib4MirrorTransport.Singleton.maxConnectAttempts = (extended ? 22 : 3);
+	}
+
 	public static bool DelayConnections
 	{
 		get

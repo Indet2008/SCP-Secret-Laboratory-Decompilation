@@ -1,3 +1,4 @@
+using PlayerRoles.Spectating;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.FirstPersonControl.Thirdperson;
 using UnityEngine;
@@ -21,6 +22,9 @@ namespace PlayerRoles.PlayableScps.Scp106
 
 		public global::UnityEngine.Transform[] VisibilityReferencePoints;
 
+		[field: SerializeField]
+		public Transform StalkCameraTarget { get; private set; }
+
 
 		private static readonly int SubmergeHash = Animator.StringToHash("IsSubmerged");
 
@@ -34,6 +38,8 @@ namespace PlayerRoles.PlayableScps.Scp106
 
 		[SerializeField]
 		private GameObject[] _hiddenObjects;
+
+		private global::Decals.Decal[] _portalDecals;
 
 		private Transform _tr;
 
@@ -76,11 +82,12 @@ namespace PlayerRoles.PlayableScps.Scp106
 				{
 					base.Animator.SetFloat(SpeedHash, num / targetTransitionDuration);
 				}
-				bool isHidden = _sinkhole.IsHidden;
+				// Original: the portal/goo objects show while submerged or while the animation locks movement.
+				bool active = targetSubmerged || _sinkhole.LockMovement;
 				GameObject[] hiddenObjects = _hiddenObjects;
 				for (int i = 0; i < hiddenObjects.Length; i++)
 				{
-					hiddenObjects[i].SetActive(!isHidden);
+					hiddenObjects[i].SetActive(active);
 				}
 				if (base.IsTracked)
 				{
@@ -90,6 +97,38 @@ namespace PlayerRoles.PlayableScps.Scp106
 				float submergeProgress = _sinkhole.SubmergeProgress;
 				AnimationCurve animationCurve = (targetSubmerged ? _submergeAnim : _appearAnim);
 				_modelOffset = Vector3.up * animationCurve.Evaluate(submergeProgress);
+				if (_portalTransform != null)
+				{
+					float num2 = _portalScale.Evaluate(submergeProgress);
+					_portalTransform.localScale = new Vector3(num2, 1f, num2);
+				}
+				if (_balanceTransform != null)
+				{
+					_balanceTransform.localPosition = -_modelOffset / _tr.localScale.y;
+				}
+				if (_stalkParticles != null)
+				{
+					ParticleSystem.EmissionModule emission = _stalkParticles.emission;
+					emission.enabled = ReferenceHub.TryGetLocalHub(out var hub) && !HitboxIdentity.IsEnemy(Team.SCPs, hub.GetTeam()) && _stalkAbility != null && _stalkAbility.StalkActive && targetSubmerged && !_sinkhole.LockMovement;
+				}
+				if (_sinkhole.IsDuringAnimation && _portalDecals != null)
+				{
+					float num3 = (1f - submergeProgress) * 21f;
+					for (int j = 0; j < _portalDecals.Length; j++)
+					{
+						Vector3 vector = ((j % 2 == 0) ? Vector3.up : Vector3.down);
+						_portalDecals[j].transform.Rotate(vector * num3 * Time.deltaTime);
+					}
+				}
+			}
+		}
+
+		protected override void Update()
+		{
+			base.Update();
+			if (!base.Pooled && _sinkhole != null && _sinkhole.SubmergeProgress > 0f)
+			{
+				base.HeadBobPosition = Vector3.zero;
 			}
 		}
 
@@ -97,6 +136,7 @@ namespace PlayerRoles.PlayableScps.Scp106
 		{
 			base.Awake();
 			_tr = base.transform;
+			_portalDecals = GetComponentsInChildren<global::Decals.Decal>();
 		}
 
 		public override void Setup(ReferenceHub owner, IFpcRole fpc, Vector3 localPos, Quaternion localRot)
@@ -106,6 +146,10 @@ namespace PlayerRoles.PlayableScps.Scp106
 			scp106Role.SubroutineModule.TryGetSubroutine<Scp106StalkAbility>(out _stalkAbility);
 			_fpc = scp106Role.FpcModule as Scp106MovementModule;
 			_sinkhole = scp106Role.Sinkhole;
+			if (!base.Pooled && (owner.isLocalPlayer || owner.IsLocallySpectated()))
+			{
+				Scp106PortalShake.Register(scp106Role, this);
+			}
 		}
 	}
 }

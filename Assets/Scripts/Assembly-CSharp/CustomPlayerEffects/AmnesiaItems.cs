@@ -77,8 +77,48 @@ namespace CustomPlayerEffects
 			return true;
 		}
 
+		// Client half restored from the client build (IL2CPP): a vignette that pulses when an item use is blocked
+		// and otherwise settles to a minimum that grows over time.
+		private global::UnityEngine.Rendering.HighDefinition.Vignette _vignette;
+
+		private float _pulseTarget;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			global::UnityEngine.Rendering.Volume volume = GetComponent<global::UnityEngine.Rendering.Volume>();
+			if (volume != null && volume.profile != null)
+			{
+				volume.profile.TryGet(out _vignette);
+			}
+		}
+
+		protected override void OnEffectUpdate()
+		{
+			base.OnEffectUpdate();
+			if (_vignette == null || !IsPOV)
+			{
+				return;
+			}
+			float current = _vignette.intensity.value;
+			_vignette.intensity.Override(Mathf.Lerp(current, _pulseTarget, Time.deltaTime * _vignetteLerp));
+			float min = _pulseMinOverTime.Evaluate(_activeTime);
+			_pulseTarget = Mathf.Max(min, _pulseTarget - Time.deltaTime * _pulseDrop);
+		}
+
+		protected override void Disabled()
+		{
+			base.Disabled();
+			_pulseTarget = 0f;
+			if (_vignette != null)
+			{
+				_vignette.intensity.Override(0f);
+			}
+		}
+
 		public void ExecutePulse()
 		{
+			_pulseTarget = _pulseMax;
 		}
 
 		private void ServerSendPulse()

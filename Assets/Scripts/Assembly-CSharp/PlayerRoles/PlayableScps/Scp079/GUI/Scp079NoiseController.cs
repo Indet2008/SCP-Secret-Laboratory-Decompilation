@@ -1,129 +1,190 @@
+using System;
+using CustomRendering;
+using MapGeneration;
+using PlayerRoles.PlayableScps.Scp079.Cameras;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
+
 namespace PlayerRoles.PlayableScps.Scp079.GUI
 {
-	public class Scp079NoiseController : global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079GuiElementBase
+	public class Scp079NoiseController : Scp079GuiElementBase
 	{
-		[global::System.Serializable]
+		[Serializable]
 		private class NoiseAnimation
 		{
-			[global::UnityEngine.SerializeField]
+			[SerializeField]
 			private float _animationSpeed;
 
-			[global::UnityEngine.SerializeField]
-			private global::UnityEngine.AnimationCurve _fadeCurve;
+			[SerializeField]
+			private AnimationCurve _fadeCurve;
 
-			[global::UnityEngine.SerializeField]
-			private global::UnityEngine.AnimationCurve _additiveCurve;
+			[SerializeField]
+			private AnimationCurve _additiveCurve;
 
-			[global::UnityEngine.SerializeField]
-			private global::UnityEngine.AnimationCurve _distortionCurve;
+			[SerializeField]
+			private AnimationCurve _distortionCurve;
 
-			[global::UnityEngine.SerializeField]
-			private global::UnityEngine.AnimationCurve _darkenCurve;
+			[SerializeField]
+			private AnimationCurve _darkenCurve;
 
-			[global::UnityEngine.SerializeField]
-			private global::UnityEngine.AnimationCurve _alphaCurve;
+			[SerializeField]
+			private AnimationCurve _alphaCurve;
 
-			public float PrevValue
+			public float PrevValue { get; private set; }
+
+			public void ApplyTowards(Scp079NoiseController inst, float target, bool force)
 			{
-				[global::System.Runtime.CompilerServices.CompilerGenerated]
-				get
+				float num = Mathf.MoveTowards(PrevValue, target, Time.deltaTime * _animationSpeed);
+				if (PrevValue != num || force)
 				{
-					return default;
-				}
-				[global::System.Runtime.CompilerServices.CompilerGenerated]
-				set
-				{
+					ApplyAnimation(inst, num);
 				}
 			}
 
-			public void ApplyTowards(global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController inst, float target, bool force)
+			public void ApplyAnimation(Scp079NoiseController inst, float f)
 			{
-			}
-
-			public void ApplyAnimation(global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController inst, float f)
-			{
-			}
-
-			public NoiseAnimation()
-			{
+				if (inst._static != null)
+				{
+					inst._static.Fade.value = _fadeCurve.Evaluate(f);
+					inst._static.FadeAdditive.value = _additiveCurve.Evaluate(f);
+					inst._static.FadeDistortion.value = _distortionCurve.Evaluate(f);
+				}
+				inst._darkenImage.color = new Color(0f, 0f, 0f, Mathf.Clamp01(_darkenCurve.Evaluate(f)));
+				float num = _alphaCurve.Evaluate(f);
+				inst._overconFader.SetColor(ColorHash, Color.Lerp(TransparentWhite, Color.white, num));
+				inst._canvasFader.alpha = num;
+				PrevValue = f;
 			}
 		}
 
-		[global::System.Serializable]
+		[Serializable]
 		private struct ZoneSwitchSounds
 		{
-			public global::UnityEngine.AudioClip Clip;
+			public AudioClip Clip;
 
-			public global::MapGeneration.FacilityZone Zone;
+			public FacilityZone Zone;
 		}
 
-		private global::PlayerRoles.PlayableScps.Scp079.Cameras.Scp079CurrentCameraSync _camSync;
+		private Scp079CurrentCameraSync _camSync;
 
-		private global::PlayerRoles.PlayableScps.Scp079.Scp079LostSignalHandler _lostSignalHandler;
+		private Scp079LostSignalHandler _lostSignalHandler;
 
-		private global::CustomRendering.Static _static;
+		private Static _static;
 
-		private global::PlayerRoles.PlayableScps.Scp079.Cameras.Scp079CurrentCameraSync.ClientSwitchState _prevSwitchState;
+		private Scp079CurrentCameraSync.ClientSwitchState _prevSwitchState;
 
-		private static readonly global::UnityEngine.Color TransparentWhite;
+		private static readonly Color TransparentWhite = new Color(1f, 1f, 1f, 0f);
 
-		private static readonly int ColorHash;
+		private static readonly int ColorHash = Shader.PropertyToID("_Color");
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.AudioClip _noiseClip;
+		[SerializeField]
+		private AudioClip _noiseClip;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.UI.Image _darkenImage;
+		[SerializeField]
+		private Image _darkenImage;
 
-		[global::UnityEngine.SerializeField]
-		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController.ZoneSwitchSounds[] _zoneOverrides;
+		[SerializeField]
+		private ZoneSwitchSounds[] _zoneOverrides;
 
-		[global::UnityEngine.SerializeField]
+		[SerializeField]
 		private float _pitchVariation;
 
-		[global::UnityEngine.SerializeField]
-		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController.NoiseAnimation _lostSignalAnim;
+		[SerializeField]
+		private NoiseAnimation _lostSignalAnim;
 
-		[global::UnityEngine.SerializeField]
-		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController.NoiseAnimation _startupAnim;
+		[SerializeField]
+		private NoiseAnimation _startupAnim;
 
-		[global::UnityEngine.SerializeField]
-		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController.NoiseAnimation _regularSwitchAnim;
+		[SerializeField]
+		private NoiseAnimation _regularSwitchAnim;
 
-		[global::UnityEngine.SerializeField]
-		private global::PlayerRoles.PlayableScps.Scp079.GUI.Scp079NoiseController.NoiseAnimation _zoneSwitchAnim;
+		[SerializeField]
+		private NoiseAnimation _zoneSwitchAnim;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.CanvasGroup _canvasFader;
+		[SerializeField]
+		private CanvasGroup _canvasFader;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.CanvasGroup _zoneSwitchFader;
+		[SerializeField]
+		private CanvasGroup _zoneSwitchFader;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.Material _overconFader;
+		[SerializeField]
+		private Material _overconFader;
 
-		public bool FullyDarkened
+		public bool FullyDarkened => _darkenImage.color.a >= 1f;
+
+		internal override void Init(Scp079Role role, ReferenceHub owner)
 		{
-			get
+			base.Init(role, owner);
+			role.SubroutineModule.TryGetSubroutine<Scp079CurrentCameraSync>(out _camSync);
+			role.SubroutineModule.TryGetSubroutine<Scp079LostSignalHandler>(out _lostSignalHandler);
+			if (base.gameObject.TryGetComponent<Volume>(out var component))
 			{
-				return default;
+				component.profile.TryGet<Static>(out _static);
 			}
-		}
-
-		internal override void Init(global::PlayerRoles.PlayableScps.Scp079.Scp079Role role, ReferenceHub owner)
-		{
+			_startupAnim.ApplyAnimation(this, 1f);
 		}
 
 		private void Update()
 		{
+			if (_lostSignalHandler.Lost)
+			{
+				_regularSwitchAnim.ApplyAnimation(this, 0f);
+				_zoneSwitchAnim.ApplyAnimation(this, 0f);
+				_lostSignalAnim.ApplyTowards(this, 1f, force: true);
+				_zoneSwitchFader.alpha = 0f;
+				return;
+			}
+			UpdateSwitchState();
+			_lostSignalAnim.ApplyTowards(this, 0f, force: false);
+			if (!Scp079IntroCutscene.IsPlaying)
+			{
+				_startupAnim.ApplyTowards(this, 0f, force: false);
+			}
 		}
 
 		private void UpdateSwitchState()
 		{
-		}
-
-		public Scp079NoiseController()
-		{
+			Scp079CurrentCameraSync.ClientSwitchState curClientSwitchState = _camSync.CurClientSwitchState;
+			Scp079CurrentCameraSync.ClientSwitchState prevSwitchState = _prevSwitchState;
+			_prevSwitchState = curClientSwitchState;
+			switch (curClientSwitchState)
+			{
+			case Scp079CurrentCameraSync.ClientSwitchState.SwitchingRoom:
+				if (prevSwitchState != Scp079CurrentCameraSync.ClientSwitchState.SwitchingRoom)
+				{
+					PlaySound(_noiseClip, UnityEngine.Random.Range(1f - _pitchVariation, 1f + _pitchVariation));
+				}
+				_regularSwitchAnim.ApplyTowards(this, 1f, force: true);
+				break;
+			case Scp079CurrentCameraSync.ClientSwitchState.SwitchingZone:
+			{
+				_regularSwitchAnim.ApplyTowards(this, 0f, force: true);
+				_zoneSwitchAnim.ApplyTowards(this, 1f, force: true);
+				_zoneSwitchFader.alpha = _darkenImage.color.a;
+				if (prevSwitchState == Scp079CurrentCameraSync.ClientSwitchState.SwitchingZone)
+				{
+					break;
+				}
+				ZoneSwitchSounds[] zoneOverrides = _zoneOverrides;
+				for (int i = 0; i < zoneOverrides.Length; i++)
+				{
+					ZoneSwitchSounds zoneSwitchSounds = zoneOverrides[i];
+					if (zoneSwitchSounds.Zone == _camSync.CurClientTargetZone)
+					{
+						PlaySound(zoneSwitchSounds.Clip);
+						return;
+					}
+				}
+				PlaySound(_noiseClip);
+				break;
+			}
+			default:
+				_regularSwitchAnim.ApplyTowards(this, 0f, force: false);
+				_zoneSwitchAnim.ApplyTowards(this, 0f, force: false);
+				_zoneSwitchFader.alpha = _zoneSwitchAnim.PrevValue;
+				break;
+			}
 		}
 	}
 }

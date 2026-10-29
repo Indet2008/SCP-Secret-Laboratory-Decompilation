@@ -125,7 +125,7 @@ namespace PlayerRoles
 			roleBase.Init(Hub, reason, spawnFlags);
 			RoleSpawnpointManager.SetPosition(Hub, CurrentRole);
 			roleBase.SetupPoolObject();
-			if (CurrentRole is ISpawnDataReader spawnDataReader && data != null && targetId != RoleTypeId.Spectator && !base.isLocalPlayer)
+			if (CurrentRole is ISpawnDataReader spawnDataReader && data != null)
 			{
 				spawnDataReader.ReadSpawnData(data);
 			}
@@ -161,6 +161,15 @@ namespace PlayerRoles
 				InitializeNewRole(newRole, reason, spawnFlags);
 				beforeSendAction?.Invoke(CurrentRole);
 				SendNewRoleInfo();
+				if (Hub.isLocalPlayer && CurrentRole is Spectating.SpectatorRole spectatorRole)
+				{
+					// The host's own player never receives RoleSyncInfo, so it would never see the
+					// spectator start screen or the death screen; replay its private spawn data locally.
+					using NetworkWriterPooled networkWriterPooled = NetworkWriterPool.Get();
+					spectatorRole.WritePrivateSpawnData(networkWriterPooled);
+					using NetworkReaderPooled reader = NetworkReaderPool.Get(networkWriterPooled.ToArraySegment());
+					spectatorRole.ReadSpawnData(reader);
+				}
 				PlayerEvents.OnChangedRole(new PlayerChangedRoleEventArgs(_hub, roleTypeId, CurrentRole, reason, spawnFlags));
 			}
 		}

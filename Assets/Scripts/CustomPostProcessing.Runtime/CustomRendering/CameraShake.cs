@@ -32,7 +32,7 @@ namespace CustomRendering
 			float jitterThreshold = Mathf.Clamp01(1f - ScanLineJitter.value * 1.2f);
 			float jitterDisplacement = 0.002f + Mathf.Pow(ScanLineJitter.value, 3f) * 0.05f;
 			material.SetVector("_JitterJump", new Vector4(jitterDisplacement, jitterThreshold, VerticalJump.value, _verticalJumpTime));
-			material.SetVector("_ColorShake", new Vector4(HorizontalShake.value * 0.2f, ColorDrift.value * 0.04f, Time.time * 606.11f, 0f));
+			material.SetVector("_ColorShake", new Vector4(ColorDrift.value * 0.04f, Time.time * 606.11f, HorizontalShake.value * 0.2f, 0f));
 		}
 	}
 }

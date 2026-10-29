@@ -1,18 +1,33 @@
+using PlayerRoles.Ragdolls;
+using UnityEngine;
+
 namespace DeathAnimations
 {
 	public static class DeathAnimationInitializer
 	{
-		[global::UnityEngine.RuntimeInitializeOnLoadMethod]
+		[RuntimeInitializeOnLoadMethod]
 		private static void Init()
 		{
+			RagdollManager.OnRagdollSpawned += HandleAddedRagdoll;
+			RagdollManager.OnRagdollRemoved += HandleRemovedRagdoll;
 		}
 
-		private static void HandleAddedRagdoll(global::PlayerRoles.Ragdolls.BasicRagdoll rg)
+		private static void HandleAddedRagdoll(BasicRagdoll rg)
 		{
+			DeathAnimation[] allDeathAnimations = rg.AllDeathAnimations;
+			for (int i = 0; i < allDeathAnimations.Length; i++)
+			{
+				allDeathAnimations[i].StartDeathAnimation(rg);
+			}
 		}
 
-		private static void HandleRemovedRagdoll(global::PlayerRoles.Ragdolls.BasicRagdoll rg)
+		private static void HandleRemovedRagdoll(BasicRagdoll rg)
 		{
+			DeathAnimation[] allDeathAnimations = rg.AllDeathAnimations;
+			for (int i = 0; i < allDeathAnimations.Length; i++)
+			{
+				allDeathAnimations[i].KillDeathAnimation();
+			}
 		}
 	}
 }

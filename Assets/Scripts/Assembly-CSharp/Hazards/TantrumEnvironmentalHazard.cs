@@ -22,6 +22,12 @@ namespace Hazards
 		[global::UnityEngine.SerializeField]
 		private global::UnityEngine.Animator _animator;
 
+		private bool _isDespawning;
+
+		private float _dissolveAmount;
+
+		private static readonly int DissolveHash = Shader.PropertyToID("_Dissolve");
+
 		[global::UnityEngine.SerializeField]
 		private global::UnityEngine.Rendering.HighDefinition.DecalProjector _decal;
 
@@ -192,9 +198,21 @@ namespace Hazards
 			}
 		}
 
+		// The puddle fades in over a second (the prefab starts at fade 0) and dissolves while despawning.
 		private void LateUpdate()
 		{
 			SourcePosition = SynchronizedPosition.Position;
+			if (_decal.fadeFactor < 1f)
+			{
+				_decal.fadeFactor = Mathf.Clamp01(_decal.fadeFactor + Time.deltaTime);
+			}
+			if (_isDespawning)
+			{
+				_dissolveAmount += Time.deltaTime * _dissolveSpeed;
+				_decal.material.SetFloat(DissolveHash, Mathf.Clamp01(_dissolveAmount));
+				// The puddle uses HDRP/Decal (the decompiled DissolveDecal renders nothing), which has no dissolve, so fade instead.
+				_decal.fadeFactor = 1f - Mathf.Clamp01(_dissolveAmount);
+			}
 		}
 
 		private void CheckExplosion(Footprint attacker, Vector3 pos, ExplosionGrenade grenade)
@@ -213,6 +231,8 @@ namespace Hazards
 
 		private void ClientApplyDecalSize()
 		{
+			_decal.size = global::UnityEngine.Vector3.Scale(_decal.size, base.transform.localScale);
+			base.transform.localScale = global::UnityEngine.Vector3.one;
 		}
 
 		private IEnumerator<float> DelayedPuddleRemoval(float waitTime)
@@ -234,6 +254,10 @@ namespace Hazards
 
 		protected void UserCode_RpcDespawn__Boolean(bool playSizzle)
 		{
+			_isDespawning = true;
+			_decal.material = new global::UnityEngine.Material(_decal.material);
+			_animator.SetBool("queueDestroy", value: true);
+			_animator.SetBool("playSizzle", playSizzle);
 		}
 
 		protected static void InvokeUserCode_RpcDespawn__Boolean(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

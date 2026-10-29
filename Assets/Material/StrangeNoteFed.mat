@@ -31,6 +31,7 @@ Material:
   - _COLORMAP
   - _MASKMAP
   - _MATERIAL_AFFECTS_ALBEDO
+  - _MATERIAL_AFFECTS_MASKMAP
   - _MATERIAL_AFFECTS_NORMAL
   - _NORMALMAP
   m_InvalidKeywords: []
@@ -77,9 +78,9 @@ Material:
     - _AffectAO: 0
     - _AffectAlbedo: 1
     - _AffectEmission: 0
-    - _AffectMetal: 0
+    - _AffectMetal: 1
     - _AffectNormal: 1
-    - _AffectSmoothness: 0
+    - _AffectSmoothness: 1
     - _AlbedoAffectEmissive: 0
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
@@ -99,8 +100,8 @@ Material:
     - _DecalBlend: 0.975
     - _DecalColorMask0: 15
     - _DecalColorMask1: 15
-    - _DecalColorMask2: 0
-    - _DecalColorMask3: 0
+    - _DecalColorMask2: 11
+    - _DecalColorMask3: 8
     - _DecalMaskMapBlueScale: 0
     - _DecalMeshBiasType: 0
     - _DecalMeshDepthBias: 0

@@ -1,18 +1,56 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace OperationalGuide
 {
 	public class GameCloseEasterEgg : MonoBehaviour
 	{
-		// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-		public global::UnityEngine.Rendering.Volume ScreenVolume;
+		public Volume ScreenVolume;
 
-		public float EnableModifier;
+		public float EnableModifier = 0.5f;
 
-		public global::UnityEngine.GameObject RootText;
+		public GameObject RootText;
 
-		public global::UnityEngine.AudioSource MusicToPlay;
+		public AudioSource MusicToPlay;
 
+		private float _timeTillExit = 10f;
 
+		private float _fixedTime;
+
+		private bool _enabled;
+
+		private void OnEnable()
+		{
+			MusicToPlay.Play();
+			_enabled = true;
+			MainMenuSoundtrackController.Singleton.ToposThemeSource.Stop();
+		}
+
+		private void OnDisable()
+		{
+			_enabled = false;
+			_fixedTime = 0f;
+			ScreenVolume.weight = 0f;
+			RootText.SetActive(value: false);
+		}
+
+		// Fades the volume in, shows the text, then quits the game.
+		private void FixedUpdate()
+		{
+			if (_enabled)
+			{
+				float num = Mathf.Clamp01(_fixedTime);
+				ScreenVolume.weight = (3f - 2f * num) * num * num;
+				if (ScreenVolume.weight >= 0.99f && !RootText.activeSelf)
+				{
+					RootText.SetActive(value: true);
+				}
+				_fixedTime += Time.fixedDeltaTime;
+				if (_fixedTime >= _timeTillExit)
+				{
+					Application.Quit();
+				}
+			}
+		}
 	}
 }

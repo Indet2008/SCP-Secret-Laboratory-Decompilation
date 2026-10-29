@@ -6,6 +6,7 @@ using LabApi.Events.Handlers;
 using MapGeneration;
 using Mirror;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 using Utils.NonAllocLINQ;
 
 public class RoomLightController : NetworkBehaviour
@@ -18,9 +19,13 @@ public class RoomLightController : NetworkBehaviour
 
 	private bool _roomCacheSet;
 
-	private RoomLight[] _lights;
+	private const string IgnoreBlackoutsTag = "IgnoreBlackouts";
 
-	private bool _initialized;
+	private List<RoomLight> _cachedLights;
+
+	private List<HDProbe> _cachedReflectionProbes;
+
+	private bool _listCacheSet;
 
 	[SyncVar(hook = "LightsEnabledHook")]
 	public bool LightsEnabled;
@@ -78,6 +83,24 @@ public class RoomLightController : NetworkBehaviour
 
 	public event Action<bool> OnLightsSet;
 
+	public List<RoomLight> LightsInRoom
+	{
+		get
+		{
+			PrepareListCache();
+			return _cachedLights;
+		}
+	}
+
+	public List<HDProbe> ReflectionProbes
+	{
+		get
+		{
+			PrepareListCache();
+			return _cachedReflectionProbes;
+		}
+	}
+
 	private void Start()
 	{
 		if (NetworkServer.active)
@@ -87,16 +110,7 @@ public class RoomLightController : NetworkBehaviour
 		else
 		{
 			SetLights(LightsEnabled);
-			if (!LightsEnabled)
-			{
-				ApplyBlackout(state: true);
-			}
 		}
-		if (OverrideColor.a > 0f)
-		{
-			ApplyOverrideColor(OverrideColor);
-		}
-		_initialized = true;
 		Instances.Add(this);
 		OnAdded?.Invoke(this);
 		Room.LightControllers.AddIfNotContains(this);
@@ -106,6 +120,39 @@ public class RoomLightController : NetworkBehaviour
 	{
 		Instances.Remove(this);
 		OnRemoved?.Invoke(this);
+	}
+
+	// Lights and baked reflection probes of the room within HeightRadius of this controller. Cached once the map has generated.
+	private void PrepareListCache()
+	{
+		if (_listCacheSet)
+		{
+			return;
+		}
+		Transform parent = base.transform.parent;
+		float y = base.transform.position.y;
+		_cachedLights = new List<RoomLight>();
+		_cachedReflectionProbes = new List<HDProbe>();
+		RoomLight[] lights = parent.GetComponentsInChildren<RoomLight>(includeInactive: true);
+		foreach (RoomLight roomLight in lights)
+		{
+			if (!(Mathf.Abs(roomLight.transform.position.y - y) > 50f))
+			{
+				_cachedLights.Add(roomLight);
+			}
+		}
+		HDProbe[] probes = parent.GetComponentsInChildren<HDProbe>(includeInactive: true);
+		foreach (HDProbe hDProbe in probes)
+		{
+			if (!(Mathf.Abs(hDProbe.transform.position.y - y) > 50f) && hDProbe.mode != ProbeSettings.Mode.Realtime && !hDProbe.gameObject.CompareTag("IgnoreBlackouts"))
+			{
+				_cachedReflectionProbes.Add(hDProbe);
+			}
+		}
+		if (SeedSynchronizer.MapGenerated)
+		{
+			_listCacheSet = true;
+		}
 	}
 
 	private void Update()
@@ -126,68 +173,49 @@ public class RoomLightController : NetworkBehaviour
 		{
 			NetworkLightsEnabled = state;
 		}
+		SetProbeIntensity(state);
+		foreach (RoomLight item in LightsInRoom)
+		{
+			if (!(item == null))
+			{
+				item.SetBlackout(!state);
+			}
+		}
 		OnLightsSet?.Invoke(state);
+	}
+
+	private void SetProbeIntensity(bool state)
+	{
+		foreach (HDProbe reflectionProbe in ReflectionProbes)
+		{
+			if (!(reflectionProbe == null))
+			{
+				reflectionProbe.multiplier = (state ? 1 : 0);
+			}
+		}
 	}
 
 	private void LightsEnabledHook(bool oldValue, bool newValue)
 	{
 		ServerEvents.OnRoomLightChanged(new RoomLightChangedEventArgs(Room, newValue));
-		if (oldValue != newValue && _initialized)
-		{
-			ApplyBlackout(!newValue);
-			if (!NetworkServer.active)
-			{
-				OnLightsSet?.Invoke(newValue);
-			}
-		}
+		SetLights(newValue);
 	}
 
 	private void OverrideColorHook(Color oldValue, Color newValue)
 	{
 		ServerEvents.OnRoomColorChanged(new RoomColorChangedEventArgs(Room, newValue));
-		ApplyOverrideColor(newValue);
-	}
-
-	private RoomLight[] Lights
-	{
-		get
+		bool flag = newValue == Color.clear;
+		foreach (RoomLight item in LightsInRoom)
 		{
-			if (_lights == null)
-			{
-				Transform root = ((base.transform.parent != null) ? base.transform.parent : base.transform);
-				_lights = root.GetComponentsInChildren<RoomLight>(includeInactive: true);
-			}
-			return _lights;
-		}
-	}
-
-	private void ApplyBlackout(bool state)
-	{
-		RoomLight[] lights = Lights;
-		foreach (RoomLight roomLight in lights)
-		{
-			if (roomLight != null)
-			{
-				roomLight.SetBlackout(state);
-			}
-		}
-	}
-
-	private void ApplyOverrideColor(Color color)
-	{
-		bool flag = color.a > 0f;
-		RoomLight[] lights = Lights;
-		foreach (RoomLight roomLight in lights)
-		{
-			if (!(roomLight == null))
+			if (!(item == null))
 			{
 				if (flag)
 				{
-					roomLight.SetOverrideColor(color);
+					item.ResetOverrideColor();
 				}
 				else
 				{
-					roomLight.ResetOverrideColor();
+					item.SetOverrideColor(newValue);
 				}
 			}
 		}

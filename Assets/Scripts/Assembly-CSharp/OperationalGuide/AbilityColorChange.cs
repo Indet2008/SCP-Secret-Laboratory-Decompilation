@@ -1,25 +1,30 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
 namespace OperationalGuide
 {
-	public class AbilityColorChange : global::UnityEngine.MonoBehaviour, global::UnityEngine.EventSystems.IPointerEnterHandler, global::UnityEngine.EventSystems.IEventSystemHandler, global::UnityEngine.EventSystems.IPointerExitHandler
+	public class AbilityColorChange : MonoBehaviour, IPointerEnterHandler, IEventSystemHandler, IPointerExitHandler
 	{
-		public global::UnityEngine.GameObject ChildTextParent;
+		public GameObject ChildTextParent;
 
-		public global::UnityEngine.UI.Image AbilityIcon;
+		public Image AbilityIcon;
 
-		public global::UnityEngine.Color SelectedColor;
+		public Color SelectedColor;
 
-		public global::UnityEngine.Color DefaultColor;
+		public Color DefaultColor;
 
-		public void OnPointerEnter(global::UnityEngine.EventSystems.PointerEventData eventData)
+		public void OnPointerEnter(PointerEventData eventData)
 		{
+			AbilityIcon.color = SelectedColor;
 		}
 
-		public void OnPointerExit(global::UnityEngine.EventSystems.PointerEventData eventData)
+		public void OnPointerExit(PointerEventData eventData)
 		{
-		}
-
-		public AbilityColorChange()
-		{
+			if (!ChildTextParent.activeInHierarchy)
+			{
+				AbilityIcon.color = DefaultColor;
+			}
 		}
 	}
 }

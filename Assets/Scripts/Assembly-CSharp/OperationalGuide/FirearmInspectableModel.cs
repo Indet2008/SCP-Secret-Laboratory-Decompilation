@@ -1,21 +1,26 @@
+using InventorySystem.Items;
+using InventorySystem.Items.Firearms;
+using InventorySystem.Items.Firearms.Attachments;
+using UnityEngine;
+
 namespace OperationalGuide
 {
-	public class FirearmInspectableModel : global::UnityEngine.MonoBehaviour
+	public class FirearmInspectableModel : MonoBehaviour
 	{
-		[global::UnityEngine.SerializeField]
+		[SerializeField]
 		private ItemType _firearmToSpawn;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.Vector3 _localSpawnOffset;
+		[SerializeField]
+		private Vector3 _localSpawnOffset;
 
-		private global::InventorySystem.Items.Firearms.FirearmWorldmodel _inst;
+		private FirearmWorldmodel _inst;
 
 		private void Start()
 		{
-		}
-
-		public FirearmInspectableModel()
-		{
+			Firearm firearm = AttachmentPreview.Get(new ItemIdentifier(_firearmToSpawn, 0), reValidate: true);
+			_inst = Object.Instantiate(firearm.WorldModel, base.transform);
+			_inst.Setup(new ItemIdentifier(_firearmToSpawn, 0), FirearmWorldmodelType.Presentation, firearm.GetCurrentAttachmentsCode());
+			_inst.transform.localPosition = _localSpawnOffset;
 		}
 	}
 }

@@ -65,43 +65,39 @@ namespace PlayerRoles.PlayableScps.Scp106
 
 		private static float CurTime => Time.timeSinceLevelLoad;
 
-		private Graphic _vigorGraphic;
+		private UnityEngine.Rendering.HighDefinition.Vignette _vignette;
+
+		private CustomRendering.ScreenDissolve _dissolve;
+
+		private Graphic[] _vigorGraphics;
 
 		private StatSlider _vigorInstance;
 
 		private void LateUpdate()
 		{
-			_sinkholeCooldown.Update();
-			_attackCooldownElement.Update();
-		}
-
-		private void Update()
-		{
-			if (_vigorGraphic == null && _vigorInstance != null)
+			if (_vignette != null)
 			{
-				Slider componentInChildren = _vigorInstance.GetComponentInChildren<Slider>(includeInactive: true);
-				if (componentInChildren != null && componentInChildren.fillRect != null)
+				_vignette.intensity.value = _fpc.CurSlowdown * _maxVignette;
+			}
+			UpdateFlash(_cooldownFlasher, _cooldownFlashSw, Color.white, ref _cooldownIdleTime);
+			if (_vigorGraphics != null)
+			{
+				foreach (Graphic graphic in _vigorGraphics)
 				{
-					_vigorGraphic = componentInChildren.fillRect.GetComponent<Graphic>();
+					UpdateFlash(graphic, _vigorFlashSw, _normalColor, ref _vigorIdleTime);
 				}
 			}
-			if (_vigorGraphic != null)
-			{
-				UpdateFlash(_vigorGraphic, _vigorFlashSw, _normalColor, ref _vigorIdleTime);
-			}
-			if (_cooldownFlasher != null)
-			{
-				UpdateFlash(_cooldownFlasher, _cooldownFlashSw, _normalColor, ref _cooldownIdleTime);
-			}
+			_sinkholeCooldown.Update();
+			_attackCooldownElement.Update();
 		}
 
 		private void UpdateFlash(Graphic targetGraphic, Stopwatch sw, Color normalColor, ref float idleTime)
 		{
 			Color color;
-			if (sw.IsRunning && sw.Elapsed.TotalSeconds < (double)_flashDuration)
+			if (sw.IsRunning && (double)_flashDuration > sw.Elapsed.TotalSeconds)
 			{
-				float f = Mathf.Sin((CurTime - idleTime) * _flashSpeed * MathF.PI);
-				color = Color.Lerp(normalColor, Color.red, Mathf.Abs(f));
+				float t = Mathf.Abs(Mathf.Sin((CurTime - idleTime) * _flashSpeed * MathF.PI));
+				color = Color.Lerp(normalColor, Color.red, t);
 			}
 			else
 			{
@@ -137,19 +133,19 @@ namespace PlayerRoles.PlayableScps.Scp106
 			_role = hub.roleManager.CurrentRole as Scp106Role;
 			_fpc = _role.FpcModule as Scp106MovementModule;
 			_role.SubroutineModule.TryGetSubroutine<Scp106SinkholeController>(out _sinkholeController);
+			UnityEngine.Rendering.VolumeProfile profile = _vignetteVolume.profile;
+			profile.TryGet<UnityEngine.Rendering.HighDefinition.Vignette>(out _vignette);
+			profile.TryGet<CustomRendering.ScreenDissolve>(out _dissolve);
+			if (StatSliderManager.TryAdd(_vigorSlider, out var instance))
+			{
+				instance.gameObject.SetActive(value: true);
+				_vigorInstance = instance;
+				_vigorGraphics = instance.gameObject.GetComponentsInChildren<Graphic>(includeInactive: true);
+			}
 			_attackCooldownElement.Setup(_attackCooldown, null);
 			_sinkholeCooldown.Setup(_sinkholeController.ReadonlyCooldown, null);
 			_singleton = this;
 			_singletonSet = true;
-			if (hub.isLocalPlayer)
-			{
-				Scp106PortalShake.Register(_role, _role.FpcModule.CharacterModelInstance as Scp106Model);
-			}
-			if (hub.isLocalPlayer && StatSliderManager.TryAdd(_vigorSlider, out var instance))
-			{
-				instance.gameObject.SetActive(value: true);
-				_vigorInstance = instance;
-			}
 		}
 
 		public static void PlayCooldownAnimation(double nextTime)
@@ -169,14 +165,12 @@ namespace PlayerRoles.PlayableScps.Scp106
 			}
 		}
 
-		// Vignette that closes in while SCP-106 is submerged (amt 0..1).
+		// Screen dissolve while SCP-106 submerges/emerges (amt 0..1).
 		public static void SetDissolveAnimation(float amt)
 		{
-			if (_singletonSet && !(_singleton._vignetteVolume == null))
+			if (_singletonSet && _singleton._dissolve != null)
 			{
-				float num = Mathf.Clamp01(amt) * ((_singleton._maxVignette > 0f) ? Mathf.Min(_singleton._maxVignette, 1f) : 1f);
-				_singleton._vignetteVolume.weight = num;
-				_singleton._vignetteVolume.enabled = num > 0f;
+				_singleton._dissolve.DissolveAmount.value = Mathf.Clamp01(amt);
 			}
 		}
 	}

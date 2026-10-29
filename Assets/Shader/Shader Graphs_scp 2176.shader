@@ -72,6 +72,69 @@ Shader "Shader Graphs/scp 2176"
 			[HideInInspector] [NoScaleOffset] unity_LightmapsInd ("unity_LightmapsInd", 2DArray) = "" {}
 			[HideInInspector] [NoScaleOffset] unity_ShadowMasks ("unity_ShadowMasks", 2DArray) = "" {}
 		}
-	// Decompiled program was unusable (vertex/fragment variants split); kept as a fallback shell.
-	Fallback "HDRP/Lit"
+	// Hand-written replacement for the original "scp 2176" graph (glass bulb with fresnel glow and noise flicker).
+	// The screen-space refraction of the original is not reproduced; the tinted glass is blended instead.
+	SubShader
+	{
+		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" }
+		Pass
+		{
+			Name "ForwardOnly"
+			Tags { "LightMode" = "ForwardOnly" }
+			Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+			ZWrite [_ZWrite]
+			Cull [_CullMode]
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.5
+			#pragma multi_compile_instancing
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+			TEXTURE2D(_Diffuse); SAMPLER(sampler_Diffuse);
+			TEXTURE2D(_Noise); SAMPLER(sampler_Noise);
+			float4 _Color;
+			float4 _Refracted_color;
+			float4 _Fresnel_color;
+			float _Fresnel_thinness;
+			float _Noise_Intensity;
+			float _Noise_Speed;
+			float _SurfaceType;
+			float _BlendMode;
+
+			struct Attributes { float4 vertex : POSITION; float3 normal : NORMAL; float2 uv : TEXCOORD0; UNITY_VERTEX_INPUT_INSTANCE_ID };
+			struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float2 uv : TEXCOORD2; UNITY_VERTEX_OUTPUT_STEREO };
+
+			Varyings vert(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				o.positionWS = TransformObjectToWorld(v.vertex.xyz);
+				o.normalWS = TransformObjectToWorldNormal(v.normal);
+				o.positionCS = TransformWorldToHClip(o.positionWS);
+				o.uv = v.uv;
+				return o;
+			}
+
+			float4 frag(Varyings i) : SV_Target
+			{
+				float3 viewDir = normalize(-i.positionWS);
+				float3 n = normalize(i.normalWS);
+				float fresnel = pow(1 - saturate(abs(dot(n, viewDir))), max(_Fresnel_thinness, 0.01));
+				float noise = SAMPLE_TEXTURE2D(_Noise, sampler_Noise, i.uv + _TimeParameters.x * _Noise_Speed * 0.05).r;
+				float flicker = lerp(1, noise, saturate(_Noise_Intensity / 10));
+				float3 baseCol = _Color.rgb * SAMPLE_TEXTURE2D(_Diffuse, sampler_Diffuse, i.uv).rgb * _Refracted_color.rgb;
+				float3 col = baseCol + _Fresnel_color.rgb * fresnel * flicker;
+				float a = saturate(_Color.a + fresnel * 0.5);
+				if (_SurfaceType > 0.5 && abs(_BlendMode - 4) > 0.5) col *= a;
+				else if (_SurfaceType > 0.5) col = col * a;   // premultiply mode: color is authored as glass tint
+				return float4(col, a);
+			}
+			ENDHLSL
+		}
+	}
 }

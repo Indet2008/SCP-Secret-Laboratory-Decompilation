@@ -41,6 +41,8 @@ namespace InventorySystem.Items.Pickups
 			}
 		}
 
+		private readonly System.Diagnostics.Stopwatch _stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
 		private const float MinimalJoulesToInduceDamage = 15f;
 
 		private const float DamagePerJoule = 0.4f;
@@ -94,6 +96,18 @@ namespace InventorySystem.Items.Pickups
 
 		protected void MakeCollisionSound(float sqrtVelocity)
 		{
+			if (_stopwatch.Elapsed.TotalSeconds < (double)MinSoundCooldown || _audioSrc == null)
+			{
+				return;
+			}
+			for (int num = _soundsOverVelocity.Length - 1; num >= 0; num--)
+			{
+				if (_soundsOverVelocity[num].TryPlaySound(sqrtVelocity, _audioSrc))
+				{
+					break;
+				}
+			}
+			_stopwatch.Restart();
 		}
 
 		public override bool Weaved()

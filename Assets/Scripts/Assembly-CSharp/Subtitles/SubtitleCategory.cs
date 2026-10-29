@@ -23,26 +23,26 @@ namespace Subtitles
 		private static readonly string[] SplitSeperator = new string[1] { "<split>" };
 
 		[SerializeField]
-		private string _speakerName;
+		protected string _speakerName;
 
 		[SerializeField]
 		private Color _speakerColor;
 
 		public TextMeshProUGUI CategoryText;
 
-		private float _timer;
+		protected float _timer;
 
 		private Queue<Message> _messages = new Queue<Message>();
 
 		private Message _currentMessage;
 
-		private int _currentMessageSize;
+		protected int _currentMessageSize;
 
-		private int _speakerStartStringSize;
+		protected int _speakerStartStringSize;
 
-		private int _maxCharacters;
+		protected int _maxCharacters;
 
-		protected bool IsPlayingMessage { get; private set; }
+		protected bool IsPlayingMessage { get; set; }
 
 		protected virtual int MaxVisibleCharacters => _maxCharacters;
 
@@ -78,7 +78,7 @@ namespace Subtitles
 			_speakerStartStringSize = _speakerName.Length;
 		}
 
-		private void CheckForMessageStart()
+		protected void CheckForMessageStart()
 		{
 			if (_messages.Count != 0)
 			{

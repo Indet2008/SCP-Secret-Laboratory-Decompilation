@@ -71,6 +71,32 @@ namespace PlayerRoles.PlayableScps.Scp1507
 
 		protected override void UpdateCounter()
 		{
+			ResetTimer();
+			int num = -1;
+			int num2 = 0;
+			RoleTypeId roleId = base.Hub.GetRoleId();
+			foreach (ReferenceHub allHub in ReferenceHub.AllHubs)
+			{
+				if (HitboxIdentity.IsEnemy(allHub.GetRoleId(), roleId))
+				{
+					num2++;
+				}
+				else if (allHub.roleManager.CurrentRole is Scp1507Role)
+				{
+					num++;
+				}
+			}
+			base.TargetCounter.text = num2.ToString();
+			bool flag = num > 0;
+			bool activeSelf = _trackerRoot.activeSelf;
+			if (flag)
+			{
+				_allyCounter.text = num.ToString();
+			}
+			if (activeSelf != flag)
+			{
+				_trackerRoot.SetActive(flag);
+			}
 		}
 	}
 }

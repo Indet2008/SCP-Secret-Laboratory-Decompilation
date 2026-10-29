@@ -20,5 +20,30 @@ namespace Hints
 		{
 			writer.WriteFloat(DurationScalar);
 		}
+
+		public bool TryAwake(TData data, float rawTime)
+		{
+			float num = UpdateProgress(rawTime);
+			if (num > 0f && num <= 1f)
+			{
+				Awake(data);
+				return true;
+			}
+			return false;
+		}
+
+		public float Update(float rawTime)
+		{
+			float num = UpdateProgress(rawTime);
+			if (num > 0f && num <= 1f)
+			{
+				UpdateState(num);
+			}
+			return num;
+		}
+
+		protected abstract float UpdateProgress(float rawTime);
+
+		protected abstract void UpdateState(float progress);
 	}
 }

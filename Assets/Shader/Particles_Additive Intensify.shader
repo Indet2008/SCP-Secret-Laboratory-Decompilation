@@ -199,7 +199,7 @@ Shader "Particles/Additive Intensify"
 			static float2 vertex_input_2;
 			static float4 vertex_output_1;
 			static float2 vertex_output_2;
-			static float vertex_output_2;
+			static float vertex_output_fog;
 
 			struct Vertex_Stage_Input
 			{
@@ -212,7 +212,7 @@ Shader "Particles/Additive Intensify"
 			{
 				float4 vertex_output_1 : COLOR; // COLOR
 				float2 vertex_output_2 : TEXCOORD; // TEXCOORD
-				float vertex_output_2 : TEXCOORD1; // TEXCOORD_1
+				float vertex_output_fog : TEXCOORD1; // TEXCOORD_1
 				float4 gl_Position : SV_Position;
 			};
 
@@ -239,7 +239,7 @@ Shader "Particles/Additive Intensify"
 				precise float vertex_unnamed_150 = (-0.0f) - vertex_unnamed_149;
 				precise float vertex_unnamed_152 = vertex_unnamed_150 + 1.0f;
 				precise float vertex_unnamed_157 = vertex_unnamed_152 * vertex_uniform_buffer_1[5u].z;
-				vertex_output_2 = mad(max(vertex_unnamed_157, 0.0f), vertex_uniform_buffer_4[1u].z, vertex_uniform_buffer_4[1u].w);
+				vertex_output_fog = mad(max(vertex_unnamed_157, 0.0f), vertex_uniform_buffer_4[1u].z, vertex_uniform_buffer_4[1u].w);
 				precise float vertex_unnamed_181 = vertex_input_1.x * vertex_uniform_buffer_0[2u].x;
 				precise float vertex_unnamed_182 = vertex_input_1.y * vertex_uniform_buffer_0[2u].y;
 				precise float vertex_unnamed_183 = vertex_input_1.z * vertex_uniform_buffer_0[2u].z;
@@ -285,7 +285,7 @@ Shader "Particles/Additive Intensify"
 				stage_output.gl_Position = gl_Position;
 				stage_output.vertex_output_1 = vertex_output_1;
 				stage_output.vertex_output_2 = vertex_output_2;
-				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_fog = vertex_output_fog;
 				return stage_output;
 			}
 
@@ -295,14 +295,14 @@ Shader "Particles/Additive Intensify"
 
 			static float4 fragment_input_1;
 			static float2 fragment_input_2;
-			static float fragment_input_2;
+			static float fragment_input_fog;
 			static float4 fragment_output_0;
 
 			struct Fragment_Stage_Input
 			{
 				float4 fragment_input_1 : COLOR; // COLOR
 				float2 fragment_input_2 : TEXCOORD; // TEXCOORD
-				float fragment_input_2 : TEXCOORD1; // TEXCOORD_1
+				float fragment_input_fog : TEXCOORD1; // TEXCOORD_1
 			};
 
 			struct Fragment_Stage_Output
@@ -321,7 +321,7 @@ Shader "Particles/Additive Intensify"
 				precise float fragment_unnamed_64 = fragment_unnamed_47 * fragment_unnamed_57.y;
 				precise float fragment_unnamed_65 = fragment_unnamed_48 * fragment_unnamed_57.z;
 				precise float fragment_unnamed_66 = fragment_unnamed_49 * fragment_unnamed_57.w;
-				float fragment_unnamed_70 = clamp(fragment_input_2, 0.0f, 1.0f);
+				float fragment_unnamed_70 = clamp(fragment_input_fog, 0.0f, 1.0f);
 				precise float fragment_unnamed_71 = fragment_unnamed_63 * fragment_unnamed_70;
 				precise float fragment_unnamed_72 = fragment_unnamed_64 * fragment_unnamed_70;
 				precise float fragment_unnamed_73 = fragment_unnamed_65 * fragment_unnamed_70;
@@ -335,7 +335,7 @@ Shader "Particles/Additive Intensify"
 			{
 				fragment_input_1 = stage_input.fragment_input_1;
 				fragment_input_2 = stage_input.fragment_input_2;
-				fragment_input_2 = stage_input.fragment_input_2;
+				fragment_input_fog = stage_input.fragment_input_fog;
 				frag_main();
 				Fragment_Stage_Output stage_output;
 				stage_output.fragment_output_0 = fragment_output_0;
@@ -559,7 +559,7 @@ Shader "Particles/Additive Intensify"
 			static float2 vertex_input_2;
 			static float4 vertex_output_1;
 			static float2 vertex_output_2;
-			static float vertex_output_2;
+			static float vertex_output_fog;
 			static float4 vertex_output_3;
 
 			struct Vertex_Stage_Input
@@ -573,7 +573,7 @@ Shader "Particles/Additive Intensify"
 			{
 				float4 vertex_output_1 : COLOR; // COLOR
 				float2 vertex_output_2 : TEXCOORD; // TEXCOORD
-				float vertex_output_2 : TEXCOORD1; // TEXCOORD_1
+				float vertex_output_fog : TEXCOORD1; // TEXCOORD_1
 				float4 vertex_output_3 : TEXCOORD2; // TEXCOORD_2
 				float4 gl_Position : SV_Position;
 			};
@@ -617,7 +617,7 @@ Shader "Particles/Additive Intensify"
 				precise float vertex_unnamed_195 = (-0.0f) - vertex_unnamed_194;
 				precise float vertex_unnamed_197 = vertex_unnamed_195 + 1.0f;
 				precise float vertex_unnamed_202 = vertex_unnamed_197 * vertex_uniform_buffer_1[5u].z;
-				vertex_output_2 = mad(max(vertex_unnamed_202, 0.0f), vertex_uniform_buffer_4[1u].z, vertex_uniform_buffer_4[1u].w);
+				vertex_output_fog = mad(max(vertex_unnamed_202, 0.0f), vertex_uniform_buffer_4[1u].z, vertex_uniform_buffer_4[1u].w);
 				precise float vertex_unnamed_216 = vertex_unnamed_96 * vertex_uniform_buffer_3[10u].z;
 				precise float vertex_unnamed_232 = (-0.0f) - mad(vertex_uniform_buffer_3[12u].z, vertex_unnamed_98, mad(vertex_uniform_buffer_3[11u].z, vertex_unnamed_97, mad(vertex_uniform_buffer_3[9u].z, vertex_unnamed_95, vertex_unnamed_216)));
 				vertex_output_3.z = vertex_unnamed_232;
@@ -667,7 +667,7 @@ Shader "Particles/Additive Intensify"
 				stage_output.gl_Position = gl_Position;
 				stage_output.vertex_output_1 = vertex_output_1;
 				stage_output.vertex_output_2 = vertex_output_2;
-				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_fog = vertex_output_fog;
 				stage_output.vertex_output_3 = vertex_output_3;
 				return stage_output;
 			}
@@ -685,7 +685,7 @@ Shader "Particles/Additive Intensify"
 
 			static float4 fragment_input_1;
 			static float2 fragment_input_2;
-			static float fragment_input_2;
+			static float fragment_input_fog;
 			static float4 fragment_input_3;
 			static float4 fragment_output_0;
 
@@ -693,7 +693,7 @@ Shader "Particles/Additive Intensify"
 			{
 				float4 fragment_input_1 : COLOR; // COLOR
 				float2 fragment_input_2 : TEXCOORD; // TEXCOORD
-				float fragment_input_2 : TEXCOORD1; // TEXCOORD_1
+				float fragment_input_fog : TEXCOORD1; // TEXCOORD_1
 				float4 fragment_input_3 : TEXCOORD2; // TEXCOORD_2
 			};
 
@@ -720,7 +720,7 @@ Shader "Particles/Additive Intensify"
 				precise float fragment_unnamed_107 = fragment_unnamed_92 * fragment_unnamed_100.y;
 				precise float fragment_unnamed_108 = fragment_unnamed_93 * fragment_unnamed_100.z;
 				precise float fragment_unnamed_109 = fragment_unnamed_94 * fragment_unnamed_100.w;
-				float fragment_unnamed_111 = clamp(fragment_input_2, 0.0f, 1.0f);
+				float fragment_unnamed_111 = clamp(fragment_input_fog, 0.0f, 1.0f);
 				precise float fragment_unnamed_112 = fragment_unnamed_106 * fragment_unnamed_111;
 				precise float fragment_unnamed_113 = fragment_unnamed_107 * fragment_unnamed_111;
 				precise float fragment_unnamed_114 = fragment_unnamed_108 * fragment_unnamed_111;
@@ -738,7 +738,7 @@ Shader "Particles/Additive Intensify"
 
 				fragment_input_1 = stage_input.fragment_input_1;
 				fragment_input_2 = stage_input.fragment_input_2;
-				fragment_input_2 = stage_input.fragment_input_2;
+				fragment_input_fog = stage_input.fragment_input_fog;
 				fragment_input_3 = stage_input.fragment_input_3;
 				frag_main();
 				Fragment_Stage_Output stage_output;

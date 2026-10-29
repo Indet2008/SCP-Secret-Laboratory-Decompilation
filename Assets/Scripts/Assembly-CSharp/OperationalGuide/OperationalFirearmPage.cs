@@ -1,25 +1,28 @@
 namespace OperationalGuide
 {
-	public class OperationalFirearmPage : global::OperationalGuide.OperationalExistingPannablePage
+	public class OperationalFirearmPage : OperationalExistingPannablePage
 	{
-		public global::OperationalGuide.FirearmObject FirearmObject;
+		public FirearmObject FirearmObject;
 
 		public ItemType DefaultItem;
 
 		public override void ToggleDescriptionMenu()
 		{
+			base.ToggleDescriptionMenu();
+			FirearmObject.UpdateHeldItem(DefaultItem);
 		}
 
 		public virtual void UpdateHeldItem(int item)
 		{
+			FirearmObject.UpdateHeldItem((ItemType)item);
+			DefaultItem = (ItemType)item;
 		}
 
 		public override void SpawnPannable()
 		{
-		}
-
-		public OperationalFirearmPage()
-		{
+			PannableObject = OperationalGuide.Instance.SpawnModelRoleForCamera(RoleToSpawn);
+			FirearmObject = PannableObject as FirearmObject;
+			FirearmObject.UpdateHeldItem(DefaultItem);
 		}
 	}
 }

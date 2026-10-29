@@ -183,6 +183,7 @@ public class AlphaWarheadNukesitePanel : NetworkBehaviour, IServerInteractable, 
 
 	protected void UserCode_RpcLeverSound()
 	{
+		lever.GetComponent<AudioSource>().Play();
 	}
 
 	protected static void InvokeUserCode_RpcLeverSound(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

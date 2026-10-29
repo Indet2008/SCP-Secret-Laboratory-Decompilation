@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace ToggleableMenus
 {
-	// Client-only in v14 (the server build ships an empty shell); ported from the SL 12 CE client,
-	// plus hold-to-show handling for IHoldableMenu.
+	// Client-only in v14 (the server build ships an empty shell); rebuilt from the v14 client binary.
 	public static class ToggleableMenuController
 	{
 		private static IRegisterableMenu _currentMenu;
@@ -19,9 +18,9 @@ namespace ToggleableMenus
 		{
 			get
 			{
-				if (!IsNull(_currentMenu))
+				if (_wasAnyEnabled)
 				{
-					return _currentMenu.IsEnabled;
+					return !IsNull(_currentMenu);
 				}
 				return false;
 			}
@@ -48,104 +47,95 @@ namespace ToggleableMenus
 
 		private static void Update()
 		{
-			if (_wasAnyEnabled && !AnyEnabled)
+			if (AnyEnabled && (Input.GetKeyDown(KeyCode.Escape) || !_currentMenu.IsEnabled))
 			{
+				if (_currentMenu is SimpleToggleableMenu simpleToggleableMenu && !simpleToggleableMenu.CanToggle)
+				{
+					return;
+				}
+				_currentMenu.IsEnabled = false;
 				_currentMenu = null;
-			}
-			if (AnyEnabled && Input.GetKeyDown(KeyCode.Escape) && _currentMenu is ToggleableMenuBase current && current.CanToggle)
-			{
-				HideCurrent();
 			}
 			RegisteredMenus.RemoveWhere(IsNull);
 			MenusNonAlloc.Clear();
 			MenusNonAlloc.AddRange(RegisteredMenus);
-			foreach (IRegisterableMenu menu in MenusNonAlloc)
+			foreach (IRegisterableMenu item in MenusNonAlloc)
 			{
-				if (menu is ToggleableMenuBase baseMenu)
+				if (item is ToggleableMenuBase toggleableMenuBase)
 				{
-					if (menu is IHoldableMenu holdable && holdable.IsHoldable)
+					if (toggleableMenuBase is IHoldableMenu { IsHoldable: not false })
 					{
-						HandleHoldableMenu(baseMenu);
+						HandleHoldableMenu(toggleableMenuBase);
 					}
 					else
 					{
-						HandleBaseMenu(baseMenu);
+						HandleBaseMenu(toggleableMenuBase);
 					}
 				}
 			}
-			_wasAnyEnabled = AnyEnabled;
+			_wasAnyEnabled = !IsNull(_currentMenu);
 		}
 
 		private static void HandleBaseMenu(ToggleableMenuBase menu)
 		{
-			KeyCode key = NewInput.GetKey(menu.MenuActionKey);
-			if (key == KeyCode.None || !Input.GetKeyDown(key) || !menu.CanToggle)
+			if (Input.GetKeyDown(NewInput.GetKey(menu.MenuActionKey)) && menu.CanToggle)
 			{
-				return;
+				ToggleMenu(menu);
 			}
-			ToggleMenu(menu);
 		}
 
 		private static void HandleHoldableMenu(ToggleableMenuBase menu)
 		{
-			KeyCode key = NewInput.GetKey(menu.MenuActionKey);
-			if (key == KeyCode.None)
+			if (menu.CanToggle)
 			{
-				return;
-			}
-			if (Input.GetKeyDown(key) && menu.CanToggle && (!AnyEnabled || _currentMenu == menu))
-			{
-				ForceCurrent(menu);
-			}
-			else if (!Input.GetKey(key) && _currentMenu == menu && menu.IsEnabled)
-			{
-				HideCurrent();
+				KeyCode key = NewInput.GetKey(menu.MenuActionKey);
+				if ((!menu.IsEnabled && Input.GetKeyDown(key)) || (menu.IsEnabled && !Input.GetKey(key)))
+				{
+					ToggleMenu(menu);
+				}
 			}
 		}
 
 		public static void ToggleMenu(IRegisterableMenu menu)
 		{
-			if (IsNull(menu))
+			if (_wasAnyEnabled)
 			{
-				return;
-			}
-			if (_currentMenu == menu && menu.IsEnabled)
-			{
-				HideCurrent();
-				return;
-			}
-			if (AnyEnabled)
-			{
-				// Another menu is open; only switch if it allows being closed.
-				if (_currentMenu is ToggleableMenuBase current && !current.CanToggle)
+				// While a menu is open, other menus' keys are ignored (e.g. typing into the console).
+				if (menu == _currentMenu)
 				{
-					return;
+					HideCurrent();
 				}
 			}
-			ForceCurrent(menu);
+			else if (!IsNull(menu))
+			{
+				menu.IsEnabled = true;
+				_wasAnyEnabled = true;
+				_currentMenu = menu;
+			}
 		}
 
 		public static void ForceCurrent(IRegisterableMenu menu)
 		{
-			if (_currentMenu != menu)
+			if (_wasAnyEnabled && _currentMenu != menu && !IsNull(_currentMenu))
 			{
-				HideCurrent();
+				_currentMenu.IsEnabled = false;
 			}
-			if (IsNull(menu))
+			if (!IsNull(menu))
 			{
-				return;
+				menu.IsEnabled = true;
+				_wasAnyEnabled = true;
+				_currentMenu = menu;
 			}
-			_currentMenu = menu;
-			menu.IsEnabled = true;
 		}
 
 		public static void HideCurrent()
 		{
-			if (!IsNull(_currentMenu))
+			if (AnyEnabled)
 			{
 				_currentMenu.IsEnabled = false;
+				_currentMenu = null;
+				_wasAnyEnabled = false;
 			}
-			_currentMenu = null;
 		}
 	}
 }

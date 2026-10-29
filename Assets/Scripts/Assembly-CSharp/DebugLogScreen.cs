@@ -1,11 +1,31 @@
+using CursorManagement;
 using UnityEngine;
 
 public class DebugLogScreen : MonoBehaviour
 {
-	// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-	public global::UnityEngine.GameObject Log;
+	public GameObject Log;
 
-	public global::UnityEngine.GameObject Info;
+	public GameObject Info;
 
+	private void OnEnable()
+	{
+		Info.SetActive(value: true);
+		CursorManager.SetLockMode((CursorLockMode)((Log.activeSelf ? 1 : 0) + 1));
+	}
 
+	private void OnDisable()
+	{
+		Info.SetActive(value: false);
+		Cursor.lockState = CursorLockMode.Confined;
+		Cursor.visible = true;
+	}
+
+	private void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.F4) && DebugLogReader.SuccesfullyInitialized())
+		{
+			Log.SetActive(!Log.activeSelf);
+			CursorManager.SetLockMode((CursorLockMode)((Log.activeSelf ? 1 : 0) + 1));
+		}
+	}
 }

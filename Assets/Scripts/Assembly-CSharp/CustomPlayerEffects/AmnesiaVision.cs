@@ -35,5 +35,42 @@ namespace CustomPlayerEffects
 			base.Enabled();
 			_lastTime = Time.timeSinceLevelLoad;
 		}
+
+		// Client half restored from the client build (IL2CPP): whispers fade in over time while affected,
+		// and a "disable" cue plays when the effect ends.
+		protected override void OnEffectUpdate()
+		{
+			base.OnEffectUpdate();
+			if (!IsPOV)
+			{
+				StopSources();
+				return;
+			}
+			if (!_whispersSource.isPlaying)
+			{
+				_whispersSource.Play();
+			}
+			float target = _whispersOverTime.Evaluate(Time.timeSinceLevelLoad - _lastTime);
+			_whispersSource.volume = Mathf.MoveTowards(_whispersSource.volume, target, Time.deltaTime * _soundtrackLerp);
+		}
+
+		protected override void Disabled()
+		{
+			base.Disabled();
+			_growlSource.Stop();
+			_whispersSource.Stop();
+			if (IsPOV && _whispersSource.volume > 0f)
+			{
+				_disableSource.Play();
+			}
+			_whispersSource.volume = 0f;
+		}
+
+		private void StopSources()
+		{
+			_whispersSource.Stop();
+			_growlSource.Stop();
+			_disableSource.Stop();
+		}
 	}
 }

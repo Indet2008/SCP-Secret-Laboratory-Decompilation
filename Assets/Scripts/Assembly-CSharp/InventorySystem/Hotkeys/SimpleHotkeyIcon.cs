@@ -1,14 +1,26 @@
+using InventorySystem.Hotkeys.Customization;
+using InventorySystem.Items;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace InventorySystem.Hotkeys
 {
 	public class SimpleHotkeyIcon : HotkeyIconBase
 	{
-		// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.UI.RawImage _icon;
+		[SerializeField]
+		private RawImage _icon;
 
-		[global::UnityEngine.SerializeField]
-		private global::InventorySystem.Hotkeys.Customization.HotkeyApperance _size;
+		[SerializeField]
+		private HotkeyApperance _size;
 
+		public override bool CheckCompatibility(ItemBase item, HotkeyApperance apperance)
+		{
+			return apperance == _size;
+		}
 
+		public override void SetItem(ItemBase item)
+		{
+			_icon.texture = item.Icon;
+		}
 	}
 }

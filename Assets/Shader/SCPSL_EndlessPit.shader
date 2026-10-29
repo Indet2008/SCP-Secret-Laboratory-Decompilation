@@ -7,11 +7,12 @@ Shader "SCPSL/Endless Pit"
 	Properties
 	{
 		_Base_Color ("Base Color", Color) = (0.125,0.145,0.16,1)
+		_Color ("Color", Color) = (0,0,0,0)
 		[HDR] _Emission ("Emission", Color) = (0,0,0,0)
 		_DepthMultiplier ("Depth Multiplier", Float) = 0.26
 		_Power ("Power", Float) = 0.5
 		_FadeDistance ("Fade Distance (near, far)", Vector) = (0,0.2,0,0)
-		_EmissionScale ("Emission Scale", Float) = 0.02
+		_EmissionScale ("Emission Scale", Float) = 0.06
 	}
 	SubShader
 	{
@@ -33,6 +34,7 @@ Shader "SCPSL/Endless Pit"
 
 			CBUFFER_START(UnityPerMaterial)
 			float4 _Base_Color;
+			float4 _Color;
 			float4 _Emission;
 			float _DepthMultiplier;
 			float _Power;
@@ -40,27 +42,29 @@ Shader "SCPSL/Endless Pit"
 			float _EmissionScale;
 			CBUFFER_END
 
-			struct Attributes { float3 positionOS : POSITION; };
-			struct Varyings { float4 positionCS : SV_POSITION; };
+			struct Attributes { float3 positionOS : POSITION; float2 uv : TEXCOORD0; };
+			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; };
 
 			Varyings Vert(Attributes input)
 			{
 				Varyings output;
 				output.positionCS = TransformWorldToHClip(TransformObjectToWorld(input.positionOS));
+				output.uv = input.uv;
 				return output;
 			}
 
 			float4 Frag(Varyings input) : SV_Target
 			{
+				// Original VFX_EndlessPit graph (decompiled ForwardOnly program):
+				// alpha = saturate((sceneEye - fragEye) * _DepthMultiplier)^_Power * saturate((fragEye - fade.x) / (fade.y - fade.x))
+				// colour = _Color * _DeExposureMultiplier + _Emission * exposure. _Base_Color is unused by the original.
 				float sceneEye = LinearEyeDepth(LoadCameraDepth(uint2(input.positionCS.xy)), _ZBufferParams);
-				float surfaceEye = LinearEyeDepth(input.positionCS.z, _ZBufferParams);
-				float behind = max(0.0, sceneEye - surfaceEye);
-				float fade = saturate(pow(saturate(behind * _DepthMultiplier), max(_Power, 0.01)));
-				// Soften the edge where the plane meets nearby geometry.
-				float edge = saturate((behind - _FadeDistance.x) / max(_FadeDistance.y - _FadeDistance.x, 0.001));
-				float alpha = saturate(fade * edge * _Base_Color.a);
-				float3 col = _Base_Color.rgb + _Emission.rgb * _EmissionScale * fade;
-				return float4(col * GetCurrentExposureMultiplier(), alpha);
+				float fragEye = LinearEyeDepth(input.positionCS.z, _ZBufferParams);
+				float depth = pow(saturate((sceneEye - fragEye) * _DepthMultiplier), _Power);
+				float nearFade = saturate((fragEye - _FadeDistance.x) / (_FadeDistance.y - _FadeDistance.x));
+				float alpha = depth * nearFade;
+				float3 col = _Color.rgb * _DeExposureMultiplier + _Emission.rgb * GetCurrentExposureMultiplier();
+				return float4(col, alpha);
 			}
 			ENDHLSL
 		}

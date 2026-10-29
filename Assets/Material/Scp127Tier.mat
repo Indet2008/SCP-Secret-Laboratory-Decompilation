@@ -8,10 +8,11 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Scp127Tier
-  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_Shader: {fileID: 4800000, guid: d1552540d635e454ea37be6e5bd2099e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _ALPHATEST_ON
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
@@ -19,7 +20,6 @@ Material:
   - _NORMALMAP
   - _NORMALMAP_TANGENT_SPACE
   - _SURFACE_TYPE_TRANSPARENT
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -193,7 +193,7 @@ Material:
     - _EnergyConservingSpecularColor: 1
     - _ExcludeFromTUAndAA: 0
     - _Fill: 1
-    - _FillTier1: 1
+    - _FillTier1: 0.461
     - _FillTier2: 1
     - _FillTier3: 1
     - _HeightAmplitude: 0.02
@@ -275,14 +275,14 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BaseColorTier1: {r: 1, g: 1, b: 1, a: 0}
+    - _BaseColorTier1: {r: 0.8584906, g: 0.8584906, b: 0.8584906, a: 1}
     - _BaseColorTier2: {r: 1, g: 1, b: 1, a: 0}
     - _BaseColorTier3: {r: 1, g: 1, b: 1, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColorTier1: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissionColorTier1: {r: 1, g: 0, b: 0, a: 1}
     - _EmissionColorTier2: {r: 0, g: 0, b: 0, a: 0}
     - _EmissionColorTier3: {r: 0, g: 0, b: 0, a: 0}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

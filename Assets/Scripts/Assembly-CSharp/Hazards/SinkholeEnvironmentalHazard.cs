@@ -46,6 +46,12 @@ namespace Hazards
 
 		private void ClientApplyDecalSize()
 		{
+			global::UnityEngine.Rendering.HighDefinition.DecalProjector[] componentsInChildren = base.gameObject.GetComponentsInChildren<global::UnityEngine.Rendering.HighDefinition.DecalProjector>();
+			foreach (global::UnityEngine.Rendering.HighDefinition.DecalProjector decalProjector in componentsInChildren)
+			{
+				decalProjector.size = global::UnityEngine.Vector3.Scale(decalProjector.size, base.transform.localScale);
+			}
+			base.transform.localScale = global::UnityEngine.Vector3.one;
 		}
 
 		public override bool Weaved()

@@ -1,24 +1,25 @@
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace OperationalGuide
 {
-	public class ToggleImage : global::UnityEngine.MonoBehaviour
+	public class ToggleImage : MonoBehaviour
 	{
 		private bool _toggled;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.Sprite _defaultSprite;
+		[SerializeField]
+		private Sprite _defaultSprite;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.Sprite _toggledSprite;
+		[SerializeField]
+		private Sprite _toggledSprite;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.UI.Image _sourceImage;
+		[SerializeField]
+		private Image _sourceImage;
 
 		public void ButtonToggleImage()
 		{
-		}
-
-		public ToggleImage()
-		{
+			_toggled = !_toggled;
+			_sourceImage.sprite = (_toggled ? _toggledSprite : _defaultSprite);
 		}
 	}
 }

@@ -1,23 +1,23 @@
+using UnityEngine;
+
 namespace OperationalGuide
 {
-	internal class SetAnimatorSpeed : global::UnityEngine.MonoBehaviour
+	public class SetAnimatorSpeed : MonoBehaviour
 	{
-		private static readonly int Speed;
+		private static readonly int Speed = Animator.StringToHash("Speed");
 
-		public global::UnityEngine.Animator Animator;
+		public Animator Animator;
 
 		public float CustomSpeed;
 
 		private void Start()
 		{
+			Animator.SetFloat(Speed, CustomSpeed);
 		}
 
 		private void OnEnable()
 		{
-		}
-
-		public SetAnimatorSpeed()
-		{
+			Animator.SetFloat(Speed, CustomSpeed);
 		}
 	}
 }

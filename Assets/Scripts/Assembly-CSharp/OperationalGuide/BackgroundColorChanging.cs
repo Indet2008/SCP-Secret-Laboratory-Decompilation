@@ -1,27 +1,42 @@
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace OperationalGuide
 {
-	public class BackgroundColorChanging : global::UnityEngine.MonoBehaviour
+	public class BackgroundColorChanging : MonoBehaviour
 	{
-		public global::UnityEngine.UI.Image Background;
+		public Image Background;
 
-		public global::UnityEngine.Color ColorIni;
+		public Color ColorIni = Color.white;
 
-		public global::UnityEngine.Color ColorFin;
+		public Color ColorFin = new Color(1f, 0f, 0f, 1f);
 
-		public float Chance;
+		public float Chance = 0.8f;
 
 		private int _framesActive;
 
 		private void Start()
 		{
+			Background.color = ColorIni;
 		}
 
+		// Random flicker: switches to ColorFin for a couple of frames.
 		private void Update()
 		{
-		}
-
-		public BackgroundColorChanging()
-		{
+			if (_framesActive >= 2)
+			{
+				_framesActive = 0;
+				Background.color = ColorIni;
+			}
+			if (_framesActive != 0)
+			{
+				_framesActive++;
+			}
+			else if (Random.value > Chance)
+			{
+				_framesActive = 1;
+				Background.color = ColorFin;
+			}
 		}
 	}
 }

@@ -320,6 +320,22 @@ namespace InventorySystem.Items.MarshmallowMan
 
 		private void UpdateClientInput()
 		{
+			if (!_cooldown.IsReady || _preventAttacks || !InventoryGuiController.ItemsSafeForInteraction)
+			{
+				return;
+			}
+			KeyCode key = NewInput.GetKey(ActionName.Shoot);
+			KeyCode key2 = NewInput.GetKey(ActionName.ToggleFlashlight);
+			if (Input.GetKeyDown(key2))
+			{
+				ClientSendCmd();
+			}
+			if (Input.GetKeyDown(key))
+			{
+				MarshmallowItem.OnSwing?.Invoke(base.ItemSerial);
+				_cooldown.Trigger(_attackCooldown);
+				ClientSendCmd(ClientWriteAttackResult);
+			}
 		}
 
 		private void ClientWriteAttackResult(NetworkWriter writer)

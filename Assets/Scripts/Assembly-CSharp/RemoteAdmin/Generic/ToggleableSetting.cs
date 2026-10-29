@@ -7,11 +7,6 @@ namespace RemoteAdmin.Generic
 	[Serializable]
 	public abstract class ToggleableSetting : RaSetting<bool>
 	{
-		// Same green/red as the Round menu lock icons.
-		private static readonly Color EnabledColor = new Color(0.2509804f, 1f, 0.39215687f, 1f);
-
-		private static readonly Color DisabledColor = new Color(1f, 0.30588236f, 0.2509804f, 1f);
-
 		public override bool Value
 		{
 			get
@@ -46,24 +41,11 @@ namespace RemoteAdmin.Generic
 
 		protected virtual void SetButton(bool value)
 		{
-			if (RepresentingButton == null)
+			// RaSettings can load lazily before the RA controller wakes up; the original never hit that order.
+			if (!(RepresentingButton == null) && !(RemoteAdminUIController.Singleton == null))
 			{
-				return;
-			}
-			Color color = (value ? EnabledColor : DisabledColor);
-			Outline[] components = RepresentingButton.GetComponents<Outline>();
-			foreach (Outline outline in components)
-			{
-				outline.effectColor = color;
-			}
-			if (components.Length == 0 && RepresentingButton.targetGraphic != null)
-			{
-				RepresentingButton.targetGraphic.color = color;
-			}
-			TMPro.TMP_Text componentInChildren = RepresentingButton.GetComponentInChildren<TMPro.TMP_Text>(includeInactive: true);
-			if (componentInChildren != null)
-			{
-				componentInChildren.color = color;
+				SubmenuSelector submenuSelector = RemoteAdminUIController.Singleton.SubmenuSelector;
+				RepresentingButton.colors = (value ? submenuSelector.ToggleOn : submenuSelector.ToggleOff);
 			}
 		}
 	}

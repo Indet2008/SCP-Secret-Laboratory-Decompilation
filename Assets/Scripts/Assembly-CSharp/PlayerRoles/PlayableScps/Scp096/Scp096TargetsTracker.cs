@@ -69,6 +69,15 @@ namespace PlayerRoles.PlayableScps.Scp096
 			{
 				return false;
 			}
+			// Client stingers restored from the client build.
+			if (Targets.Count == 0 && base.Owner.isLocalPlayer)
+			{
+				PlayTargetSound(_newTargetSound);
+			}
+			else if (target.isLocalPlayer)
+			{
+				PlayTargetSound(_seenJumpscareSound);
+			}
 			Targets.Add(target);
 			Current096Targets++;
 			if (!NetworkServer.active && !_markers.ContainsKey(target))
@@ -219,6 +228,16 @@ namespace PlayerRoles.PlayableScps.Scp096
 			{
 				ServerCheckTargets();
 			}
+		}
+
+		private void PlayTargetSound(AudioClip clip)
+		{
+			if (LastPlayedStingerSw.IsRunning && LastPlayedStingerSw.Elapsed.TotalSeconds < 2.0)
+			{
+				return;
+			}
+			LastPlayedStingerSw.Restart();
+			AudioPooling.AudioSourcePoolManager.Play2D(clip);
 		}
 
 		private void CheckRemovedPlayer(ReferenceHub ply)

@@ -201,7 +201,8 @@ namespace GameCore
 				sender = ServerStatic.IsDedicated ? ServerConsole.Scs : Ccs;
 				if (!ServerStatic.IsDedicated)
 				{
-					AddLog("> " + cmd, Color.white);
+					// The original only writes the typed command to the Unity log, not the game console.
+					Debug.Log(">>> " + cmd);
 					_clientCommandLogs.Add(cmd);
 				}
 			}
@@ -270,6 +271,17 @@ namespace GameCore
 			arguments = e.Arguments;
 			sender = e.Sender;
 			command = e.Command;
+			if (!flag2 && NetworkServer.active && CommandProcessor.RemoteAdminCommandHandler.TryGetCommand(cmd, out _))
+			{
+				// Convenience for the listen-server host: run RA commands (noclip/n, etc.) without the '/' prefix,
+				// as the local player so commands that default to "self" target the host.
+				CommandSender raSender = sender;
+				if (!ServerStatic.IsDedicated && ReferenceHub.TryGetLocalHub(out var localHub) && localHub.queryProcessor.TryGetSender(out var playerSender))
+				{
+					raSender = playerSender;
+				}
+				return CommandProcessor.ProcessQuery(string.Join(" ", array), raSender);
+			}
 			if (!flag2)
 			{
 				string text6 = "Command " + cmd + " does not exist!";

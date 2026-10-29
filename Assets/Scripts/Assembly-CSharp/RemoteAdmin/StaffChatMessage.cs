@@ -1,21 +1,26 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace RemoteAdmin
 {
-	public class StaffChatMessage : global::UnityEngine.MonoBehaviour
+	public class StaffChatMessage : MonoBehaviour
 	{
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.UI.Image _image;
+		[SerializeField]
+		private Image _image;
 
-		[global::UnityEngine.SerializeField]
-		private global::TMPro.TextMeshProUGUI _text;
+		[SerializeField]
+		private TextMeshProUGUI _text;
 
-		public global::UnityEngine.Color Color
+		public Color Color
 		{
 			get
 			{
-				return default;
+				return _image.color;
 			}
 			set
 			{
+				_image.color = value;
 			}
 		}
 
@@ -23,15 +28,12 @@ namespace RemoteAdmin
 		{
 			get
 			{
-				return default;
+				return _text.text;
 			}
 			set
 			{
+				_text.text = value;
 			}
-		}
-
-		public StaffChatMessage()
-		{
 		}
 	}
 }

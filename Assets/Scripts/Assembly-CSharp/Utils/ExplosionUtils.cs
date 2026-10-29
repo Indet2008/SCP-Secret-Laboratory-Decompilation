@@ -27,6 +27,10 @@ namespace Utils
 		{
 			NetworkClient.ReplaceHandler((GrenadeExplosionMessage msg) =>
 			{
+				if (InventoryItemLoader.TryGetItem<ThrowableItem>((ItemType)msg.GrenadeType, out var result) && result.Projectile is EffectGrenade effectGrenade)
+				{
+					effectGrenade.PlayExplosionEffects(msg.Pos.Position);
+				}
 			});
 		}
 

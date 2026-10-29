@@ -1,21 +1,38 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FPSCounter : MonoBehaviour
 {
-	// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-	public global::UnityEngine.UI.Text FpsText;
+	private double _framerate;
 
+	private double _frametime;
+
+	private ushort _time;
+
+	public Text FpsText;
 
 	private void Start()
 	{
-		base.enabled = false;
+		if (ServerStatic.IsDedicated)
+		{
+			base.enabled = false;
+		}
 	}
 
 	private void Update()
 	{
+		float deltaTime = Time.deltaTime;
+		_framerate = Math.Round(1f / deltaTime, 1);
+		_frametime = Math.Round(deltaTime * 1000f, 1);
 	}
 
 	private void FixedUpdate()
 	{
+		if (_time++ == 24)
+		{
+			_time = 0;
+			FpsText.text = "Framerate: " + _framerate + "   " + _frametime + "ms";
+		}
 	}
 }

@@ -1,7 +1,11 @@
+using System;
+using Mirror;
+using UnityEngine;
+
 namespace InventorySystem.Hotkeys.Customization
 {
-	[global::System.Serializable]
-	public struct PoolElementData : global::System.IEquatable<global::InventorySystem.Hotkeys.Customization.PoolElementData>
+	[Serializable]
+	public struct PoolElementData : IEquatable<PoolElementData>
 	{
 		public enum ElementType
 		{
@@ -10,24 +14,26 @@ namespace InventorySystem.Hotkeys.Customization
 			Order = 2
 		}
 
-		[global::UnityEngine.SerializeField]
+		[SerializeField]
 		private short _value;
 
-		public global::InventorySystem.Hotkeys.Customization.PoolElementData.ElementType Type;
+		public ElementType Type;
 
 		public readonly ItemType SpecificItem
 		{
 			get
 			{
-				return default;
+				EnsureType(ElementType.SpecificItem);
+				return (ItemType)_value;
 			}
 		}
 
-		public readonly global::InventorySystem.Hotkeys.Customization.HotkeyItemGroup Group
+		public readonly HotkeyItemGroup Group
 		{
 			get
 			{
-				return default;
+				EnsureType(ElementType.Group);
+				return (HotkeyItemGroup)_value;
 			}
 		}
 
@@ -35,37 +41,56 @@ namespace InventorySystem.Hotkeys.Customization
 		{
 			get
 			{
-				return default;
+				EnsureType(ElementType.Order);
+				return _value;
 			}
 		}
 
-		private readonly void EnsureType(global::InventorySystem.Hotkeys.Customization.PoolElementData.ElementType received)
+		private readonly void EnsureType(ElementType received)
 		{
+			if (received != Type)
+			{
+				throw new InvalidCastException(string.Format("Invalid to access value as {0}, stored queue element is a {1}", received, Type));
+			}
 		}
 
-		public readonly bool Equals(global::InventorySystem.Hotkeys.Customization.PoolElementData other)
+		public readonly bool Equals(PoolElementData other)
 		{
-			return default;
+			if (_value == other._value)
+			{
+				return Type == other.Type;
+			}
+			return false;
 		}
 
-		public readonly void Serialize(global::Mirror.NetworkWriter writer)
+		public readonly void Serialize(NetworkWriter writer)
 		{
+			writer.WriteByte((byte)Type);
+			writer.WriteShort(_value);
 		}
 
-		public PoolElementData(global::Mirror.NetworkReader reader)
-		{ this = default;
+		public PoolElementData(NetworkReader reader)
+		{
+			Type = (ElementType)reader.ReadByte();
+			_value = reader.ReadShort();
 		}
 
-		public PoolElementData(global::InventorySystem.Hotkeys.Customization.HotkeyItemGroup group)
-		{ this = default;
+		public PoolElementData(HotkeyItemGroup group)
+		{
+			Type = ElementType.Group;
+			_value = (short)group;
 		}
 
 		public PoolElementData(ItemType item)
-		{ this = default;
+		{
+			Type = ElementType.SpecificItem;
+			_value = (short)item;
 		}
 
 		public PoolElementData(int order)
-		{ this = default;
+		{
+			Type = ElementType.Order;
+			_value = (short)order;
 		}
 	}
 }

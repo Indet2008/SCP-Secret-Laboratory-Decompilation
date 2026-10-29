@@ -1,6 +1,7 @@
 using LabApi.Events.Arguments.Scp049Events;
 using LabApi.Events.Handlers;
 using Mirror;
+using PlayerRoles.Spectating;
 using PlayerRoles.PlayableScps.HUDs;
 using PlayerRoles.Subroutines;
 
@@ -28,6 +29,8 @@ namespace PlayerRoles.PlayableScps.Scp049
 		public readonly AbilityCooldown Duration = new AbilityCooldown();
 
 		private bool _serverTriggered;
+
+		private global::AudioPooling.AudioPoolSession _callSourceSession;
 
 		public AbilityHud CallAbilityHUD;
 
@@ -95,8 +98,27 @@ namespace PlayerRoles.PlayableScps.Scp049
 			}
 		}
 
+		// Restored from the client build: re-evaluate the call sound's mute when the spectated player changes.
+		private void Start()
+		{
+			global::PlayerRoles.Spectating.SpectatorTargetTracker.OnTargetChanged += () =>
+			{
+				if (_callSourceSession.SameSession)
+				{
+					_callSourceSession.Source.mute = !base.Owner.isLocalPlayer && !base.Owner.IsLocallySpectated();
+				}
+			};
+		}
+
 		private void AbilityAudio(bool start)
 		{
+			if (_callSourceSession.SameSession)
+			{
+				_callSourceSession.Source.Stop();
+			}
+			global::AudioPooling.PooledAudioSource pooledAudioSource = global::AudioPooling.AudioSourcePoolManager.Play2D(start ? _startCall : _endCall);
+			_callSourceSession = new global::AudioPooling.AudioPoolSession(pooledAudioSource);
+			_callSourceSession.Source.mute = !base.Owner.isLocalPlayer && !base.Owner.IsLocallySpectated();
 		}
 
 		protected override void Update()

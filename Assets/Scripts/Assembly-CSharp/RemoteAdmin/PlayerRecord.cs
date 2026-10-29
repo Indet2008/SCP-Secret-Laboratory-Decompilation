@@ -12,9 +12,7 @@ namespace RemoteAdmin
 
 		private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
 
-		private const float SelectedOutlineWidth = 0.25f;
-
-		private static readonly Color SelectedOutlineColor = new Color(0.85f, 0.25f, 0.2f, 1f);
+		private const float SelectedOutlineWidth = 0.5f;
 
 		[SerializeField]
 		private TMP_Text _textComponent;
@@ -153,19 +151,33 @@ namespace RemoteAdmin
 
 		private void UpdateGraphic()
 		{
-			if (!(_textComponent == null))
+			if (_textComponent == null)
 			{
-				// Selection is shown as a coloured outline on the record's own material instance.
-				_textComponent.fontStyle = (_isSelected ? FontStyles.Bold : FontStyles.Normal);
-				Material fontMaterial = _textComponent.fontMaterial;
+				return;
+			}
+			// Original: only the outline width changes (0 <-> 0.5, outline colour comes from the font material);
+			// the object is re-enabled so TMP rebuilds the mesh.
+			Material fontMaterial = _textComponent.fontMaterial;
+			float @float = fontMaterial.GetFloat(OutlineWidthId);
+			if (_isSelected ? (@float == 0f) : (@float == SelectedOutlineWidth))
+			{
+				_textComponent.gameObject.SetActive(value: false);
 				fontMaterial.SetFloat(OutlineWidthId, _isSelected ? SelectedOutlineWidth : 0f);
-				fontMaterial.SetColor(OutlineColorId, SelectedOutlineColor);
-				_textComponent.UpdateMeshPadding();
+				_textComponent.gameObject.SetActive(value: true);
 			}
 		}
 		private void Start()
 		{
-			UpdateGraphic();
+			if (_textComponent == null)
+			{
+				return;
+			}
+			// Original: white outline on the record's own font material, width 0.5 only while selected.
+			_textComponent.gameObject.SetActive(value: false);
+			Material fontMaterial = _textComponent.fontMaterial;
+			fontMaterial.SetFloat(OutlineWidthId, _isSelected ? SelectedOutlineWidth : 0f);
+			fontMaterial.SetColor(OutlineColorId, Color.white);
+			_textComponent.gameObject.SetActive(value: true);
 		}
 
 		private void OnDestroy()

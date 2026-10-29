@@ -1,3 +1,4 @@
+using AudioPooling;
 using System;
 using System.Collections.Generic;
 using InventorySystem.Items.Scp1509;
@@ -256,6 +257,10 @@ namespace CustomPlayerEffects
 
 		private static void OnBreak(BreakMessage msg)
 		{
+			if (StaticUnityMethods.IsPlaying && ReferenceHub.LocalHub.playerEffectsController.TryGetEffect<AntiScp207>(out var playerEffect))
+			{
+				AudioSourcePoolManager.PlayAtPosition(playerEffect._effectBreakSound, msg.SoundPos, BreakSoundDistance, BreakVolumeModifier);
+			}
 		}
 
 		[RuntimeInitializeOnLoadMethod]

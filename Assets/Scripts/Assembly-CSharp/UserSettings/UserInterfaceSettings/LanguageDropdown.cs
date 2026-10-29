@@ -87,6 +87,8 @@ namespace UserSettings.UserInterfaceSettings
 			_dropdown.SetValueWithoutNotify(loadedValue);
 			_dropdown.RefreshShownValue();
 			_dropdown.onValueChanged.AddListener(OnSelected);
+			// The scene saves the dropdown as non-interactable until the list is loaded.
+			_dropdown.interactable = true;
 		}
 
 		private void OnSelected(int index)

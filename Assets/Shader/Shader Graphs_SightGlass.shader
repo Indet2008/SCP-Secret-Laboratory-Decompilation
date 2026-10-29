@@ -68,6 +68,64 @@ Shader "Shader Graphs/SightGlass"
 			[HideInInspector] [NoScaleOffset] unity_LightmapsInd ("unity_LightmapsInd", 2DArray) = "" {}
 			[HideInInspector] [NoScaleOffset] unity_ShadowMasks ("unity_ShadowMasks", 2DArray) = "" {}
 		}
-	// Decompiled program was unusable (vertex/fragment variants split); kept as a fallback shell.
-	Fallback "HDRP/Lit"
+	// Hand-written replacement for the original SightGlass graph (optic glass that fades with eye distance).
+	// Opacity = RemapOut remapped from the camera distance between MinMaxDistance, so the glass is
+	// see-through up close (when aiming) and visible from further away.
+	SubShader
+	{
+		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" }
+		Pass
+		{
+			Name "ForwardOnly"
+			Tags { "LightMode" = "ForwardOnly" }
+			Blend One OneMinusSrcAlpha
+			ZWrite Off
+			Cull Back
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.5
+			#pragma multi_compile_instancing
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+			TEXTURE2D(_BaseColorMap); SAMPLER(sampler_BaseColorMap);
+			float4 _MinMaxDistance;
+			float4 _RemapOut;
+
+			struct Attributes { float4 vertex : POSITION; float3 normal : NORMAL; float2 uv : TEXCOORD0; UNITY_VERTEX_INPUT_INSTANCE_ID };
+			struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float2 uv : TEXCOORD2; UNITY_VERTEX_OUTPUT_STEREO };
+
+			Varyings vert(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				o.positionWS = TransformObjectToWorld(v.vertex.xyz);
+				o.normalWS = TransformObjectToWorldNormal(v.normal);
+				o.positionCS = TransformWorldToHClip(o.positionWS);
+				o.uv = v.uv;
+				return o;
+			}
+
+			float4 frag(Varyings i) : SV_Target
+			{
+				float dist = length(i.positionWS);
+				float t = saturate((dist - _MinMaxDistance.x) / max(_MinMaxDistance.y - _MinMaxDistance.x, 1e-4));
+				float alpha = saturate(lerp(_RemapOut.x, _RemapOut.y, t));
+				float4 baseCol = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, i.uv);
+				float fresnel = pow(1 - saturate(abs(dot(normalize(i.normalWS), normalize(-i.positionWS)))), 4);
+				// Mostly clear optic glass: a light grey tint that only builds up from further away,
+				// darker towards the rim of the lens, plus a faint fresnel reflection.
+				float rim = smoothstep(0.25, 0.5, length(i.uv - 0.5));
+				float tint = alpha * baseCol.a * (0.12 + 0.25 * rim);
+				float3 col = baseCol.rgb * 0.05 + fresnel * 0.06;
+				float a = saturate(tint + fresnel * 0.15 * alpha);
+				return float4(col * a, a);
+			}
+			ENDHLSL
+		}
+	}
 }

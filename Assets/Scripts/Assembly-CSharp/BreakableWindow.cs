@@ -129,21 +129,40 @@ public class BreakableWindow : NetworkBehaviour, IDestructible, IBlockStaticBatc
 		{
 			componentsInChildren[i].enabled = false;
 		}
-		if (Template != null)
+		GameObject obj = UnityEngine.Object.Instantiate(Template, Parent);
+		obj.transform.localScale = Vector3.one;
+		obj.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.Euler(Vector3.zero));
+		Rigidbody[] rbs = obj.GetComponentsInChildren<Rigidbody>();
+		List<Vector3> scales = NorthwoodLib.Pools.ListPool<Vector3>.Shared.Rent();
+		Rigidbody[] array = rbs;
+		foreach (Rigidbody rigidbody in array)
 		{
-			Transform parent = ((Parent != null) ? Parent : base.transform);
-			GameObject obj = UnityEngine.Object.Instantiate(Template, parent.position, parent.rotation, parent);
-			obj.SetActive(value: true);
-			AudioSource[] componentsInChildren2 = obj.GetComponentsInChildren<AudioSource>();
-			foreach (AudioSource audioSource in componentsInChildren2)
-			{
-				if (!audioSource.isPlaying && audioSource.clip != null)
-				{
-					audioSource.Play();
-				}
-			}
+			rigidbody.angularVelocity = new Vector3(UnityEngine.Random.Range(-360, 360), UnityEngine.Random.Range(-360, 360), UnityEngine.Random.Range(-360, 360));
+			rigidbody.linearVelocity = new Vector3(UnityEngine.Random.Range(-2, 2), UnityEngine.Random.Range(-2, 2), UnityEngine.Random.Range(-2, 2));
+			scales.Add(rigidbody.transform.localScale);
 		}
-		yield break;
+		for (int i = 0; i < 250; i++)
+		{
+			for (int j = 0; j < scales.Count; j++)
+			{
+				rbs[j].transform.localScale = Vector3.Lerp(scales[j], scales[j] * 0.5f, (float)i / 75f);
+			}
+			yield return null;
+		}
+		for (float f = 0f; f < 150f; f += 1f)
+		{
+			for (int k = 0; k < scales.Count; k++)
+			{
+				rbs[k].transform.localScale = Vector3.Lerp(scales[k] * 0.5f, Vector3.zero, f / 150f);
+			}
+			yield return null;
+		}
+		NorthwoodLib.Pools.ListPool<Vector3>.Shared.Return(scales);
+		array = rbs;
+		foreach (Rigidbody rigidbody2 in array)
+		{
+			UnityEngine.Object.Destroy(rigidbody2.gameObject, 1f);
+		}
 	}
 
 	private bool CheckDamagePerms(RoleTypeId roleType)

@@ -1,24 +1,17 @@
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace OperationalGuide
 {
-	public class PageButton : global::UnityEngine.MonoBehaviour
+	public class PageButton : MonoBehaviour
 	{
-		public global::UnityEngine.UI.Button Button;
+		public Button Button;
 
-		public global::UnityEngine.UI.Image Image;
+		public Image Image;
 
-		[global::UnityEngine.SerializeField]
-		private global::UnityEngine.RectTransform _buttonRectTransform;
+		[SerializeField]
+		private RectTransform _buttonRectTransform;
 
-		public float ButtonWidth
-		{
-			get
-			{
-				return default;
-			}
-		}
-
-		public PageButton()
-		{
-		}
+		public float ButtonWidth => _buttonRectTransform.rect.width;
 	}
 }

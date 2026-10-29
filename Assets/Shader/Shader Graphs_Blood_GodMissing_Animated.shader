@@ -533,8 +533,14 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
 
 			static float4 vertex_uniform_buffer_0[49];
 			static float4 vertex_uniform_buffer_1[1];
@@ -631,9 +637,18 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 			float4 _WorldSpaceCameraPos_Internal;
 			float4 _ScreenSize;
 			int _EnableDecalLayers;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
-			struct { int _DecalLayerMaskFromDecal; float4x4 _NormalToWorld; } DecalArray[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
+			#ifndef DECOMP_DECL_DecalArray
+			#define DECOMP_DECL_DecalArray
+			cbuffer UnityInstancing_Decal { struct { int _DecalLayerMaskFromDecal; float4x4 _NormalToWorld; } DecalArray[2]; };
+			#endif
 
 			static float4 fragment_uniform_buffer_0[129];
 			static float4 fragment_uniform_buffer_1[1];
@@ -795,8 +810,14 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
 
 			static float4 vertex_uniform_buffer_0[49];
 			static float4 vertex_uniform_buffer_1[1];
@@ -891,9 +912,18 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 
 			float4 _TimeParameters;
 			float _GlobalMipBias;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
-			struct { int _DecalLayerMaskFromDecal; float4x4 _NormalToWorld; } DecalArray[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
+			#ifndef DECOMP_DECL_DecalArray
+			#define DECOMP_DECL_DecalArray
+			cbuffer UnityInstancing_Decal { struct { int _DecalLayerMaskFromDecal; float4x4 _NormalToWorld; } DecalArray[2]; };
+			#endif
 			float _Background_Alpha;
 
 			static float4 fragment_uniform_buffer_0[129];
@@ -1671,8 +1701,14 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
 			float4 unity_OrthoParams;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
 			float _DecalMeshBiasType;
 			float _DecalMeshDepthBias;
 			float _DecalMeshViewBias;
@@ -1902,8 +1938,14 @@ Shader "Shader Graphs/Blood_GodMissing_Animated"
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
 			float4 unity_OrthoParams;
+			#ifndef DECOMP_DECL_unity_BaseInstanceID
+			#define DECOMP_DECL_unity_BaseInstanceID
 			int unity_BaseInstanceID;
-			struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2];
+			#endif
+			#ifndef DECOMP_DECL_unity_Builtins0Array
+			#define DECOMP_DECL_unity_Builtins0Array
+			cbuffer UnityInstancing_PerDraw0 { struct { float4x4 unity_ObjectToWorldArray; float4x4 unity_WorldToObjectArray; } unity_Builtins0Array[2]; };
+			#endif
 			float _DecalMeshBiasType;
 			float _DecalMeshDepthBias;
 			float _DecalMeshViewBias;

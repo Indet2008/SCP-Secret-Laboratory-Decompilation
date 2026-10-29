@@ -176,6 +176,21 @@ namespace PlayerRoles.Spectating
 
 		private void LateUpdate()
 		{
+			bool keyDown = Input.GetKeyDown(_prevKey);
+			bool keyDown2 = Input.GetKeyDown(_nextKey);
+			if ((keyDown || keyDown2) && TryGetNextTargetId(keyDown, keyDown2, out var nextId) && nextId != _lastTargetId && !ToggleableMenus.ToggleableMenuController.AnyEnabled && !SpectatorGuiElement.AnyHighlighted)
+			{
+				if (_anySpectatorSelected)
+				{
+					_lastTargetId = nextId;
+					SetTargetId(nextId);
+				}
+				else
+				{
+					NextTarget(keyDown2);
+					_anySpectatorSelected = true;
+				}
+			}
 		}
 
 		private bool TryGetNextTargetId(bool prevKeyDown, bool nextKeyDown, out int nextId)

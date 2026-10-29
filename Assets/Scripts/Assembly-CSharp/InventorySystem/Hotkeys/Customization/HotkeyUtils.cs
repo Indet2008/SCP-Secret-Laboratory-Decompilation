@@ -1,36 +1,94 @@
+using System.Collections.Generic;
+using InventorySystem.Items;
+using InventorySystem.Items.Armor;
+using InventorySystem.Items.Firearms.Ammo;
+using InventorySystem.Items.Usables.Scp330;
+using NorthwoodLib.Pools;
+using UnityEngine;
+
 namespace InventorySystem.Hotkeys.Customization
 {
 	public static class HotkeyUtils
 	{
-		private static readonly global::System.Collections.Generic.Dictionary<int, ItemType[]> ItemOrder;
+		private static readonly Dictionary<int, ItemType[]> ItemOrder = new Dictionary<int, ItemType[]>();
 
 		public static ItemType[] GetItemsByQueue(int hotkeyIndex)
 		{
-			return default;
+			if (!ItemOrder.TryGetValue(hotkeyIndex, out var value))
+			{
+				value = HotkeyStorage.Hotkeys[hotkeyIndex].Elements.GetItemsByQueue();
+				ItemOrder.Add(hotkeyIndex, value);
+			}
+			return value;
 		}
 
-		public static ItemType[] GetItemsByQueue(this global::System.Collections.Generic.IEnumerable<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements)
+		public static ItemType[] GetItemsByQueue(this IEnumerable<PoolElementData> elements)
 		{
-			return default;
+			List<ItemType> list = ListPool<ItemType>.Shared.Rent();
+			elements.GetItemsByQueue(list);
+			ItemType[] result = list.ToArray();
+			ListPool<ItemType>.Shared.Return(list);
+			return result;
 		}
 
-		public static void GetItemsByQueue(this global::System.Collections.Generic.IEnumerable<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements, global::System.Collections.Generic.List<ItemType> targetList)
+		public static void GetItemsByQueue(this IEnumerable<PoolElementData> elements, List<ItemType> targetList)
 		{
+			foreach (PoolElementData element in elements)
+			{
+				switch (element.Type)
+				{
+				case PoolElementData.ElementType.SpecificItem:
+					AddToList(element.SpecificItem);
+					break;
+				case PoolElementData.ElementType.Group:
+				{
+					ItemType[] items = element.Group.GetItems();
+					for (int i = 0; i < items.Length; i++)
+					{
+						AddToList(items[i]);
+					}
+					break;
+				}
+				}
+			}
+			void AddToList(ItemType it)
+			{
+				if (!targetList.Contains(it))
+				{
+					targetList.Add(it);
+				}
+			}
 		}
 
-		public static int CountMatches(this global::System.Collections.Generic.List<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements, ItemType[] filters)
+		public static int CountMatches(this List<PoolElementData> elements, ItemType[] filters)
 		{
-			return default;
+			List<ItemType> list = ListPool<ItemType>.Shared.Rent();
+			elements.GetItemsByQueue(list);
+			int num = 0;
+			foreach (ItemType item in list)
+			{
+				if (System.Array.IndexOf(filters, item) >= 0)
+				{
+					num++;
+				}
+			}
+			ListPool<ItemType>.Shared.Return(list);
+			return num;
 		}
 
-		public static bool IsHotkeyable(this global::InventorySystem.Items.ItemBase item)
+		public static bool IsHotkeyable(this ItemBase item)
 		{
-			return default;
+			if (item is IItemNametag && !(item is AmmoItem) && !(item is BodyArmor))
+			{
+				return !(item is Scp330Bag);
+			}
+			return false;
 		}
 
-		[global::UnityEngine.RuntimeInitializeOnLoadMethod]
+		[RuntimeInitializeOnLoadMethod]
 		private static void Init()
 		{
+			HotkeyStorage.OnHotkeysSaved += ItemOrder.Clear;
 		}
 	}
 }

@@ -54,7 +54,78 @@ Shader "Shader Graphs/ParticleUnlit_graph"
 			[HideInInspector] [NoScaleOffset] unity_Lightmaps ("unity_Lightmaps", 2DArray) = "" {}
 			[HideInInspector] [NoScaleOffset] unity_LightmapsInd ("unity_LightmapsInd", 2DArray) = "" {}
 			[HideInInspector] [NoScaleOffset] unity_ShadowMasks ("unity_ShadowMasks", 2DArray) = "" {}
+			[HideInInspector] _AlphaCutoff ("Alpha Cutoff", Float) = 0.5
 		}
-	// Decompiled program was unusable (vertex/fragment variants split); kept as a fallback shell.
-	Fallback "HDRP/Lit"
+	// Hand-written replacement for the original ParticleUnlit graph (HDRP unlit, used by particle systems).
+	// Color = DiffuseTexture (optional in-shader flipbook) * particle vertex color * Emissive.
+	// Blend state comes from the material's HDRP surface options (_SrcBlend/_DstBlend/_ZWrite/_CullMode).
+	SubShader
+	{
+		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" "IgnoreProjector" = "True" }
+		Pass
+		{
+			Name "ForwardOnly"
+			Tags { "LightMode" = "ForwardOnly" }
+			Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+			ZWrite [_ZWrite]
+			ZTest [_ZTestTransparent]
+			Cull [_CullMode]
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.5
+			#pragma multi_compile_instancing
+			#pragma shader_feature_local _FLIPBOOK
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+			TEXTURE2D(_DiffuseTexture); SAMPLER(sampler_DiffuseTexture);
+			float4 _Emissive;
+			float4 _Width_Height;
+			float _Tile;
+			float _Speed;
+			float _BlendMode;
+			float _SurfaceType;
+			float _AlphaCutoffEnable;
+			float _AlphaCutoff;
+
+			struct Attributes { float4 vertex : POSITION; float4 color : COLOR; float2 uv : TEXCOORD0; UNITY_VERTEX_INPUT_INSTANCE_ID };
+			struct Varyings { float4 positionCS : SV_POSITION; float4 color : COLOR; float2 uv : TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
+
+			Varyings vert(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				o.positionCS = TransformWorldToHClip(TransformObjectToWorld(v.vertex.xyz));
+				o.color = v.color;
+				o.uv = v.uv;
+				return o;
+			}
+
+			float4 frag(Varyings i) : SV_Target
+			{
+				float2 uv = i.uv;
+				#ifdef _FLIPBOOK
+				float2 size = max(_Width_Height.xy, 1);
+				float tiles = size.x * size.y;
+				float tile = floor(fmod(_Tile + _TimeParameters.x * _Speed, tiles));
+				float tileX = fmod(tile, size.x);
+				float tileY = size.y - 1 - floor(tile / size.x);
+				uv = (uv + float2(tileX, tileY)) / size;
+				#endif
+				float4 tex = SAMPLE_TEXTURE2D(_DiffuseTexture, sampler_DiffuseTexture, uv);
+				// Base color is screen-relative; Emissive is physical HDR emission, so it is pre-exposed like HDRP emission.
+				float3 baseColor = tex.rgb * i.color.rgb;
+				float4 col = float4(baseColor + baseColor * _Emissive.rgb * GetCurrentExposureMultiplier(), tex.a * i.color.a);
+				if (_AlphaCutoffEnable > 0.5) clip(col.a - _AlphaCutoff);
+				// HDRP blend modes: Alpha and Additive expect premultiplied color, Premultiply (4) does not.
+				if (_SurfaceType > 0.5 && abs(_BlendMode - 4) > 0.5) col.rgb *= col.a;
+				return col;
+			}
+			ENDHLSL
+		}
+	}
 }

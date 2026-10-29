@@ -1,17 +1,17 @@
 using CameraShaking;
+using Mirror;
+using PlayerRoles.Spectating;
 using UnityEngine;
 
 namespace PlayerRoles.PlayableScps.Scp106
 {
-	// Client-only behaviour stripped from the server build: lowers the camera into the
-	// floor while SCP-106 submerges and narrows the FOV slightly.
+	// Client-only in the original: while SCP-106 submerges/emerges the camera moves over to the model's
+	// StalkCameraTarget (so the sinking body is seen from behind) and sinks with it.
 	public class Scp106PortalShake : IShakeEffect
 	{
 		private const float StalkHeight = -0.75f;
 
-		private const float NormalizationLerp = 300f;
-
-		private const float MinFovPercent = 0.9f;
+		private const float LookLerp = 300f;
 
 		private readonly Scp106Model _model;
 
@@ -28,27 +28,28 @@ namespace PlayerRoles.PlayableScps.Scp106
 
 		public bool GetEffect(ReferenceHub ply, out ShakeEffectValues shakeValues)
 		{
-			shakeValues = ShakeEffectValues.None;
-			if (_latestEffect != this || _role == null || ply == null || ply.roleManager.CurrentRole != _role)
+			if (_model == null || _model.Pooled || !(_model.OwnerHub.isLocalPlayer || _model.OwnerHub.IsLocallySpectated()) || _latestEffect != this || _role.Pooled || !_role.TryGetOwner(out var hub))
 			{
+				shakeValues = ShakeEffectValues.None;
 				return false;
 			}
-			Scp106SinkholeController sinkhole = _role.Sinkhole;
-			if (sinkhole == null)
+			Transform playerCameraReference = hub.PlayerCameraReference;
+			Transform stalkCameraTarget = _model.StalkCameraTarget;
+			float verticalLook = 0f;
+			if (_role.Sinkhole.LockMovement)
 			{
-				return true;
+				verticalLook = Time.deltaTime * (playerCameraReference.localRotation.x - stalkCameraTarget.localRotation.x) * LookLerp;
 			}
-			float num = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(sinkhole.SubmergeProgress));
-			shakeValues = new ShakeEffectValues(null, null, Vector3.up * (StalkHeight * num), Mathf.Lerp(1f, MinFovPercent, num));
+			Vector3 position = playerCameraReference.position;
+			Vector3 position2 = stalkCameraTarget.position;
+			Vector3 value = new Vector3(position2.x - position.x, _role.Sinkhole.SubmergeProgress * StalkHeight, position2.z - position.z);
+			shakeValues = new ShakeEffectValues(null, null, value, 1f, verticalLook);
 			return true;
 		}
 
 		public static void Register(Scp106Role role, Scp106Model model)
 		{
-			if (!(CameraShakeController.Singleton == null))
-			{
-				CameraShakeController.AddEffect(new Scp106PortalShake(role, model));
-			}
+			CameraShakeController.AddEffect(new Scp106PortalShake(role, model));
 		}
 	}
 }

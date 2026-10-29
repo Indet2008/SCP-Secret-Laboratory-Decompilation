@@ -68,7 +68,8 @@ namespace InventorySystem
 				for (int num = 0; num < array.Length; num++)
 				{
 					ItemBase itemBase = array[num];
-					if (!(itemBase is IHolidayItem { IsAvailable: false }) && itemBase.ItemTypeId != ItemType.None)
+					// Local change: in the Unity editor, holiday items are loaded outside their event too, so the RA panel lists them.
+					if ((!(itemBase is IHolidayItem { IsAvailable: false }) || Application.isEditor) && itemBase.ItemTypeId != ItemType.None)
 					{
 						if (itemBase.VariantsModule != null && itemBase.VariantsModule.TryGetVariant(out var variant))
 						{

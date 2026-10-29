@@ -141,7 +141,12 @@ namespace PlayerRoles.PlayableScps.Scp049
 		protected override void OnKeyDown()
 		{
 			base.OnKeyDown();
-			if (Duration.IsReady && Cooldown.IsReady)
+			if (!Duration.IsReady || !Cooldown.IsReady)
+			{
+				SenseAbilityHUD.FlashAbility();
+				_cooldownAudio.PlayAudio();
+			}
+			else
 			{
 				if (!CanFindTarget(out var bestTarget))
 				{
@@ -280,6 +285,15 @@ namespace PlayerRoles.PlayableScps.Scp049
 			}
 			Cooldown.ReadCooldown(reader);
 			Duration.ReadCooldown(reader);
+			if (HasTarget)
+			{
+				_goodsenseAudioSource.mute = !base.Owner.isLocalPlayer && !base.Owner.IsLocallySpectated();
+				_goodsenseAudioSource.Play();
+			}
+			else
+			{
+				_goodsenseAudioSource.Stop();
+			}
 		}
 
 		private bool CanFindTarget(out ReferenceHub bestTarget)

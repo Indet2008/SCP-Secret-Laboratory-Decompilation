@@ -1,15 +1,14 @@
+using UnityEngine;
+
 namespace OperationalGuide
 {
-	public class DisableSetColor : global::UnityEngine.MonoBehaviour
+	public class DisableSetColor : MonoBehaviour
 	{
-		public global::OperationalGuide.AbilityColorChange ACC;
+		public AbilityColorChange ACC;
 
 		private void OnDisable()
 		{
-		}
-
-		public DisableSetColor()
-		{
+			ACC.AbilityIcon.color = ACC.DefaultColor;
 		}
 	}
 }

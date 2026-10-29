@@ -7,20 +7,33 @@ using UnityEngine.Rendering.HighDefinition;
 namespace CustomRendering
 {
 	[Serializable]
-	[VolumeComponentMenu("Post-processing/Custom/Blur")]
+	[VolumeComponentMenu("Post-processing/Custom/Blur Effect")]
 	public sealed class BlurEffect : DistanceEffect
 	{
+		[Serializable]
+		public sealed class BlurMethodParameter : VolumeParameter<BlurMethod>
+		{
+		}
+
+		public enum BlurMethod
+		{
+			Gaussian = 0,
+			Box = 1
+		}
+
+		private enum Pass
+		{
+			Blend = 0,
+			DepthFade = 1,
+			Gaussian = 2,
+			Box = 3
+		}
+
 		private static readonly int BlurOffsetsId = Shader.PropertyToID("_BlurOffsets");
 
 		private static readonly int BlurredTexId = Shader.PropertyToID("_BlurredTex");
 
-		private const int BlendPass = 0;
-
-		private const int DepthBlendPass = 1;
-
-		private const int GaussianPass = 2;
-
-		private const int BoxPass = 3;
+		public BlurMethodParameter Mode = new BlurMethodParameter();
 
 		public BoolParameter HighQuality = new BoolParameter(false);
 
@@ -42,8 +55,13 @@ namespace CustomRendering
 		public override void Setup()
 		{
 			base.Setup();
-			_blur1 = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, useDynamicScale: true, name: "BlurEffect A");
-			_blur2 = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, useDynamicScale: true, name: "BlurEffect B");
+			_blur1 = AllocBuffer();
+			_blur2 = AllocBuffer();
+		}
+
+		private static RTHandle AllocBuffer()
+		{
+			return RTHandles.Alloc(Vector2.one, 1, DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB, FilterMode.Bilinear, TextureWrapMode.Repeat, TextureDimension.Tex2DArray, enableRandomWrite: false, useMipMap: false, autoGenerateMips: true, isShadowMap: false, anisoLevel: 1, mipMapBias: 0f, msaaSamples: MSAASamples.None, bindTextureMS: false, useDynamicScale: false, name: string.Empty);
 		}
 
 		public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
@@ -53,34 +71,39 @@ namespace CustomRendering
 				HDUtils.BlitCameraTexture(cmd, source, destination);
 				return;
 			}
-			CustomPostProcessUtils.SetCommonProperties(EffectMaterial, camera, source);
-			float width = Mathf.Max(1f, camera.actualWidth * 0.5f);
-			float height = Mathf.Max(1f, camera.actualHeight * 0.5f);
-			float amount = Amount.value;
-			EffectMaterial.SetVector(BlurOffsetsId, new Vector4(amount / width, amount / height, 0f, 0f));
-			Blitter.BlitCameraTexture(cmd, source, _blur1, EffectMaterial, BoxPass);
-			int iterations = Mathf.Max(1, Iterations.value);
-			for (int i = 0; i < iterations; i++)
+			if (Iterations.value > 12)
 			{
-				float spread = amount * 0.5f;
+				return;
+			}
+			HDUtils.BlitCameraTexture(cmd, source, _blur1, 0f, bilinear: true);
+			int pass = (int)((Mode.value != BlurMethod.Gaussian) ? Pass.Box : Pass.Gaussian);
+			float x = Amount.value / (float)source.referenceSize.x;
+			float y = Amount.value / (float)source.referenceSize.y;
+			for (int i = 0; i < Iterations.value; i++)
+			{
+				cmd.SetGlobalVector(BlurOffsetsId, new Vector4(x, 0f, 0f, 0f));
+				Blitter.BlitCameraTexture(cmd, _blur1, _blur2, EffectMaterial, pass);
+				cmd.SetGlobalVector(BlurOffsetsId, new Vector4(0f, y, 0f, 0f));
+				Blitter.BlitCameraTexture(cmd, _blur2, _blur1, EffectMaterial, pass);
 				if (HighQuality.value)
 				{
-					EffectMaterial.SetVector(BlurOffsetsId, new Vector4(spread / width, 0f, 0f, 0f));
-					Blitter.BlitCameraTexture(cmd, _blur1, _blur2, EffectMaterial, GaussianPass);
-					EffectMaterial.SetVector(BlurOffsetsId, new Vector4(0f, spread / height, 0f, 0f));
-					Blitter.BlitCameraTexture(cmd, _blur2, _blur1, EffectMaterial, GaussianPass);
-				}
-				else
-				{
-					EffectMaterial.SetVector(BlurOffsetsId, new Vector4(spread / width, spread / height, 0f, 0f));
-					Blitter.BlitCameraTexture(cmd, _blur1, _blur2, EffectMaterial, BoxPass);
-					Blitter.BlitCameraTexture(cmd, _blur2, _blur1, EffectMaterial, BoxPass);
+					cmd.SetGlobalVector(BlurOffsetsId, new Vector4(x, 0f, 0f, 0f));
+					HDUtils.BlitCameraTexture(cmd, _blur1, _blur2, EffectMaterial, pass);
+					cmd.SetGlobalVector(BlurOffsetsId, new Vector4(0f, y, 0f, 0f));
+					HDUtils.BlitCameraTexture(cmd, _blur2, _blur1, EffectMaterial, pass);
 				}
 			}
-			SetDistanceProperties(camera);
 			EffectMaterial.SetTexture(BlurredTexId, _blur1);
 			CustomPostProcessUtils.SetCommonProperties(EffectMaterial, camera, source);
-			HDUtils.DrawFullScreen(cmd, EffectMaterial, destination, null, DistanceFade.value ? DepthBlendPass : BlendPass);
+			if (DistanceFade.value && FadeIntensity.value > 0f)
+			{
+				SetDistanceProperties(camera);
+				HDUtils.DrawFullScreen(cmd, EffectMaterial, destination, null, (int)Pass.DepthFade);
+			}
+			else
+			{
+				HDUtils.DrawFullScreen(cmd, EffectMaterial, destination, null, (int)Pass.Blend);
+			}
 		}
 
 		public override void Cleanup()

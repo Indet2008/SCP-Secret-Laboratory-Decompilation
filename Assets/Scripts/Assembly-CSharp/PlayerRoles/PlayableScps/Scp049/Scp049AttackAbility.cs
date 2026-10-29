@@ -1,10 +1,12 @@
 using System;
+using AudioPooling;
 using CustomPlayerEffects;
 using LabApi.Events.Arguments.Scp049Events;
 using LabApi.Events.Handlers;
 using Mirror;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.PlayableScps.HUDs;
+using PlayerRoles.Spectating;
 using PlayerRoles.Subroutines;
 using PlayerStatsSystem;
 using UnityEngine;
@@ -119,6 +121,13 @@ namespace PlayerRoles.PlayableScps.Scp049
 		public override void ClientProcessRpc(NetworkReader reader)
 		{
 			Cooldown.ReadCooldown(reader);
+			if (base.Owner.isLocalPlayer || base.Owner.IsLocallySpectated())
+			{
+				bool instaKill = reader.ReadBool();
+				bool isTarget = reader.ReadBool();
+				AudioClip clip = ((!instaKill) ? _attackSound : (isTarget ? _afflictedAttackSound : _secondAttackSound));
+				AudioSourcePoolManager.Play2D(clip);
+			}
 		}
 
 		public override void ClientWriteCmd(NetworkWriter writer)
@@ -142,7 +151,12 @@ namespace PlayerRoles.PlayableScps.Scp049
 		protected override void OnKeyDown()
 		{
 			base.OnKeyDown();
-			if (Cooldown.IsReady && CanFindTarget(base.Owner.PlayerCameraReference, out _target))
+			if (!Cooldown.IsReady)
+			{
+				AttackAbilityHUD.FlashAbility();
+				_cooldownAudio.PlayAudio();
+			}
+			else if (CanFindTarget(base.Owner.PlayerCameraReference, out _target))
 			{
 				ClientSendCmd();
 			}

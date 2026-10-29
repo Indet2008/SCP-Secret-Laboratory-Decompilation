@@ -71,6 +71,7 @@ namespace PlayerRoles.PlayableScps.HUDs
 
 		protected void ResetTimer(float delayInSeconds = 1f)
 		{
+			_updateCounterTimer = delayInSeconds;
 		}
 	}
 }

@@ -99,6 +99,21 @@ namespace CustomPlayerEffects
 
 		private float _searchSpeedMultiplier;
 
+		private VignetteSmoothnessPulse _vignetteSmoothnessPulse;
+
+		private VignettePulse _vignettePulse;
+
+		private float _cachedTickTime;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			_vignettePulse = GetComponent<VignettePulse>();
+			_vignetteSmoothnessPulse = GetComponent<VignetteSmoothnessPulse>();
+			_cachedTickTime = TimeBetweenTicks;
+		}
+
+
 		public override EffectClassification Classification => EffectClassification.Positive;
 
 		public override byte MaxIntensity => 20;
@@ -154,6 +169,11 @@ namespace CustomPlayerEffects
 
 		protected override void OnTick()
 		{
+			if (base.Hub.isLocalPlayer || base.Hub.IsLocallySpectated())
+			{
+				TimeBetweenTicks = _cachedTickTime - (float)OffsetedDanger * 0.35f;
+				ExecuteVignettePulse();
+			}
 		}
 
 		protected override void Enabled()
@@ -210,10 +230,40 @@ namespace CustomPlayerEffects
 
 		private void ExecuteVignettePulse()
 		{
+			int offsetedDanger = OffsetedDanger;
+			float animationSpeedMultiplier = (float)offsetedDanger * 0.35f + 1f;
+			_vignetteSmoothnessPulse.PulseIntensity = (float)offsetedDanger * 0.015f + 0.25f;
+			_vignettePulse.PulseIntensity = (float)offsetedDanger * 0.0015f + 0.575f;
+			_vignetteSmoothnessPulse.animationSpeedMultiplier = animationSpeedMultiplier;
+			_vignettePulse.animationSpeedMultiplier = animationSpeedMultiplier;
+			_vignetteSmoothnessPulse.Pulse();
+			_vignettePulse.Pulse();
 		}
 
 		private void UpdateHeartbeat()
 		{
+			if (!base.Hub.isLocalPlayer && !base.Hub.IsLocallySpectated())
+			{
+				if (_heartbeatSource.isPlaying)
+				{
+					_heartbeatSource.Stop();
+				}
+				return;
+			}
+			int offsetedDanger = OffsetedDanger;
+			if (offsetedDanger < 1)
+			{
+				if (_heartbeatSource.isPlaying)
+				{
+					_heartbeatSource.Stop();
+				}
+			}
+			else if (!_heartbeatSource.isPlaying)
+			{
+				_heartbeatSource.Play();
+			}
+			_heartbeatSource.volume = (float)offsetedDanger * 0.2f + 0.3f;
+			_heartbeatSource.pitch = (float)offsetedDanger * 0.1f + 0.64f;
 		}
 
 		private float CalculateStat(float boostAmount, float max = 0f, bool isAdditive = true)

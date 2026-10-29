@@ -10,6 +10,43 @@ namespace CustomPlayerEffects
 		public float intensityDecreaseTimeFactor;
 
 
+		// Client half restored from the client build (IL2CPP): blur grows while the camera turns and decays over time.
+		private global::UnityEngine.Quaternion _prevRot;
+
+		private DiminishingLerpVisuals _postProcessBehavior;
+
+		private float _blur;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			_postProcessBehavior = GetComponent<DiminishingLerpVisuals>();
+		}
+
+		protected override void Enabled()
+		{
+			base.Enabled();
+			_prevRot = base.transform.rotation;
+			_blur = 0f;
+		}
+
+		protected override void OnEffectUpdate()
+		{
+			base.OnEffectUpdate();
+			if (!IsPOV || _postProcessBehavior == null)
+			{
+				return;
+			}
+			global::UnityEngine.Quaternion rot = base.transform.rotation;
+			float angle = global::UnityEngine.Quaternion.Angle(_prevRot, rot);
+			_prevRot = rot;
+			float multiplier = RainbowTaste.CurrentMultiplier(base.Hub);
+			_blur += angle / 90f * intensityIncreasePer90Degree * multiplier;
+			_blur -= global::UnityEngine.Time.deltaTime * intensityDecreaseTimeFactor;
+			_blur = global::UnityEngine.Mathf.Clamp01(_blur);
+			_postProcessBehavior.Weight = _blur * multiplier;
+		}
+
 		public bool IsHealable(ItemType it)
 		{
 			if (it != ItemType.SCP500 && it != ItemType.Adrenaline)

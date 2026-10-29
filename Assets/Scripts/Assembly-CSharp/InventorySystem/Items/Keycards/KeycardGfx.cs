@@ -60,10 +60,10 @@ namespace InventorySystem.Items.Keycards
 		{
 			Material instance = Material.Instance;
 			instance.SetColor(TintColorHash, color);
-			// The KeycardTint shader graph did not survive the decompile and the materials fell back to HDRP/Lit,
-			// which ignores _Tint; tint its base colour instead so cards keep their colours.
-			if (!instance.shader.name.Contains("KeycardTint") && instance.HasProperty(BaseColorHash))
+			Material.SetTint(color);
+			if (!Material.UsesComposite && instance.HasProperty(BaseColorHash))
 			{
+				// No composite (e.g. shader missing): at least tint the whole card.
 				instance.SetColor(BaseColorHash, new Color(color.r, color.g, color.b, 1f));
 			}
 			if (IsSubjectForIconRendering)
@@ -86,6 +86,7 @@ namespace InventorySystem.Items.Keycards
 				instance.SetFloat(ArmoryLevelStepHash, LevelToStep[levels.Armory]);
 				instance.SetFloat(AdminLevelStepHash, LevelToStep[levels.Admin]);
 				instance.SetColor(PermsColorHash, color);
+				Material.SetPermissions(LevelToStep[levels.Containment], LevelToStep[levels.Armory], LevelToStep[levels.Admin], color);
 			}
 		}
 

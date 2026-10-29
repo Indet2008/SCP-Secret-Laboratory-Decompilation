@@ -26,18 +26,22 @@ namespace MapGeneration.Decoration
 
 		private void HandlePlayerDied(ReferenceHub player, DamageHandlerBase damageHandler)
 		{
+			if (this == null)
+			{
+				PlayerStats.OnAnyPlayerDied -= HandlePlayerDied;
+				return;
+			}
 			if (player.roleManager.CurrentRole is IFpcRole fpcRole && IsInRange(fpcRole.FpcModule.Position) && damageHandler is AttackerDamageHandler attackerDamageHandler && !IgnoredTeams.Contains(attackerDamageHandler.Attacker.Hub.GetTeam()))
 			{
 				ServerTriggerAlarm();
 			}
 		}
 
+		// Unsubscribe unconditionally: the server may already be stopped when the room is destroyed,
+		// which left a handler on the static event pointing at a destroyed room.
 		private void OnDestroy()
 		{
-			if (NetworkServer.active)
-			{
-				PlayerStats.OnAnyPlayerDied -= HandlePlayerDied;
-			}
+			PlayerStats.OnAnyPlayerDied -= HandlePlayerDied;
 		}
 	}
 }

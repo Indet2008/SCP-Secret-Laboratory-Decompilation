@@ -41,6 +41,22 @@ namespace PlayerRoles.PlayableScps.Scp939.Mimicry
 
 		public bool LockMovement => false;
 
+		// Restored from the client build: follows the "hide HUD" toggle.
+		private void Awake()
+		{
+			HideHUDController.ToggleHUD += ToggleHud;
+		}
+
+		private void OnDestroy()
+		{
+			HideHUDController.ToggleHUD -= ToggleHud;
+		}
+
+		private void ToggleHud(bool state)
+		{
+			_hideHudCanvas.enabled = state;
+		}
+
 		public void ButtonOk()
 		{
 			if (_rememberToggle.isOn)

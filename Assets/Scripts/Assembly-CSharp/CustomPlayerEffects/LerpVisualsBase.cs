@@ -21,6 +21,9 @@ namespace CustomPlayerEffects
 
 		protected float CurrentWeight { get; private set; }
 
+		// Set by effects that drive their visuals themselves (e.g. Concussed); null = follow the effect's state.
+		public float? Weight { get; set; }
+
 		protected virtual float TargetWeight
 		{
 			get
@@ -29,7 +32,7 @@ namespace CustomPlayerEffects
 				{
 					return 0f;
 				}
-				return 1f;
+				return Weight ?? 1f;
 			}
 		}
 

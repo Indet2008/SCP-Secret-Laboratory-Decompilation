@@ -28,15 +28,26 @@ namespace PlayerRoles.PlayableScps.Scp096
 			ClientSendCmd();
 		}
 
+		// Restored from the client build: interacting with a pryable gate as the local SCP-096 starts prying it.
+		private void OnInteracted(Interactables.InteractableCollider col)
+		{
+			if (base.Role.IsLocalPlayer && col.Target is PryableDoor door)
+			{
+				ClientTryPry(door);
+			}
+		}
+
 		public override void SpawnObject()
 		{
 			base.SpawnObject();
 			_hitHandler = new Scp096HitHandler(base.CastRole, Scp096DamageHandler.AttackType.GateKill, 0f, 0f, 200f, 200f);
+			Interactables.InteractionCoordinator.OnClientInteracted += OnInteracted;
 		}
 
 		public override void ResetObject()
 		{
 			base.ResetObject();
+			Interactables.InteractionCoordinator.OnClientInteracted -= OnInteracted;
 		}
 
 		public override void ClientWriteCmd(NetworkWriter writer)

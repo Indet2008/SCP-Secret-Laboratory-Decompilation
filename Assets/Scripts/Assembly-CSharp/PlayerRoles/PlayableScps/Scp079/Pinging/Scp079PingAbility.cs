@@ -89,6 +89,13 @@ namespace PlayerRoles.PlayableScps.Scp079.Pinging
 
 		private void SpawnIndicator(int processorIndex, RelativePosition pos, Vector3 normal)
 		{
+			Scp079PingInstance scp079PingInstance = Object.Instantiate(_prefab);
+			scp079PingInstance.IconSprite = _icons[PingProcessors[processorIndex].IconId];
+			scp079PingInstance.transform.SetPositionAndRotation(pos.Position, Quaternion.FromToRotation(Vector3.up, normal));
+			if (WaypointBase.TryGetWaypoint(pos.WaypointId, out var wp))
+			{
+				scp079PingInstance.transform.SetParent(wp.transform, worldPositionStays: true);
+			}
 		}
 
 		private void WriteSyncVars(NetworkWriter writer)
@@ -124,6 +131,23 @@ namespace PlayerRoles.PlayableScps.Scp079.Pinging
 
 		protected override void Trigger()
 		{
+			Ray ray = Scp079Hud.MainCamera.ScreenPointToRay(Input.mousePosition, Camera.MonoOrStereoscopicEye.Mono);
+			for (byte b = 0; b < PingProcessors.Length; b++)
+			{
+				IPingProcessor pingProcessor = PingProcessors[b];
+				if (Physics.Raycast(ray, out var hitInfo, 130f, pingProcessor.Mask) && pingProcessor.TryProcess(hitInfo))
+				{
+					if (!NetworkServer.active)
+					{
+						_rateLimiter.RegisterInput();
+					}
+					_syncProcessorIndex = b;
+					_syncNormal = hitInfo.normal;
+					_syncPos = new RelativePosition(hitInfo.point);
+					ClientSendCmd();
+					break;
+				}
+			}
 		}
 
 		public override void ClientWriteCmd(NetworkWriter writer)

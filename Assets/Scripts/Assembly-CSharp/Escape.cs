@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using InventorySystem.Disarming;
 using LabApi.Events.Arguments.PlayerEvents;
 using LabApi.Events.Handlers;
+using MEC;
 using Mirror;
 using PlayerRoles;
 using PlayerRoles.FirstPersonControl;
 using UnityEngine;
+using UnityEngine.UI;
 using Utils.NonAllocLINQ;
 
 public static class Escape
@@ -85,6 +87,10 @@ public static class Escape
 	[RuntimeInitializeOnLoadMethod]
 	private static void Init()
 	{
+		CustomNetworkManager.OnClientReady += () =>
+		{
+			NetworkClient.ReplaceHandler<EscapeMessage>(ClientReceiveMessage);
+		};
 		StaticUnityMethods.OnUpdate += () =>
 		{
 			if (NetworkServer.active)
@@ -171,5 +177,43 @@ public static class Escape
 
 	private static void ClientReceiveMessage(EscapeMessage msg)
 	{
+		if (Scenarios.TryGetValue((EscapeScenarioType)msg.ScenarioId, out var value))
+		{
+			Timing.RunCoroutine(PlayEscapeAnim(value.Text, msg.EscapeTime), Segment.FixedUpdate);
+		}
+	}
+
+	private static IEnumerator<float> PlayEscapeAnim(string txt, int seconds)
+	{
+		Text text = GameObject.Find("Respawn Text").GetComponent<Text>();
+		txt = txt + "\n" + TranslationReader.Get("Facility", 32, "Escape time: {0} minutes and {1} seconds");
+		int minutes = 0;
+		while (seconds >= 60)
+		{
+			seconds -= 60;
+			minutes++;
+		}
+		CanvasRenderer cr = text.GetComponent<CanvasRenderer>();
+		cr.SetAlpha(0f);
+		text.text = string.Format(txt, minutes.ToString(), seconds.ToString());
+		for (int t = 0; t < 50; t++)
+		{
+			cr.SetAlpha(cr.GetColor().a + 0.02f);
+			yield return 0f;
+		}
+		for (byte i = 0; i < 100; i++)
+		{
+			yield return 0f;
+		}
+		for (byte i = 0; i < 150; i++)
+		{
+			yield return 0f;
+		}
+		for (int t = 0; t < 50; t++)
+		{
+			cr.SetAlpha(cr.GetAlpha() - 0.02f);
+			yield return 0f;
+		}
+		cr.SetAlpha(0f);
 	}
 }

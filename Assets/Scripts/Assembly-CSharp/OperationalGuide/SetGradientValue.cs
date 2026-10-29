@@ -37,14 +37,14 @@ namespace OperationalGuide
 		{
 			Image component = GetComponent<Image>();
 			component.material = new Material(component.material);
-			component.material.SetColor(_leftColor, LeftColor);
-			component.material.SetColor(_rightColor, RightColor);
-			component.material.SetFloat(_rotation, Rotation);
-			component.material.SetFloat(_leftColorModifier, LeftColorModifier);
-			component.material.SetFloat(_rightColorModifier, RightColorModifier);
-			component.material.SetFloat(_rightColorModifier, RightColorModifier);
-			component.material.SetFloat(_leftAlphaModifier, LeftAlphaModifier);
-			component.material.SetFloat(_rightAlphaModifier, RightAlphaModifier);
+			Material material = component.material;
+			material.SetColor(_leftColor, LeftColor);
+			material.SetColor(_rightColor, RightColor);
+			material.SetFloat(_rotation, Rotation);
+			material.SetFloat(_leftColorModifier, LeftColorModifier);
+			material.SetFloat(_rightColorModifier, RightColorModifier);
+			material.SetFloat(_leftAlphaModifier, LeftAlphaModifier);
+			material.SetFloat(_rightAlphaModifier, RightAlphaModifier);
 		}
 	}
 }

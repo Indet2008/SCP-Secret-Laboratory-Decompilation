@@ -34,15 +34,39 @@ namespace CustomPlayerEffects
 			}
 		}
 
+		// Client half restored from the client build: decontamination fog for the local/spectated player.
 		protected override void Enabled()
 		{
 			base.Enabled();
+			if (IsPOV)
+			{
+				CustomRendering.FogController.EnableFogType(CustomRendering.FogType.Decontamination, FogFadeInSpeed);
+			}
 		}
 
 		protected override void Disabled()
 		{
 			base.Disabled();
 			numberOfTicks = 0f;
+			if (IsPOV)
+			{
+				CustomRendering.FogController.DisableFogType(CustomRendering.FogType.Decontamination, FogFadeOutSpeed);
+			}
+		}
+
+		public override void OnBeginSpectating()
+		{
+			base.OnBeginSpectating();
+			if (IsEnabled)
+			{
+				CustomRendering.FogController.EnableFogType(CustomRendering.FogType.Decontamination);
+			}
+		}
+
+		public override void OnStopSpectating()
+		{
+			base.OnStopSpectating();
+			CustomRendering.FogController.DisableFogType(CustomRendering.FogType.Decontamination);
 		}
 	}
 }

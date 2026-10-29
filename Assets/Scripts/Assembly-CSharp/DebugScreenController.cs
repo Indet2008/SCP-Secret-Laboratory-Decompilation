@@ -43,6 +43,23 @@ public class DebugScreenController : MonoBehaviour
 		Log();
 	}
 
+	private void Update()
+	{
+		if (!Input.GetKeyDown(KeyCode.F3) || Gui == null)
+		{
+			return;
+		}
+		if (Gui.activeSelf && DebugLogReader != null)
+		{
+			DebugLogReader.OnDisable();
+		}
+		Gui.SetActive(!Gui.activeSelf);
+		if (Gui.activeSelf && DebugLogScreen != null && DebugLogScreen.Log.activeSelf && DebugLogReader.SuccesfullyInitialized())
+		{
+			DebugLogReader.OnEnable();
+		}
+	}
+
 	private static void Log()
 	{
 		if (!_logged)

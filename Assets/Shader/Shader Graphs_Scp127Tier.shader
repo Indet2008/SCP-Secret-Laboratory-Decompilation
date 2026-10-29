@@ -76,6 +76,63 @@ Shader "Shader Graphs/Scp127Tier"
 			[HideInInspector] [NoScaleOffset] unity_LightmapsInd ("unity_LightmapsInd", 2DArray) = "" {}
 			[HideInInspector] [NoScaleOffset] unity_ShadowMasks ("unity_ShadowMasks", 2DArray) = "" {}
 		}
-	// Decompiled program was unusable (vertex/fragment variants split); kept as a fallback shell.
-	Fallback "HDRP/Lit"
+	// Hand-written replacement for the original Scp127Tier graph. The mask texture holds one tier line per
+	// channel (R/G/B = Tier1/2/3); each line fills from the bottom up to _FillTierN and is tinted with
+	// _BaseColorTierN plus HDR _EmissionColorTierN (set per frame by Scp127TierIndicator).
+	SubShader
+	{
+		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" }
+		Pass
+		{
+			Name "ForwardOnly"
+			Tags { "LightMode" = "ForwardOnly" }
+			Blend One OneMinusSrcAlpha
+			ZWrite Off
+			Cull Back
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.5
+			#pragma multi_compile_instancing
+
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+			TEXTURE2D(_SampleTexture2D_b9e60437553047b5bf4987278afd92f2_Texture_1_Texture2D); SAMPLER(sampler_SampleTexture2D_b9e60437553047b5bf4987278afd92f2_Texture_1_Texture2D);
+			float _FillTier1, _FillTier2, _FillTier3;
+			float4 _BaseColorTier1, _BaseColorTier2, _BaseColorTier3;
+			float4 _EmissionColorTier1, _EmissionColorTier2, _EmissionColorTier3;
+
+			struct Attributes { float4 vertex : POSITION; float2 uv : TEXCOORD0; UNITY_VERTEX_INPUT_INSTANCE_ID };
+			struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
+
+			Varyings vert(Attributes v)
+			{
+				Varyings o;
+				UNITY_SETUP_INSTANCE_ID(v);
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+				o.positionCS = TransformWorldToHClip(TransformObjectToWorld(v.vertex.xyz));
+				o.uv = v.uv;
+				return o;
+			}
+
+			float4 frag(Varyings i) : SV_Target
+			{
+				float3 m = SAMPLE_TEXTURE2D(_SampleTexture2D_b9e60437553047b5bf4987278afd92f2_Texture_1_Texture2D, sampler_SampleTexture2D_b9e60437553047b5bf4987278afd92f2_Texture_1_Texture2D, i.uv).rgb;
+				float3 fill = step(i.uv.yyy, float3(_FillTier1, _FillTier2, _FillTier3));
+				float3 w = m * fill;
+				float exposure = GetCurrentExposureMultiplier();
+				// Base colour is an albedo in the original lit graph; this unlit pass approximates the dim
+				// facility lighting instead of drawing it at full brightness.
+				const float litApprox = 0.08;
+				float3 col = w.x * (_BaseColorTier1.rgb * litApprox + _EmissionColorTier1.rgb * exposure)
+				           + w.y * (_BaseColorTier2.rgb * litApprox + _EmissionColorTier2.rgb * exposure)
+				           + w.z * (_BaseColorTier3.rgb * litApprox + _EmissionColorTier3.rgb * exposure);
+				float a = saturate(max(w.x, max(w.y, w.z)));
+				return float4(col * a, a);
+			}
+			ENDHLSL
+		}
+	}
 }

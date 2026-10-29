@@ -12,7 +12,7 @@ namespace PlayerRoles.PlayableScps.Scp079.Map
 
 		protected override Scp079HudTranslation CloseTranslation => Scp079HudTranslation.CloseMap;
 
-		public override bool IsVisible => false;
+		public override bool IsVisible => !ToggleableMenuController.AnyEnabled || Scp079ToggleMenuAbilityBase<Scp079MapToggler>.IsOpen;
 
 		public bool IsEnabled
 		{
@@ -27,6 +27,31 @@ namespace PlayerRoles.PlayableScps.Scp079.Map
 					Trigger();
 				}
 			}
+		}
+
+		protected override void Trigger()
+		{
+			base.Trigger();
+			if (Scp079ToggleMenuAbilityBase<Scp079MapToggler>.IsOpen)
+			{
+				ToggleableMenuController.ForceCurrent(this);
+			}
+		}
+
+		// Restored from the client build: the map is registered as a toggleable menu for the local SCP-079.
+		public override void SpawnObject()
+		{
+			base.SpawnObject();
+			if (base.Role.IsLocalPlayer)
+			{
+				ToggleableMenuController.RegisteredMenus.Add(this);
+			}
+		}
+
+		public override void ResetObject()
+		{
+			base.ResetObject();
+			ToggleableMenuController.RegisteredMenus.Remove(this);
 		}
 
 		protected override void LateUpdate()

@@ -23,6 +23,14 @@ namespace Respawning.Misc
 
 		private void Update()
 		{
+			if (_prevState != State)
+			{
+				_prevState = State;
+				_renderer.sharedMaterial = (State ? _onMat : _offMat);
+				float intensity = (State ? 0.8f : 0.4f);
+				_leftBrake.intensity = intensity;
+				_rightBrake.intensity = intensity;
+			}
 		}
 
 		public ChaosBrakeLights()

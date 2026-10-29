@@ -44,7 +44,8 @@ namespace PlayerRoles
 			for (int num = 0; num < array.Length; num++)
 			{
 				PlayerRoleBase playerRoleBase = array[num];
-				if (!(playerRoleBase is IHolidayRole { IsAvailable: false }) && playerRoleBase.gameObject.activeSelf)
+				// Local change: in the Unity editor, holiday roles load outside their event too (matches InventoryItemLoader).
+				if ((!(playerRoleBase is IHolidayRole { IsAvailable: false }) || UnityEngine.Application.isEditor) && playerRoleBase.gameObject.activeSelf)
 				{
 					if (playerRoleBase.VariantsModule != null && playerRoleBase.VariantsModule.TryGetVariant(out var variant))
 					{

@@ -525,6 +525,9 @@ namespace MapGeneration.Distributors
 			base.Start();
 			_permsIndicator.Register(this);
 			Scp079Recontainer.AllGenerators.Add(this);
+			_screen.text = _screenOffline;
+			_onLED.UpdateValue(b: false);
+			_offLED.UpdateValue(b: true);
 		}
 
 		protected override void OnDestroy()
@@ -539,6 +542,89 @@ namespace MapGeneration.Distributors
 			{
 				ServerUpdate();
 			}
+			// Client half restored from the client build (IL2CPP): react to synced flag changes.
+			if (_flags == _prevFlags)
+			{
+				return;
+			}
+			if (!HasFlag(_prevFlags, GeneratorFlags.Unlocked) && HasFlag(_flags, GeneratorFlags.Unlocked))
+			{
+				_nfcIcon.SetGranted();
+				_permsIndicator.PlayAccepted(null);
+				_audioSource.PlayOneShot(_unlockClip);
+			}
+			bool activating = HasFlag(_flags, GeneratorFlags.Activating);
+			if (HasFlag(_prevFlags, GeneratorFlags.Activating) != activating)
+			{
+				_leverAnimator.SetBool(LeverAnimHash, activating);
+				_leverStopwatch.Restart();
+				if (!activating)
+				{
+					_screen.text = _screenOffline;
+				}
+			}
+			bool engaged = HasFlag(_flags, GeneratorFlags.Engaged);
+			if (HasFlag(_prevFlags, GeneratorFlags.Engaged) != engaged)
+			{
+				_onLED.UpdateValue(engaged);
+				_offLED.UpdateValue(!engaged);
+				if (engaged)
+				{
+					_screen.text = _screenEngaged;
+				}
+			}
+			bool open = HasFlag(_flags, GeneratorFlags.Open);
+			if (HasFlag(_prevFlags, GeneratorFlags.Open) != open)
+			{
+				_doorAnimator.SetBool(DoorAnimHash, open);
+				_audioSource.PlayOneShot(open ? _openClip : _closeClip);
+			}
+			_prevFlags = _flags;
+		}
+
+		private void LateUpdate()
+		{
+			UpdateGauges();
+			bool ready = ActivationReady;
+			bool activating = Activating && !Engaged;
+			// Wait lights and the countdown screen are only live while the generator is activating.
+			bool lightsOn = activating;
+			bool countdown = ready;
+			GeneratorLED[] waitLights = _waitLights;
+			for (int i = 0; i < waitLights.Length; i++)
+			{
+				waitLights[i].UpdateValue(lightsOn);
+			}
+			if (_syncTime == _prevTime)
+			{
+				return;
+			}
+			_prevTime = _syncTime;
+			if (!activating)
+			{
+				return;
+			}
+			if (countdown)
+			{
+				_audioSource.PlayOneShot(_countdownClip);
+			}
+			_screen.text = string.Format(_screenCountdown, _syncTime);
+			OnCount?.Invoke(this);
+			_prevTime = _syncTime;
+		}
+
+		private void UpdateGauges()
+		{
+			int engagedCount = 0;
+			foreach (Scp079Generator generator in Scp079Recontainer.AllGenerators)
+			{
+				if (generator.Engaged)
+				{
+					engagedCount++;
+				}
+			}
+			_totalGauge.UpdateValue(engagedCount);
+			_localGauge.UpdateValue(1f - (float)_syncTime / _totalActivationTime);
 		}
 
 		[Server]
@@ -634,6 +720,9 @@ namespace MapGeneration.Distributors
 
 		protected void UserCode_RpcDenied__DoorPermissionFlags(DoorPermissionFlags flags)
 		{
+			_nfcIcon.SetTemporaryDenied(_deniedCooldownTime);
+			_permsIndicator.PlayDenied(flags, _deniedCooldownTime);
+			_audioSource.PlayOneShot(_deniedClip);
 		}
 
 		protected static void InvokeUserCode_RpcDenied__DoorPermissionFlags(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

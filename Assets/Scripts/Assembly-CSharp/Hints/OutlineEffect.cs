@@ -5,6 +5,21 @@ namespace Hints
 {
 	public class OutlineEffect : HintEffect
 	{
+		private readonly struct OutlineInfo
+		{
+			public readonly Color32 Color;
+
+			public readonly float Width;
+
+			public OutlineInfo(Color32 color, float width)
+			{
+				Color = color;
+				Width = width;
+			}
+		}
+
+		private OutlineInfo _oldOutline;
+
 		protected Color32 OutlineColor { get; private set; }
 
 		protected float OutlineWidth { get; private set; }
@@ -39,6 +54,23 @@ namespace Hints
 			base.Serialize(writer);
 			writer.WriteColor32(OutlineColor);
 			writer.WriteFloat(OutlineWidth);
+		}
+
+		protected override void Start()
+		{
+			_oldOutline = new OutlineInfo(base.Data.Textbox.outlineColor, base.Data.Textbox.outlineWidth);
+		}
+
+		protected override void Destroy()
+		{
+			base.Data.Textbox.outlineColor = _oldOutline.Color;
+			base.Data.Textbox.outlineWidth = _oldOutline.Width;
+		}
+
+		protected override void UpdateState(float progress)
+		{
+			base.Data.Textbox.outlineColor = OutlineColor;
+			base.Data.Textbox.outlineWidth = OutlineWidth;
 		}
 	}
 }

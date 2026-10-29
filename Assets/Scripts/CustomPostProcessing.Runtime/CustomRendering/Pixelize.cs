@@ -20,7 +20,7 @@ namespace CustomRendering
 
 		protected override void SetProperties(Material material, HDCamera camera)
 		{
-			material.SetFloat("_Resolution", Amount.value);
+			material.SetFloat("_Resolution", Amount.value / 10f);
 		}
 	}
 }

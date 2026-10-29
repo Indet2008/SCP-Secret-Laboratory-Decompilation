@@ -1,48 +1,57 @@
+using System;
+using InventorySystem.Items;
+using PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers;
+
 namespace OperationalGuide
 {
-	public class ModelObject : global::OperationalGuide.PannableObject
+	public class ModelObject : PannableObject
 	{
-		private global::PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers.InventorySubcontroller _inventoryModel;
+		private InventorySubcontroller _inventoryModel;
 
-		public global::System.Action<global::PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers.InventorySubcontroller> OnInventoryModelSet;
+		public Action<InventorySubcontroller> OnInventoryModelSet;
 
-		public ItemType ItemHeld;
+		public ItemType ItemHeld = ItemType.None;
 
-		protected global::InventorySystem.Items.ItemIdentifier ItemIdentifier;
+		protected ItemIdentifier ItemIdentifier = new ItemIdentifier(ItemType.None, 0);
 
-		public global::PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers.InventorySubcontroller InventoryModel
+		public InventorySubcontroller InventoryModel
 		{
 			get
 			{
-				return default;
+				return _inventoryModel;
 			}
 			set
 			{
+				_inventoryModel = value;
+				OnInventoryModelSet?.Invoke(_inventoryModel);
 			}
 		}
 
 		public override void Enable()
 		{
+			YAxisModifer = 0f;
+			OnInventoryModelSet = (Action<InventorySubcontroller>)Delegate.Combine(OnInventoryModelSet, new Action<InventorySubcontroller>(OnInvModelSet));
 		}
 
-		private void OnInvModelSet(global::PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers.InventorySubcontroller inventorySubcontroller)
+		private void OnInvModelSet(InventorySubcontroller inventorySubcontroller)
 		{
+			inventorySubcontroller.Model.Animator.keepAnimatorStateOnDisable = true;
 		}
 
 		private void OnDestroy()
 		{
+			OnInventoryModelSet = (Action<InventorySubcontroller>)Delegate.Remove(OnInventoryModelSet, new Action<InventorySubcontroller>(OnInvModelSet));
 		}
 
 		public override void OnUpdate()
 		{
+			_inventoryModel.UpdateHeldItem(ItemIdentifier, instant: true);
 		}
 
 		public virtual void UpdateHeldItem(ItemType newItem)
 		{
-		}
-
-		public ModelObject()
-		{
+			ItemHeld = newItem;
+			ItemIdentifier = new ItemIdentifier(newItem, 0);
 		}
 	}
 }

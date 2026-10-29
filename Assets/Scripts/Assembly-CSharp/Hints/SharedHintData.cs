@@ -1,9 +1,18 @@
-using System.Runtime.InteropServices;
+using TMPro;
+using UnityEngine;
 
 namespace Hints
 {
-	[StructLayout(LayoutKind.Sequential, Size = 1)]
 	public readonly struct SharedHintData
 	{
+		public readonly ReferenceHub PlayerHub;
+
+		public readonly TextMeshProUGUI Textbox;
+
+		public SharedHintData(GameObject self, TextMeshProUGUI textbox)
+		{
+			PlayerHub = ReferenceHub.GetHub(self);
+			Textbox = textbox;
+		}
 	}
 }

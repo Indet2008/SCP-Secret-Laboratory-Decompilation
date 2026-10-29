@@ -57,6 +57,14 @@ public class NicknameSync : NetworkBehaviour
 
 	private string _replacement;
 
+	private UnityEngine.UI.Text _nText;
+
+	private CanvasRenderer _renderer;
+
+	private float _transparency;
+
+	private CustomPlayerEffects.Flashed _localFlashed;
+
 	public string CombinedName
 	{
 		get
@@ -158,6 +166,8 @@ public class NicknameSync : NetworkBehaviour
 	}
 
 	public bool NickSet { get; private set; }
+
+	public string SanitizedPlayerInfoString { get; private set; }
 
 	public bool HasCustomName => _cleanDisplayName != null;
 
@@ -314,6 +324,26 @@ public class NicknameSync : NetworkBehaviour
 
 	public static void WriteDefaultInfo(ReferenceHub owner, StringBuilder sb, PlayerInfoArea? flagsOverride = null)
 	{
+		PlayerInfoArea playerInfoArea = flagsOverride ?? owner.nicknameSync._playerInfoToShow;
+		if ((playerInfoArea & PlayerInfoArea.Badge) != 0 || owner.serverRoles.GlobalSet || !string.IsNullOrEmpty(owner.serverRoles.FixedBadge))
+		{
+			sb.Append(owner.serverRoles.GetColoredRoleString());
+			sb.Append(Environment.NewLine);
+		}
+		if ((playerInfoArea & PlayerInfoArea.CustomInfo) != 0 && !string.IsNullOrEmpty(owner.nicknameSync.SanitizedPlayerInfoString))
+		{
+			sb.Append(owner.nicknameSync.SanitizedPlayerInfoString);
+			sb.Append(Environment.NewLine);
+		}
+		if ((playerInfoArea & PlayerInfoArea.Nickname) != 0)
+		{
+			sb.Append(owner.nicknameSync.DisplayName);
+			sb.Append(Environment.NewLine);
+		}
+		if ((playerInfoArea & PlayerInfoArea.Role) != 0)
+		{
+			sb.Append(owner.roleManager.CurrentRole.RoleName);
+		}
 	}
 
 	[ServerCallback]
@@ -356,6 +386,7 @@ public class NicknameSync : NetworkBehaviour
 	private void Start()
 	{
 		_hub = ReferenceHub.GetHub(base.gameObject);
+		_hub.playerEffectsController.TryGetEffect<CustomPlayerEffects.Flashed>(out _localFlashed);
 		_nickFilter = null;
 		_replacement = "";
 		if (NetworkServer.active)
@@ -376,6 +407,12 @@ public class NicknameSync : NetworkBehaviour
 			}
 			else
 			{
+				GameObject nickTextObject = GameObject.Find("Nickname Text");
+				if (nickTextObject != null)
+				{
+					_nText = nickTextObject.GetComponent<UnityEngine.UI.Text>();
+					_renderer = _nText.GetComponent<CanvasRenderer>();
+				}
 				string localName = SteamManager.GetPersonaName();
 				if (string.IsNullOrEmpty(localName))
 				{
@@ -437,10 +474,65 @@ public class NicknameSync : NetworkBehaviour
 
 	private void Update()
 	{
+		if (ServerStatic.IsDedicated || !base.isLocalPlayer)
+		{
+			return;
+		}
+		bool flag = false;
+		RaycastHit hitInfo = default(RaycastHit);
+		if (TryGetRayTransform(out var tr) && Physics.Raycast(new Ray(tr.position, (tr.rotation * Vector3.forward).normalized), out hitInfo, ViewRange, RaycastMask))
+		{
+			ReferenceHub referenceHub = (hitInfo.collider.gameObject.TryGetComponent<HitboxIdentity>(out var component) ? component.TargetHub : null);
+			if (referenceHub != null && !referenceHub.nicknameSync.isLocalPlayer && (_localFlashed == null || _localFlashed.Weight < 0.5f) && referenceHub.roleManager.CurrentRole is IFpcRole)
+			{
+				StringBuilder stringBuilder = StringBuilderPool.Shared.Rent();
+				Color color;
+				if (referenceHub.roleManager.CurrentRole is ICustomNicknameDisplayRole customNicknameDisplayRole)
+				{
+					customNicknameDisplayRole.WriteNickname(stringBuilder);
+					color = customNicknameDisplayRole.NicknameColor;
+				}
+				else
+				{
+					WriteDefaultInfo(referenceHub, stringBuilder);
+					color = referenceHub.roleManager.CurrentRole.RoleColor;
+				}
+				if (_nText != null)
+				{
+					_nText.color = color;
+					_nText.text = stringBuilder.ToString();
+				}
+				StringBuilderPool.Shared.Return(stringBuilder);
+				flag = true;
+			}
+		}
+		float transparency = _transparency;
+		if (flag)
+		{
+			_transparency = transparency + Time.deltaTime * 3f;
+			float max = (ViewRange - Vector3.Distance(base.transform.position, hitInfo.point)) / ViewRange;
+			_transparency = Mathf.Clamp(_transparency, 0f, max);
+		}
+		else
+		{
+			_transparency = transparency + Time.deltaTime * -3f;
+		}
+		_transparency = Mathf.Clamp01(_transparency);
+		if (_renderer != null)
+		{
+			_renderer.SetAlpha(_transparency);
+		}
 	}
 
 	private void SetCustomInfo(string oldValue, string newValue)
 	{
+		if (ValidateCustomInfo(newValue, out var rejectionText))
+		{
+			SanitizedPlayerInfoString = newValue;
+			return;
+		}
+		SanitizedPlayerInfoString = null;
+		GameCore.Console.AddLog("Custom info of player " + MyNick + " has been REJECTED. Info: " + rejectionText, new Color(0.5f, 0.5f, 0.5f, 1f));
 	}
 
 	[Command(channel = 4)]

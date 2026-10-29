@@ -148,7 +148,6 @@ namespace PlayerRoles.FirstPersonControl.Thirdperson.Subcontrollers
 			}
 			_transitionStatus = TransitionStatus.EquippingNew;
 			_hasThirdpersonInstance = ThirdpersonItemPoolManager.TryGet(this, itemId, out _lastThirdpersonInstance, PoolHeldItem);
-			OnVisibilityChanged();
 			OnSwapThirdpersonItem?.Invoke(_lastThirdpersonInstance);
 		}
 

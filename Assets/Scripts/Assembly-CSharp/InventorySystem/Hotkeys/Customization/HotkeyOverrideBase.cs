@@ -1,30 +1,27 @@
+using System.Collections.Generic;
+using InventorySystem.Items;
+
 namespace InventorySystem.Hotkeys.Customization
 {
 	public abstract class HotkeyOverrideBase
 	{
-		public static readonly global::InventorySystem.Hotkeys.Customization.HotkeyOverrideBase[] Overrides;
-
-		public abstract global::InventorySystem.Hotkeys.Customization.HotkeyOverrideOption OptionType
+		public static readonly HotkeyOverrideBase[] Overrides = new HotkeyOverrideBase[5]
 		{
-			get;
-		}
+			new HotkeyNoneOverride(),
+			new HotkeyRememberPreviousOverride(),
+			new HotkeyBestMedicalOverride(),
+			new HotkeyNearbyDoorOverride(),
+			new HotkeySkipEmptyFirearms()
+		};
 
-		public abstract global::InventorySystem.Hotkeys.HotkeysTranslation OptionName
-		{
-			get;
-		}
+		public abstract HotkeyOverrideOption OptionType { get; }
 
-		public abstract global::InventorySystem.Hotkeys.HotkeysTranslation? Description
-		{
-			get;
-		}
+		public abstract HotkeysTranslation OptionName { get; }
 
-		public abstract bool CheckAvailability(global::System.Collections.Generic.List<global::InventorySystem.Hotkeys.Customization.PoolElementData> elements);
+		public abstract HotkeysTranslation? Description { get; }
 
-		public abstract bool TryGetOverride(ReferenceHub player, int hotkeyId, global::System.Collections.Generic.List<global::InventorySystem.Items.ItemBase> matches, out global::InventorySystem.Items.ItemBase result);
+		public abstract bool CheckAvailability(List<PoolElementData> elements);
 
-		protected HotkeyOverrideBase()
-		{
-		}
+		public abstract bool TryGetOverride(ReferenceHub player, int hotkeyId, List<ItemBase> matches, out ItemBase result);
 	}
 }

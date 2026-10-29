@@ -27,7 +27,7 @@ namespace CustomRendering
 		protected override void SetProperties(Material material, HDCamera camera)
 		{
 			material.SetTexture("_NoiseTex", NoiseTex.value);
-			material.SetVector("_Params", new Vector4(Intensity.value, Size.value, Falloff.value, 0f));
+			material.SetVector("_Params", new Vector4(Intensity.value, Falloff.value * 14f + 2f, Size.value * 2f, 0f));
 		}
 	}
 }

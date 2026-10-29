@@ -196,8 +196,32 @@ namespace PlayerRoles.PlayableScps.Scp3114
 			RagdollManager.OnRagdollRemoved -= OnRagdollRemoved;
 		}
 
+		// Restored from the client build: enemies of SCP-3114 see the stolen identity instead of the real nickname/role.
 		public void WriteNickname(StringBuilder sb)
 		{
+			ReferenceHub owner = base.Owner;
+			if (!ReferenceHub.TryGetLocalHub(out var localHub) || !HitboxIdentity.IsEnemy(owner, localHub) || CurIdentity.Status != DisguiseStatus.Active || !CurIdentity.StolenRole.TryGetRoleTemplate<PlayerRoleBase>(out var stolenRole))
+			{
+				NicknameSync.WriteDefaultInfo(owner, sb);
+				return;
+			}
+			PlayerInfoArea flags = owner.nicknameSync.ShownPlayerInfo;
+			if ((flags & PlayerInfoArea.Nickname) != 0)
+			{
+				sb.Append(CurIdentity.Ragdoll.Info.Nickname);
+				sb.Append(Environment.NewLine);
+			}
+			if ((flags & PlayerInfoArea.Role) != 0)
+			{
+				sb.Append(stolenRole.RoleName);
+				Team team = stolenRole.Team;
+				if ((flags & PlayerInfoArea.UnitName) != 0 && Respawning.NamingRules.NamingRulesManager.TryGetNamingRule(team, out _))
+				{
+					sb.Append(" (");
+					sb.Append(Respawning.NamingRules.NamingRulesManager.ClientFetchReceived(team, CurIdentity.UnitNameId));
+					sb.Append(")");
+				}
+			}
 		}
 
 		public void ServerResendIdentity()

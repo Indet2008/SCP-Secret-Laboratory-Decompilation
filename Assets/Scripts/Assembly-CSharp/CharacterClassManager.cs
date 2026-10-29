@@ -304,6 +304,7 @@ public class CharacterClassManager : NetworkBehaviour
 
 	protected void UserCode_TargetChangeCmdBinding__KeyCode__String(KeyCode code, string cmd)
 	{
+		Cmdbinding.CmdBinding.SynchronizeKeybind(code, cmd);
 	}
 
 	protected static void InvokeUserCode_TargetChangeCmdBinding__KeyCode__String(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
