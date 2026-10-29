@@ -2,6 +2,7 @@ using Interactables.Interobjects.DoorUtils;
 using PlayerRoles.Blood;
 using PlayerRoles.FirstPersonControl;
 using PlayerRoles.FirstPersonControl.Spawnpoints;
+using PlayerRoles.PlayableScps.HUDs;
 using PlayerRoles.RoleAssign;
 using UnityEngine;
 
@@ -58,6 +59,15 @@ namespace PlayerRoles.PlayableScps
 		public virtual DoorPermissionFlags GetPermissions(IDoorPermissionRequester requester)
 		{
 			return DoorPermissionFlags.ScpOverride;
+		}
+
+		public override bool TryGetViewmodelFov(out float fov)
+		{
+			if (this is IHudScp && ScpHudController.CurInstance is IViewmodelRole viewmodelRole)
+			{
+				return viewmodelRole.TryGetViewmodelFov(out fov);
+			}
+			return base.TryGetViewmodelFov(out fov);
 		}
 	}
 }
