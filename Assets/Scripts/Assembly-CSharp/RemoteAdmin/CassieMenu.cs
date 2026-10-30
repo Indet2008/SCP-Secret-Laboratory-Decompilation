@@ -99,6 +99,25 @@ namespace RemoteAdmin
 			RefreshButtons();
 		}
 
+		private int Index(int increment = 1)
+		{
+			if (!Cassie.CassieTtsAnnouncer.TryGetDatabase(out var db))
+			{
+				return _pageIndex;
+			}
+			int num = db.AllLines.Length / _buttons.Length;
+			_pageIndex += increment;
+			if (_pageIndex > num)
+			{
+				_pageIndex = 0;
+			}
+			else if (_pageIndex < 0)
+			{
+				_pageIndex = num;
+			}
+			return _pageIndex;
+		}
+
 		public void RefreshButtons()
 		{
 			if (_buttons != null)

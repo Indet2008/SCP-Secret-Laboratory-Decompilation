@@ -54,7 +54,7 @@ public class StartScreen : MonoBehaviour
 
 	private AnimationCurve _limiter;
 
-	private AudioSource _audioSource;
+	private global::AudioPooling.PooledAudioSource _audioSource;
 
 	public static void Show(PlayerRoleBase prb)
 	{
@@ -67,9 +67,6 @@ public class StartScreen : MonoBehaviour
 	private void Awake()
 	{
 		_singleton = this;
-		_audioSource = gameObject.AddComponent<AudioSource>();
-		_audioSource.playOnAwake = false;
-		_audioSource.spatialBlend = 0f;
 		gameObject.SetActive(false);
 	}
 
@@ -96,14 +93,19 @@ public class StartScreen : MonoBehaviour
 		}
 		_hasHelpMenu = prb.RoleHelpInfo != null;
 		gameObject.SetActive(true);
-		global::MapGeneration.Holidays.HolidayAudioClip bell = (prb.Team == Team.SCPs) ? _scpBellSfx : _humanBellSfx;
-		AudioClip clip = (bell != null) ? bell.GetClip() : null;
-		if (clip != null)
-		{
-			_audioSource.PlayOneShot(clip);
-		}
+		PlaySfx(prb);
 		_elapsed = 0f;
 		Update();
+	}
+
+	private void PlaySfx(PlayerRoleBase prb)
+	{
+		if (_audioSource != null && !_audioSource.Pooled)
+		{
+			_audioSource.Source.Stop();
+		}
+		global::MapGeneration.Holidays.HolidayAudioClip holidayAudioClip = ((prb.Team != Team.SCPs) ? _humanBellSfx : _scpBellSfx);
+		_audioSource = global::AudioPooling.AudioSourcePoolManager.Play2D(holidayAudioClip.GetClip());
 	}
 
 	private void Update()

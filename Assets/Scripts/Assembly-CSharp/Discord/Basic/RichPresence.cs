@@ -1,10 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+
 namespace Discord.Basic
 {
 	public class RichPresence
 	{
-		private readonly global::System.Collections.Generic.List<global::System.IntPtr> _buffers;
+		private readonly List<IntPtr> _buffers = new List<IntPtr>(10);
 
-		private global::Discord.Basic.RichPresenceStruct _presence;
+		private RichPresenceStruct _presence;
 
 		public string details;
 
@@ -36,22 +41,52 @@ namespace Discord.Basic
 
 		public string state;
 
-		internal global::Discord.Basic.RichPresenceStruct GetStruct()
+		internal RichPresenceStruct GetStruct()
 		{
-			return default;
+			if (_buffers.Count > 0)
+			{
+				FreeMem();
+			}
+			_presence.state = StrToPtr(state);
+			_presence.details = StrToPtr(details);
+			_presence.startTimestamp = startTimestamp;
+			_presence.endTimestamp = endTimestamp;
+			_presence.largeImageKey = StrToPtr(largeImageKey);
+			_presence.largeImageText = StrToPtr(largeImageText);
+			_presence.smallImageKey = StrToPtr(smallImageKey);
+			_presence.smallImageText = StrToPtr(smallImageText);
+			_presence.partyId = StrToPtr(partyId);
+			_presence.partySize = partySize;
+			_presence.partyMax = partyMax;
+			_presence.matchSecret = StrToPtr(matchSecret);
+			_presence.joinSecret = StrToPtr(joinSecret);
+			_presence.spectateSecret = StrToPtr(spectateSecret);
+			_presence.instance = instance;
+			return _presence;
 		}
 
-		private global::System.IntPtr StrToPtr(string input)
+		private IntPtr StrToPtr(string input)
 		{
-			return default;
+			if (string.IsNullOrEmpty(input))
+			{
+				return IntPtr.Zero;
+			}
+			int byteCount = Encoding.UTF8.GetByteCount(input);
+			IntPtr intPtr = Marshal.AllocHGlobal(byteCount + 1);
+			byte[] bytes = new byte[byteCount + 1];
+			Encoding.UTF8.GetBytes(input, 0, input.Length, bytes, 0);
+			Marshal.Copy(bytes, 0, intPtr, byteCount + 1);
+			_buffers.Add(intPtr);
+			return intPtr;
 		}
 
 		internal void FreeMem()
 		{
-		}
-
-		public RichPresence()
-		{
+			for (int num = _buffers.Count - 1; num >= 0; num--)
+			{
+				Marshal.FreeHGlobal(_buffers[num]);
+				_buffers.RemoveAt(num);
+			}
 		}
 	}
 }

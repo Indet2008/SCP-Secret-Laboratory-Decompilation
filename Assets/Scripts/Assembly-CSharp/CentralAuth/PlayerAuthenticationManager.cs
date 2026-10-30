@@ -50,6 +50,8 @@ namespace CentralAuth
 
 		private ClientInstanceMode _targetInstanceMode;
 
+		private byte[] _clientDerivedKey;
+
 		private const int HashIterations = 1600;
 
 		private const string HostId = "ID_Host";
@@ -748,6 +750,57 @@ namespace CentralAuth
 			}
 		}
 
+		internal void ClientStartAuthentication(string password)
+		{
+			ReferenceHub hostHub = ReferenceHub.HostHub;
+			string serverRandom = hostHub.encryptedChannelManager.ServerRandom;
+			if (serverRandom == null)
+			{
+				GameCore.Console.AddLog("Null server salt!", Color.red, nospace: true);
+				return;
+			}
+			if (!_saltRegex.IsMatch(serverRandom))
+			{
+				GameCore.Console.AddLog("Invalid server salt: /" + hostHub.encryptedChannelManager.ServerRandom + "/", Color.red, nospace: true);
+				return;
+			}
+			if (_clientSalt == null)
+			{
+				_clientSalt = RandomGenerator.GetStringSecure(32);
+			}
+			_clientDerivedKey = DerivePassword(password, hostHub.encryptedChannelManager.ServerRandom, _clientSalt);
+			if (!_authenticationRequested)
+			{
+				try
+				{
+					_hub.encryptedChannelManager.PrepareExchange();
+					string text = ECDSA.KeyToString(_hub.encryptedChannelManager.EcdhKeys.Public);
+					CmdHandlePasswordAuthentication(_clientSalt, Sha.Sha512Hmac(_clientDerivedKey, text), text);
+					GameCore.Console.AddLog("Sent password auth request (offline mode).", Color.green, nospace: true);
+					return;
+				}
+				catch (Exception ex)
+				{
+					GameCore.Console.AddLog("HMAC Signing Error: " + ex.Message, Color.red, nospace: true);
+					GameCore.Console.AddLog(ex.StackTrace, Color.red, nospace: true);
+					return;
+				}
+			}
+			byte[] signature;
+			try
+			{
+				signature = Sha.Sha512Hmac(_clientDerivedKey, SyncedUserId);
+			}
+			catch (Exception ex2)
+			{
+				GameCore.Console.AddLog("HMAC Signing Error: " + ex2.Message, Color.red, nospace: true);
+				GameCore.Console.AddLog(ex2.StackTrace, Color.red, nospace: true);
+				return;
+			}
+			CmdHandlePasswordAuthentication(_clientSalt, signature, null);
+			GameCore.Console.AddLog("Sent password auth request (online mode).", Color.green, nospace: true);
+		}
+
 		private static byte[] DerivePassword(string password, string serversalt, string clientsalt)
 		{
 			byte[] salt = Sha.Sha512(serversalt + "/" + clientsalt);
@@ -922,6 +975,17 @@ namespace CentralAuth
 
 		protected void UserCode_RpcFinishExchange__String__Byte_005B_005D(string publicKey, byte[] signature)
 		{
+			bool num = Sha.Sha512Hmac(_clientDerivedKey, publicKey).SequenceEqual(signature);
+			_clientDerivedKey = null;
+			if (num)
+			{
+				_hub.encryptedChannelManager.ServerProcessExchange(publicKey);
+				GameCore.Console.AddLog("Completed ECDH exchange (RA password auth).", Color.green, nospace: true);
+			}
+			else
+			{
+				GameCore.Console.AddLog("Invalid signature received from the server (RA password auth)!", Color.red, nospace: true);
+			}
 		}
 
 		protected static void InvokeUserCode_RpcFinishExchange__String__Byte_005B_005D(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

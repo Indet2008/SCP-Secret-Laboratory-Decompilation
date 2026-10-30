@@ -1,61 +1,19 @@
+using UnityEngine;
+
 namespace Discord.Elements
 {
-	public abstract class DiscordElementBase : global::UnityEngine.ScriptableObject
+	public abstract class DiscordElementBase : ScriptableObject
 	{
-		public string Title
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
-		}
+		[field: SerializeField]
+		public string Title { get; private set; }
 
-		public string LargeImageId
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
-		}
+		[field: SerializeField]
+		public string LargeImageId { get; private set; }
 
-		public string SmallImageId
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
-		}
+		[field: SerializeField]
+		public string SmallImageId { get; private set; }
 
-		public bool IsInstance
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
-		}
-
-		protected DiscordElementBase()
-		{
-		}
+		[field: SerializeField]
+		public bool IsInstance { get; private set; }
 	}
 }

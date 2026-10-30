@@ -26,7 +26,7 @@ namespace RemoteAdmin
 
 		public static readonly List<QueryProcessor.CommandData> Commands = new List<QueryProcessor.CommandData>();
 
-		private static readonly HashSet<string> ClearCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "cls", "clear" };
+		private static readonly HashSet<string> ClearCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "clr", "cls", "clearconsole", "clean" };
 
 		private static readonly List<string> PendingLogs = new List<string>();
 
@@ -180,6 +180,15 @@ namespace RemoteAdmin
 			{
 				NavigateHistory(-1);
 			}
+			else if (Input.GetKeyDown(KeyCode.Tab) && _suggestions.Count == 1 && _suggestions[0].Usage != null && _clientLastCommandIndex >= 0 && _clientLastCommandIndex < _suggestions[0].Usage.Length && _suggestions[0].Usage[_clientLastCommandIndex] == "%player%" && commandField.text.IndexOf(' ') >= 0)
+			{
+				string text2 = commandField.text;
+				string text3 = text2.Substring(text2.LastIndexOf(' ') + 1);
+				if (text3.Length > 0 && !int.TryParse(text3.TrimEnd('.'), out var _))
+				{
+					LookupPlayer(text3);
+				}
+			}
 			else if (Input.GetKeyDown(KeyCode.Tab) && _suggestions.Count > 0)
 			{
 				string text = commandField.text;
@@ -240,49 +249,376 @@ namespace RemoteAdmin
 			commandField.ActivateInputField();
 		}
 
+		private struct CommandDictionaryEntry
+		{
+			internal readonly string Usage;
+
+			internal readonly string Description;
+
+			internal CommandDictionaryEntry(string usage, string description)
+			{
+				Usage = usage;
+				Description = description;
+			}
+		}
+
+		private struct CommandDistance : IComparable<CommandDistance>, IEquatable<CommandDistance>
+		{
+			internal readonly QueryProcessor.CommandData Command;
+
+			private readonly int _distance;
+
+			internal CommandDistance(QueryProcessor.CommandData command, int distance)
+			{
+				Command = command;
+				_distance = distance;
+			}
+
+			public int CompareTo(CommandDistance other)
+			{
+				int num = _distance.CompareTo(other._distance);
+				if (num != 0)
+				{
+					return num;
+				}
+				return string.Compare(Command.Command, other.Command.Command, StringComparison.Ordinal);
+			}
+
+			public bool Equals(CommandDistance other)
+			{
+				if (Command.Equals(other.Command))
+				{
+					return _distance == other._distance;
+				}
+				return false;
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (obj is CommandDistance other)
+				{
+					return Equals(other);
+				}
+				return false;
+			}
+
+			public override int GetHashCode()
+			{
+				return (Command.GetHashCode() * 397) ^ _distance;
+			}
+
+			public static bool operator <(CommandDistance left, CommandDistance right)
+			{
+				return left.CompareTo(right) < 0;
+			}
+
+			public static bool operator >(CommandDistance left, CommandDistance right)
+			{
+				return left.CompareTo(right) > 0;
+			}
+		}
+
+		private class CommandDistanceComparer : IComparer<CommandDistance>
+		{
+			int IComparer<CommandDistance>.Compare(CommandDistance x, CommandDistance y)
+			{
+				return x.CompareTo(y);
+			}
+		}
+
+		private static readonly string[] AllAliases = new string[4] { "@all", "*", "@everyone", "@a" };
+
+		private static readonly string[] SelfAliases = new string[2] { "@me", "@self" };
+
+		private static readonly CommandDistanceComparer _cdComparer = new CommandDistanceComparer();
+
+		private static readonly List<CommandDistance> _distances = new List<CommandDistance>();
+
+		private static readonly Dictionary<string, CommandDistance> _addedDistances = new Dictionary<string, CommandDistance>();
+
+		private List<KeyValuePair<string, CommandDictionaryEntry>> _clientLastCommandSearchResults;
+
+		private int _clientLastCommandIndex = -1;
+
 		private void OnCommandValueChanged(string value)
 		{
+			CommandFieldOnValueChanged();
+		}
+
+		private void CommandFieldOnValueChanged()
+		{
 			_suggestions.Clear();
-			if (ShowSuggestions && !string.IsNullOrWhiteSpace(value) && Commands.Count != 0)
+			string text = ((commandField == null) ? string.Empty : commandField.text);
+			if (!ShowSuggestions || string.IsNullOrWhiteSpace(text) || Commands.Count == 0 || text.StartsWith("@", StringComparison.Ordinal))
 			{
-				string text = value.TrimStart();
-				int num = text.IndexOf(' ');
-				string partial = ((num < 0) ? text : text.Substring(0, num));
-				bool flag = num >= 0;
-				foreach (QueryProcessor.CommandData item in Commands.Where((QueryProcessor.CommandData x) => !x.Hidden && x.Command != null && (flag ? string.Equals(x.Command, partial, StringComparison.OrdinalIgnoreCase) : x.Command.StartsWith(partial, StringComparison.OrdinalIgnoreCase))).OrderBy((QueryProcessor.CommandData x) => x.Command.Length).Take(MaxSuggestions))
-				{
-					_suggestions.Add(item);
-				}
+				HideSuggest();
+				return;
 			}
+			string[] array = text.TrimStart().Split(' ');
+			string lower = array[0].ToLowerInvariant();
+			QueryProcessor.CommandData commandData = Commands.FirstOrDefault((QueryProcessor.CommandData x) => x.Command == lower);
+			if (commandData.Equals(default(QueryProcessor.CommandData)))
+			{
+				if (array.Length > 1)
+				{
+					HideSuggest();
+					return;
+				}
+				FuzzySearchCommand(lower);
+				if (_distances.Count == 0)
+				{
+					HideSuggest();
+					return;
+				}
+				foreach (CommandDistance distance in _distances)
+				{
+					_suggestions.Add(distance.Command);
+				}
+				SetCommandSuggest(GetDictionaryFromCommands(_distances));
+				return;
+			}
+			_suggestions.Add(commandData);
+			int num = array.Length - 2;
+			if (num < 0 || commandData.Usage == null || num >= commandData.Usage.Length)
+			{
+				SetCommandSuggest(GetDictionaryFromCommands(new List<QueryProcessor.CommandData> { commandData }));
+				return;
+			}
+			_clientLastCommandIndex = num;
+			SetCommandSuggest(GetDictionaryFromArg(commandData, num), num);
+		}
+
+		private void HideSuggest()
+		{
+			_clientLastCommandSearchResults = null;
+			if (commandSuggest != null)
+			{
+				commandSuggest.SetActive(value: false);
+			}
+		}
+
+		private void SetCommandSuggest(List<KeyValuePair<string, CommandDictionaryEntry>> display, int highlightId = -1)
+		{
+			_clientLastCommandSearchResults = display;
 			if (commandSuggest == null || commandSuggestion == null)
 			{
 				return;
 			}
-			if (_suggestions.Count == 0)
+			if (display == null || display.Count == 0)
 			{
 				commandSuggest.SetActive(value: false);
 				return;
 			}
 			StringBuilder stringBuilder = new StringBuilder();
-			foreach (QueryProcessor.CommandData suggestion in _suggestions)
+			for (int i = 0; i < display.Count; i++)
 			{
-				stringBuilder.Append("<b>").Append(suggestion.Command).Append("</b>");
-				if (suggestion.Usage != null && suggestion.Usage.Length != 0)
+				KeyValuePair<string, CommandDictionaryEntry> keyValuePair = display[i];
+				if (i > 0)
 				{
-					stringBuilder.Append(" <color=#9a9a9a>").Append(string.Join(" ", suggestion.Usage.Select((string u) => "[" + u + "]"))).Append("</color>");
+					stringBuilder.Append((i == 1 && highlightId >= 0) ? "\n<size=8>\n</size>" : "\n");
 				}
-				if (!string.IsNullOrEmpty(suggestion.AliasOf))
+				bool flag = i == 0 && highlightId >= 0;
+				stringBuilder.AppendFormat("{0}{1}{2}", flag ? "<color=#DC143C>" : string.Empty, keyValuePair.Key, flag ? "</color>" : string.Empty);
+				if (!string.IsNullOrWhiteSpace(keyValuePair.Value.Usage))
 				{
-					stringBuilder.Append(" <color=#9a9a9a>(alias of ").Append(suggestion.AliasOf).Append(")</color>");
+					stringBuilder.AppendFormat(" {0}", keyValuePair.Value.Usage);
 				}
-				else if (!string.IsNullOrEmpty(suggestion.Description))
+				if (!string.IsNullOrWhiteSpace(keyValuePair.Value.Description))
 				{
-					stringBuilder.Append(" - ").Append(suggestion.Description.Replace("<", "＜").Replace(">", "＞"));
+					stringBuilder.AppendFormat(" {0}", keyValuePair.Value.Description);
 				}
-				stringBuilder.AppendLine();
 			}
 			commandSuggestion.text = stringBuilder.ToString();
 			commandSuggest.SetActive(value: true);
+		}
+
+		private List<KeyValuePair<string, CommandDictionaryEntry>> GetDictionaryFromArg(QueryProcessor.CommandData command, int argId)
+		{
+			List<KeyValuePair<string, CommandDictionaryEntry>> list = new List<KeyValuePair<string, CommandDictionaryEntry>>
+			{
+				new KeyValuePair<string, CommandDictionaryEntry>(command.Command, new CommandDictionaryEntry("<color=yellow>" + UsageArrayToHumanReadableUsage(command.Usage) + "</color>", string.Empty))
+			};
+			string text = commandField.text;
+			int num = text.LastIndexOf(' ');
+			string partial = ((num < 0) ? string.Empty : text.Substring(num + 1));
+			switch (command.Usage[argId])
+			{
+			case "%player%":
+				if (ShouldProcessAllPlayers(partial) || ShouldProcessSelf(partial))
+				{
+					break;
+				}
+				list.AddRange(from x in ReferenceHub.AllHubs
+					where x.Mode != CentralAuth.ClientInstanceMode.DedicatedServer && (partial.Length == 0 || x.nicknameSync.MyNick.IndexOf(partial, StringComparison.OrdinalIgnoreCase) >= 0 || x.PlayerId.ToString().StartsWith(partial, StringComparison.Ordinal))
+					select new KeyValuePair<string, CommandDictionaryEntry>(x.PlayerId.ToString(), new CommandDictionaryEntry(string.Empty, x.nicknameSync.MyNick)));
+				break;
+			case "%role%":
+				list.AddRange(from x in PlayerRoles.PlayerRoleLoader.AllRoles.Values
+					where x.RoleTypeId.ToString().StartsWith(partial, StringComparison.OrdinalIgnoreCase)
+					select new KeyValuePair<string, CommandDictionaryEntry>(x.RoleTypeId.ToString(), new CommandDictionaryEntry(string.Empty, ((int)x.RoleTypeId).ToString())));
+				break;
+			case "%door%":
+				list.AddRange(from x in Interactables.Interobjects.DoorUtils.DoorNametagExtension.NamedDoors.Keys
+					where x.StartsWith(partial, StringComparison.OrdinalIgnoreCase)
+					orderby x
+					select new KeyValuePair<string, CommandDictionaryEntry>(x, new CommandDictionaryEntry(string.Empty, string.Empty)));
+				break;
+			}
+			if (list.Count > MaxSuggestions + 1)
+			{
+				list.RemoveRange(MaxSuggestions + 1, list.Count - MaxSuggestions - 1);
+			}
+			return list;
+		}
+
+		private static List<KeyValuePair<string, CommandDictionaryEntry>> GetDictionaryFromCommands(List<CommandDistance> commands)
+		{
+			List<KeyValuePair<string, CommandDictionaryEntry>> list = new List<KeyValuePair<string, CommandDictionaryEntry>>();
+			foreach (CommandDistance command in commands)
+			{
+				list.Add(CreateEntry(command.Command));
+			}
+			return list;
+		}
+
+		private static List<KeyValuePair<string, CommandDictionaryEntry>> GetDictionaryFromCommands(List<QueryProcessor.CommandData> commands)
+		{
+			List<KeyValuePair<string, CommandDictionaryEntry>> list = new List<KeyValuePair<string, CommandDictionaryEntry>>();
+			foreach (QueryProcessor.CommandData command in commands)
+			{
+				list.Add(CreateEntry(command));
+			}
+			return list;
+		}
+
+		private static KeyValuePair<string, CommandDictionaryEntry> CreateEntry(QueryProcessor.CommandData command)
+		{
+			string usage = ((command.Usage == null || command.Usage.Length == 0) ? string.Empty : ("<color=yellow>" + UsageArrayToHumanReadableUsage(command.Usage) + "</color>"));
+			string description = (string.IsNullOrEmpty(command.AliasOf) ? (command.Description ?? string.Empty) : ("<color=#0080FF>" + command.AliasOf + "</color>"));
+			return new KeyValuePair<string, CommandDictionaryEntry>(command.Command, new CommandDictionaryEntry(usage, description));
+		}
+
+		private static string UsageArrayToHumanReadableUsage(IEnumerable<string> usage)
+		{
+			if (usage == null)
+			{
+				return string.Empty;
+			}
+			StringBuilder stringBuilder = new StringBuilder();
+			foreach (string item in usage)
+			{
+				switch (item)
+				{
+				case "%player%":
+					stringBuilder.Append("[PlayerID or Name]");
+					break;
+				case "%role%":
+					stringBuilder.Append("[Role Name]");
+					break;
+				case "%door%":
+					stringBuilder.Append("[Door Name]");
+					break;
+				default:
+					stringBuilder.Append("[" + item + "]");
+					break;
+				}
+				stringBuilder.Append(" ");
+			}
+			if (stringBuilder.Length > 0)
+			{
+				stringBuilder.Length--;
+			}
+			return stringBuilder.ToString();
+		}
+
+		private static void FuzzySearchCommand(string partialCommand)
+		{
+			_distances.Clear();
+			_addedDistances.Clear();
+			string text = partialCommand.ToLowerInvariant();
+			foreach (QueryProcessor.CommandData command in Commands)
+			{
+				if (command.Hidden || string.IsNullOrEmpty(command.Command))
+				{
+					continue;
+				}
+				int distance;
+				if (command.Command.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+				{
+					distance = command.Command.Length - text.Length;
+				}
+				else
+				{
+					if (Misc.LongestCommonSubstring(text, command.Command).Length < Math.Min(2, text.Length))
+					{
+						continue;
+					}
+					distance = Misc.LevenshteinDistance(text, command.Command) + 100;
+				}
+				string key = (string.IsNullOrEmpty(command.AliasOf) ? command.Command : command.AliasOf);
+				CommandDistance commandDistance = new CommandDistance(command, distance);
+				if (!_addedDistances.TryGetValue(key, out var value) || commandDistance < value)
+				{
+					_addedDistances[key] = commandDistance;
+				}
+			}
+			_distances.AddRange(_addedDistances.Values);
+			_distances.Sort(_cdComparer);
+			if (_distances.Count > MaxSuggestions)
+			{
+				_distances.RemoveRange(MaxSuggestions, _distances.Count - MaxSuggestions);
+			}
+		}
+
+		private bool ShouldProcessAllPlayers(string args)
+		{
+			string[] allAliases = AllAliases;
+			foreach (string value in allAliases)
+			{
+				if (args.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private static bool ShouldProcessSelf(string args)
+		{
+			string[] selfAliases = SelfAliases;
+			foreach (string value in selfAliases)
+			{
+				if (args.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private void LookupPlayer(string arg)
+		{
+			List<ReferenceHub> list = ReferenceHub.AllHubs.Where((ReferenceHub x) => x.Mode != CentralAuth.ClientInstanceMode.DedicatedServer && x.nicknameSync.MyNick.IndexOf(arg, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+			if (list.Count == 0)
+			{
+				return;
+			}
+			if (list.Count > 1)
+			{
+				AddLog("Multiple matches found!");
+				AddLog("-----------------------------------------");
+				foreach (ReferenceHub item in list)
+				{
+					AddLog(string.Format("[{0}] {1}", item.PlayerId, item.nicknameSync.MyNick));
+				}
+				AddLog("-----------------------------------------");
+				return;
+			}
+			string myNick = list[0].nicknameSync.MyNick;
+			string text = ((myNick.IndexOf(' ') >= 0 || myNick.IndexOf('.') >= 0 || myNick.IndexOf('@') >= 0) ? ("@\"" + myNick + "\"") : ("@" + myNick));
+			string text2 = commandField.text;
+			commandField.SetTextWithoutNotify(text2.Substring(0, text2.Length - arg.Length) + text + ".");
+			commandField.MoveToEndOfLine(shift: false, ctrl: false);
 		}
 
 		public void OnPointerClick(PointerEventData eventData)

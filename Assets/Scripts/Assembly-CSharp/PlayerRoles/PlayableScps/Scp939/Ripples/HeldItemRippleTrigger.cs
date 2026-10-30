@@ -36,6 +36,10 @@ namespace PlayerRoles.PlayableScps.Scp939.Ripples
 
 		private void Update()
 		{
+			if (ReferenceHub.TryGetLocalHub(out var hub))
+			{
+				SelfReportHeldItem(hub.inventory.CurInstance);
+			}
 			if (!IsLocalOrSpectated || !_cd.IsReady)
 			{
 				return;
@@ -70,6 +74,14 @@ namespace PlayerRoles.PlayableScps.Scp939.Ripples
 			if (_usableItemStates.TryGetValue(curItem.SerialNumber, out var state))
 			{
 				isProducingSound = state;
+			}
+		}
+
+		private static void SelfReportHeldItem(InventorySystem.Items.ItemBase item)
+		{
+			if (item is InventorySystem.Items.ISoundEmittingItem soundEmittingItem && soundEmittingItem.TryGetSoundEmissionRange(out var range))
+			{
+				SelfReport(range);
 			}
 		}
 

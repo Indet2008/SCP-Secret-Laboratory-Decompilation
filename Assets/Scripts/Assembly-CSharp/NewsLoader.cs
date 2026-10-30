@@ -62,10 +62,10 @@ public class NewsLoader : MonoBehaviour
 		{
 			OpenNewsUrlButton.onClick.AddListener(OpenAnnouncementUrl);
 		}
-		StartCoroutine(Request());
+		StartCoroutine(_Request());
 	}
 
-	private IEnumerator Request()
+	private IEnumerator _Request()
 	{
 		if (ArticleText != null)
 		{

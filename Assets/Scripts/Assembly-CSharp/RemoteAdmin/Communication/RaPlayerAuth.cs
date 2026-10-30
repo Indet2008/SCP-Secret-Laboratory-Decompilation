@@ -9,6 +9,11 @@ namespace RemoteAdmin.Communication
 	{
 		public int DataId => 3;
 
+		public static void Request(string playerIds)
+		{
+			ReferenceHub.LocalHub.queryProcessor.SendQuery("$3 " + playerIds);
+		}
+
 		public void ReceiveData(CommandSender sender, string data)
 		{
 			if (sender is PlayerCommandSender playerCommandSender && !playerCommandSender.ReferenceHub.authManager.RemoteAdminGlobalAccess && !CommandProcessor.CheckPermissions(sender, PlayerPermissions.PlayerSensitiveDataAccess))

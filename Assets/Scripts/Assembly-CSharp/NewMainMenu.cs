@@ -39,6 +39,10 @@ public class NewMainMenu : MonoBehaviour
 
 	private CustomNetworkManager _mng;
 
+	private static string _autoConnectIp;
+
+	private static bool _alreadyJoined;
+
 	public static NewMainMenu Singleton { get; private set; }
 
 	private void Awake()
@@ -76,11 +80,43 @@ public class NewMainMenu : MonoBehaviour
 		}
 		CustomNetworkManager.LastIp = FavoriteAndHistory.IPHistory.LastOrDefault();
 		UpdateRejoinButton();
+		bool flag = false;
+		foreach (string arg in StartupArgs.Args)
+		{
+			if (flag)
+			{
+				_autoConnectIp = arg;
+				flag = false;
+			}
+			else if (arg == "+connect")
+			{
+				flag = true;
+			}
+		}
+		Steamworks.SteamMatchmaking.OnLobbyGameCreated -= OnLobbyGameCreated;
+		Steamworks.SteamMatchmaking.OnLobbyGameCreated += OnLobbyGameCreated;
 	}
 
 	private void Update()
 	{
 		UpdateRejoinButton();
+		UpdateAutoJoin();
+	}
+
+	private void UpdateAutoJoin()
+	{
+		if (!_alreadyJoined && !string.IsNullOrEmpty(_autoConnectIp) && CentralAuth.CentralAuthManager.AuthStatusType != AuthStatusType.Connecting)
+		{
+			_alreadyJoined = true;
+			string autoConnectIp = _autoConnectIp;
+			_autoConnectIp = null;
+			Connect(autoConnectIp);
+		}
+	}
+
+	private void OnLobbyGameCreated(Steamworks.Data.Lobby lobby, uint ip, ushort port, Steamworks.SteamId serverId)
+	{
+		Connect(ip + ":" + port);
 	}
 
 	private void UpdateRejoinButton()

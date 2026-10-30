@@ -108,6 +108,53 @@ namespace RemoteAdmin.Communication
 
 		public override int DataId => 9;
 
+		public void GetData(List<string> groupList, List<string> actionList, string selectedGroup)
+		{
+			groupList.Clear();
+			actionList.Clear();
+			HashSet<string> hashSet = NorthwoodLib.Pools.HashSetPool<string>.Shared.Rent();
+			HashSet<string> hashSet2 = NorthwoodLib.Pools.HashSetPool<string>.Shared.Rent();
+			foreach (PlayerRecord instance in PlayerRecord.Instances)
+			{
+				if (!TryGetDummyDataFromRecord(instance, out var ret))
+				{
+					continue;
+				}
+				ReadOnlySpan<ActionsGroupPair> groups = ret.Groups;
+				for (int i = 0; i < groups.Length; i++)
+				{
+					ActionsGroupPair actionsGroupPair = groups[i];
+					AddUnique(groupList, hashSet, actionsGroupPair.Name);
+					if (!(actionsGroupPair.Name != selectedGroup))
+					{
+						foreach (string action in actionsGroupPair.Actions)
+						{
+							AddUnique(actionList, hashSet2, action);
+						}
+					}
+				}
+			}
+			NorthwoodLib.Pools.HashSetPool<string>.Shared.Return(hashSet);
+			NorthwoodLib.Pools.HashSetPool<string>.Shared.Return(hashSet2);
+			static void AddUnique(List<string> list, HashSet<string> set, string item)
+			{
+				if (set.Add(item))
+				{
+					list.Add(item);
+				}
+			}
+		}
+
+		private bool TryGetDummyDataFromRecord(PlayerRecord record, out DummyData ret)
+		{
+			ret = null;
+			if (record == null || !record.IsSelected || !int.TryParse(record.PlayerId, out var result) || !ReferenceHub.TryGetHub(result, out var hub))
+			{
+				return false;
+			}
+			return ReceivedData.TryGetValue(hub.netId, out ret);
+		}
+
 		// Collects the group/action layout received for a dummy; groups keep server order.
 		public static bool TryGetReceivedActions(uint dummyNetId, List<KeyValuePair<string, List<string>>> result)
 		{

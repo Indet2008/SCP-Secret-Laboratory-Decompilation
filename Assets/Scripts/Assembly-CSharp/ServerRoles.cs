@@ -390,22 +390,34 @@ public class ServerRoles : NetworkBehaviour
 
 	private static string TranslateGlobalBadge(string badge, bool hidden = false)
 	{
-		if (string.IsNullOrEmpty(badge))
+		string text = badge;
+		if (!hidden)
+		{
+			if (!badge.StartsWith("[", System.StringComparison.Ordinal) || !badge.EndsWith("]", System.StringComparison.Ordinal))
+			{
+				return badge;
+			}
+			text = badge.Substring(1, badge.Length - 2);
+		}
+		if (!TranslationReader.Fallback.TryGetValue("Badges", out var value))
 		{
 			return badge;
 		}
-		string text = badge;
-		if (!hidden && badge.Length > 2 && badge.StartsWith("[", System.StringComparison.Ordinal) && badge.EndsWith("]", System.StringComparison.Ordinal))
+		int num = -1;
+		for (int i = 0; i < value.Length; i++)
 		{
-			string key = badge.Substring(1, badge.Length - 2);
-			string[] fallbackKeys = TranslationReader.GetFallbackKeys("Badges");
-			int num = ((fallbackKeys == null) ? (-1) : System.Array.IndexOf(fallbackKeys, key));
-			if (num >= 0)
+			if (!(value[i] != text))
 			{
-				text = "[" + TranslationReader.Get("Badges", num, key) + "]";
+				num = i;
+				break;
 			}
 		}
-		return Misc.SanitizeRichText(text);
+		if (num <= -1)
+		{
+			return badge;
+		}
+		string content = (hidden ? (TranslationReader.Get("Badges", num, text) ?? string.Empty) : ("[" + TranslationReader.Get("Badges", num, text) + "]"));
+		return Misc.SanitizeRichText(content, string.Empty, string.Empty);
 	}
 
 	public void Start()
@@ -896,8 +908,20 @@ public class ServerRoles : NetworkBehaviour
 			}
 			_bgc = token.BadgeColor;
 			SetColor(_bgc);
-			_bgt = token.BadgeText;
-			MyText = _bgt;
+			if (NetworkServer.active)
+			{
+				_bgt = token.BadgeText;
+				SetText(_bgt);
+			}
+			else
+			{
+				_bgt = TranslateGlobalBadge(token.BadgeText);
+				if (_bgt != MyText)
+				{
+					SetText(_bgt);
+					GameCore.Console.AddLog("Loaded translation for a global badge. " + token.BadgeText + ": " + MyText + " - " + _bgt + " /-/ " + MyColor + " - " + _bgc, Color.gray, nospace: true);
+				}
+			}
 			_authorizeBadge = true;
 		}
 		goto IL_03fa;
@@ -1150,7 +1174,7 @@ public class ServerRoles : NetworkBehaviour
 			else
 			{
 				SetColor("silver");
-				FixedBadge = Misc.SanitizeRichText(role.Replace("[", string.Empty).Replace("]", string.Empty)) + " " + TranslationReader.Get("Legacy_Interfaces", 18, "(hidden)");
+				FixedBadge = TranslateGlobalBadge(Misc.SanitizeRichText(role.Replace("[", string.Empty).Replace("]", string.Empty)), hidden: true) + " " + TranslationReader.Get("Legacy_Interfaces", 18, "(hidden)");
 				SetText(FixedBadge);
 			}
 		}

@@ -43,7 +43,7 @@ namespace LightContainmentZoneDecontamination
 			_turnedOn = false;
 		}
 
-		private void Awake()
+		private void Start()
 		{
 			if (!AllInstances.Contains(this))
 			{

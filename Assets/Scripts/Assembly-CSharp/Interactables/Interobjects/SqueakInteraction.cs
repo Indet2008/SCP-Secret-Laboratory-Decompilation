@@ -79,6 +79,8 @@ namespace Interactables.Interobjects
 		private void Awake()
 		{
 			_spawner = GetComponentInParent<SqueakSpawner>();
+			_mouseGameObject = UserMainInterface.singleton.mouseGameObject;
+			_mouseText = _mouseGameObject.GetComponentInChildren<TextMeshProUGUI>();
 		}
 	}
 }

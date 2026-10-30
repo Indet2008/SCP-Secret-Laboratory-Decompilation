@@ -69,6 +69,46 @@ namespace RemoteAdmin
 
 		public static void ProcessReply(string content, bool isSuccess, bool logInConsole, string overrideDisplay, bool secure)
 		{
+			if (content.StartsWith("%", StringComparison.Ordinal))
+			{
+				QueryProcessor queryProcessor = ReferenceHub.LocalHub.queryProcessor;
+				if (!(DateTime.Now < queryProcessor.ExpectingURL))
+				{
+					TextBasedRemoteAdmin.AddLog("<color=white>[</color><color=red><link=TBRA_InternalError> (INTERNAL ERROR)</link></color><color=white>]</color> <color=red>Server attempted to send us a URL that we did not query for! Rejected.</color>");
+					return;
+				}
+				queryProcessor.ExpectingURL = default(DateTime);
+				if (content.Contains("disabled"))
+				{
+					TextBasedRemoteAdmin.AddLog("<color=white>[</color><color=red><link=TBRA_InternalError> (INTERNAL ERROR)</link></color><color=white>]</color> <color=red>Server attempted to send us a URL but external lookup is disabled! (This should never happen!)</color>");
+					return;
+				}
+				string text5 = content.Substring(1, content.Length - 1);
+				int num3 = text5.IndexOf("%", 0, StringComparison.Ordinal);
+				string text6;
+				if (num3 > 0)
+				{
+					string text7 = text5.Substring(0, num3);
+					text6 = text7 + ((text7.IndexOf("?", StringComparison.Ordinal) >= 0) ? "&" : "?") + "lookup=" + text5.Substring(num3 + 1, text5.Length - num3 - 1);
+				}
+				else
+				{
+					text6 = text5;
+				}
+				if (text6.IndexOf("fullauth", StringComparison.Ordinal) >= 0)
+				{
+					text6 += ReferenceHub.LocalHub.authManager.GetAuthToken();
+				}
+				if (SteamManager.IsSteamReady())
+				{
+					Steamworks.SteamFriends.OpenWebOverlay(text6);
+				}
+				else
+				{
+					Application.OpenURL(text6);
+				}
+				return;
+			}
 			if (content.StartsWith("$", StringComparison.Ordinal))
 			{
 				int num = content.IndexOf(' ');
@@ -90,9 +130,7 @@ namespace RemoteAdmin
 			}
 			if (logInConsole)
 			{
-				string text3 = (isSuccess ? "<color=#5dff5d>" : "<color=#ff5d5d>");
-				string text4 = (string.IsNullOrEmpty(text) ? string.Empty : ("[" + text + "] "));
-				TextBasedRemoteAdmin.AddLog(text3 + text4 + "</color><color=white>" + text2 + "</color>");
+				TextBasedRemoteAdmin.AddLog((secure ? string.Empty : "<color=white>[</color><color=red><link=TBRA_EncryptionError> (UNECRYPTED)</link></color><color=white>]</color>") + "<color=white>[</color><link=TBRA_CommandSuccess>" + (isSuccess ? "<color=green></color><color=white></link>] " : "<link=TBRA_CommandFail><color=red></color><color=white></link>]</color> <color=orange>") + "[" + text + "] " + text2 + "</color>");
 			}
 			if (string.IsNullOrEmpty(text) || overrideDisplay == "void")
 			{

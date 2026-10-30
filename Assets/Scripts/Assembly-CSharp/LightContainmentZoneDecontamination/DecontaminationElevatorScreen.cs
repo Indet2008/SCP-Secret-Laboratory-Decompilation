@@ -13,6 +13,14 @@ namespace LightContainmentZoneDecontamination
 		[SerializeField]
 		private TMP_Text _text;
 
+		public static void SetText(string text)
+		{
+			foreach (DecontaminationElevatorScreen instance in Instances)
+			{
+				instance._text.SetText(text);
+			}
+		}
+
 		public static void SetAllTexts(string text)
 		{
 			_lastText = text ?? string.Empty;

@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using MEC;
+
 internal static class NativeHttp
 {
 	public struct Config
@@ -30,132 +38,207 @@ internal static class NativeHttp
 
 		public unsafe readonly sbyte* ProxyBypass;
 
-		public override string ToString()
+		public unsafe override string ToString()
 		{
-			return default;
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.Append("Curl Version: ").AppendLine((CurlVersion == null) ? "(null)" : new string(CurlVersion));
+			stringBuilder.Append("TLS 1.2: ").AppendLine((AllowTls12 != 0).ToString());
+			stringBuilder.Append("TLS 1.3: ").AppendLine((AllowTls13 != 0).ToString());
+			stringBuilder.Append("IPv4: ").AppendLine((AllowIpv4 != 0).ToString());
+			stringBuilder.Append("IPv6: ").AppendLine((AllowIpv6 != 0).ToString());
+			stringBuilder.Append("HTTP/2: ").AppendLine((AllowHttp2 != 0).ToString());
+			stringBuilder.Append("HTTP/3: ").AppendLine((AllowHttp3 != 0).ToString());
+			stringBuilder.Append("ECH: ").AppendLine((AllowEch != 0).ToString());
+			stringBuilder.Append("Early Data: ").AppendLine((AllowEarlyData != 0).ToString());
+			stringBuilder.Append("DoH: ").AppendLine((EnableDoh != 0).ToString());
+			stringBuilder.Append("Nagle: ").AppendLine((EnableNagle != 0).ToString());
+			stringBuilder.Append("Weak Security: ").AppendLine((WeakSecurity != 0).ToString());
+			stringBuilder.Append("Proxy: ").AppendLine((Proxy == null) ? "(null)" : new string(Proxy));
+			stringBuilder.Append("Proxy Bypass: ").Append((ProxyBypass == null) ? "(null)" : new string(ProxyBypass));
+			return stringBuilder.ToString();
 		}
 	}
 
 	private sealed class Coroutine : HttpCoroutine
 	{
-		private NativeHttp.AsyncHandle _handle;
+		private AsyncHandle _handle;
 
-		private global::System.Exception _exception;
+		private Exception _exception;
 
-		internal Coroutine(NativeHttp.AsyncHandle handle)
+		internal Coroutine(AsyncHandle handle)
 		{
+			_handle = handle;
 		}
 
-		internal Coroutine(global::System.Exception exception)
+		internal Coroutine(Exception exception)
 		{
+			_exception = exception;
 		}
 
 		public override void CheckResult()
 		{
+			if (_exception != null)
+			{
+				throw _exception;
+			}
 		}
 
 		public override string GetText()
 		{
-			return default;
+			CheckResult();
+			return Encoding.UTF8.GetString(_handle.Output.AsSpan());
 		}
 
 		public override byte[] GetBytes()
 		{
-			return default;
+			CheckResult();
+			return _handle.Output.ToArray();
 		}
 
-		public override global::System.ReadOnlySpan<byte> GetSpan()
+		public override ReadOnlySpan<byte> GetSpan()
 		{
-			return default;
+			CheckResult();
+			return _handle.Output.AsSpan();
 		}
 
 		public override float Wait()
 		{
-			return default;
+			if (Poll())
+			{
+				return 0f;
+			}
+			return Timing.WaitUntilTrue(Poll);
+		}
+
+		private bool Poll()
+		{
+			if (_exception != null)
+			{
+				return true;
+			}
+			try
+			{
+				return _handle.Poll();
+			}
+			catch (Exception exception)
+			{
+				_exception = exception;
+				return true;
+			}
 		}
 
 		public override void Dispose()
 		{
+			_handle.Output.Dispose();
 		}
 	}
 
 	private struct AsyncHandle
 	{
-		private unsafe readonly void* _handle;
+		private unsafe void* _handle;
 
-		private readonly NativeHttp.NativeData _data;
+		private NativeData _data;
 
-		public NativeHttp.Output Output
+		public Output Output { get; private set; }
+
+		public unsafe AsyncHandle(void* handle, NativeData data)
 		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			readonly get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
+			_handle = handle;
+			_data = data;
+			Output = default(Output);
 		}
 
-		public unsafe AsyncHandle(void* handle, NativeHttp.NativeData data)
-		{ this = default;
-		}
-
-		public AsyncHandle(NativeHttp.Output output)
-		{ this = default;
-		}
-
-		public bool Poll()
+		public unsafe AsyncHandle(Output output)
 		{
-			return default;
+			_handle = null;
+			_data = default(NativeData);
+			Output = output;
+		}
+
+		public unsafe bool Poll()
+		{
+			if (_handle == null)
+			{
+				return true;
+			}
+			AsyncResult asyncResult = ((delegate* unmanaged[Cdecl]<void*, AsyncResult>)NativePollAsync)(_handle);
+			if (asyncResult.Result.Code == -1)
+			{
+				return false;
+			}
+			_handle = null;
+			_data.Dispose();
+			Output = CheckResult(asyncResult.Result);
+			return true;
 		}
 	}
 
-	private readonly struct Output : global::System.IDisposable
+	private readonly struct Output : IDisposable
 	{
-		private unsafe readonly NativeHttp.LpString* _data;
+		private unsafe readonly LpString* _data;
 
-		public unsafe Output(NativeHttp.LpString* data)
-		{ this = default;
+		public unsafe Output(LpString* data)
+		{
+			_data = data;
 		}
 
-		public global::System.ReadOnlySpan<byte> AsSpan()
+		public unsafe ReadOnlySpan<byte> AsSpan()
 		{
-			return default;
+			if (_data == null)
+			{
+				return ReadOnlySpan<byte>.Empty;
+			}
+			return new ReadOnlySpan<byte>(_data->Output, checked((int)_data->Length));
 		}
 
 		public byte[] ToArray()
 		{
-			return default;
+			return AsSpan().ToArray();
 		}
 
 		public override string ToString()
 		{
-			return default;
+			return Encoding.UTF8.GetString(AsSpan());
 		}
 
-		public void Dispose()
+		public unsafe void Dispose()
 		{
+			if (_data != null)
+			{
+				((delegate* unmanaged[Cdecl]<LpString*, void>)FreeLpString)(_data);
+			}
 		}
 	}
 
-	private readonly struct NativeData : global::System.IDisposable
+	private readonly struct NativeData : IDisposable
 	{
 		public unsafe readonly sbyte* Data;
 
 		public readonly nuint Length;
 
-		public NativeData(global::System.ReadOnlySpan<byte> data)
-		{ this = default;
-		}
-
-		public NativeData(global::System.ReadOnlySpan<char> data)
-		{ this = default;
-		}
-
-		public void Dispose()
+		public unsafe NativeData(ReadOnlySpan<byte> data)
 		{
+			Data = (sbyte*)Marshal.AllocHGlobal(data.Length + 1);
+			data.CopyTo(new Span<byte>(Data, data.Length));
+			Length = (nuint)data.Length;
+			Data[data.Length] = 0;
+		}
+
+		public unsafe NativeData(ReadOnlySpan<char> data)
+		{
+			int num = Encoding.UTF8.GetMaxByteCount(data.Length) + 1;
+			Data = (sbyte*)Marshal.AllocHGlobal(num);
+			int bytes = Encoding.UTF8.GetBytes(data, new Span<byte>(Data, num));
+			Length = (nuint)bytes;
+			Data[bytes] = 0;
+		}
+
+		public unsafe void Dispose()
+		{
+			if (Data != null)
+			{
+				Marshal.FreeHGlobal((IntPtr)Data);
+			}
 		}
 	}
 
@@ -170,93 +253,240 @@ internal static class NativeHttp
 	{
 		public readonly int Code;
 
-		public unsafe readonly NativeHttp.LpString* Output;
+		public unsafe readonly LpString* Output;
 	}
 
 	private readonly struct AsyncResult
 	{
-		public readonly NativeHttp.Result Result;
+		public readonly Result Result;
 
 		public unsafe readonly void* Handle;
 	}
 
-
 	private unsafe static readonly void* Module;
 
-	private unsafe static readonly NativeHttp.Config* NativeConfig;
+	private unsafe static readonly Config* NativeConfig;
 
 	private static readonly nint NativeSendRequest;
 
 	private static readonly nint NativeSendRequestAsync;
 
-	private static readonly global::System.IntPtr NativePollAsync;
+	private static readonly IntPtr NativePollAsync;
 
-	private static readonly global::System.IntPtr FreeLpString;
+	private static readonly IntPtr FreeLpString;
 
-	public unsafe static ref NativeHttp.Config GetConfig()
+	unsafe static NativeHttp()
 	{
-		return ref *(NativeHttp.Config*)null;
+		Module = GetModule("SL-AC");
+		NativeConfig = ((delegate* unmanaged[Cdecl]<Config*>)GetMethod(Module, "GetConfig"))();
+		NativeSendRequest = (nint)GetMethod(Module, "SendRequest");
+		NativeSendRequestAsync = (nint)GetMethod(Module, "SendRequestAsync");
+		NativePollAsync = (IntPtr)GetMethod(Module, "PollAsync");
+		FreeLpString = (IntPtr)GetMethod(Module, "FreeLpString");
+	}
+
+	public unsafe static ref Config GetConfig()
+	{
+		return ref *NativeConfig;
 	}
 
 	public static string Get(string url)
 	{
-		return default;
+		using NativeData url2 = new NativeData(url.AsSpan());
+		using NativeData data = default(NativeData);
+		using NativeData contentType = default(NativeData);
+		using Output output = SendRequest(url2, data, contentType);
+		return Encoding.UTF8.GetString(output.AsSpan());
 	}
 
-	public static global::System.Threading.Tasks.Task<string> GetAsync(string url)
+	public static Task<string> GetAsync(string url)
 	{
-		return default;
+		TaskCompletionSource<string> taskCompletionSource = new TaskCompletionSource<string>();
+		if (PlatformInfo.singleton.IsMainThread)
+		{
+			Start(taskCompletionSource, url);
+		}
+		else
+		{
+			Dispatch(taskCompletionSource, url);
+		}
+		return taskCompletionSource.Task;
+		static void Dispatch(TaskCompletionSource<string> taskCompletionSource2, string url2)
+		{
+			MainThreadDispatcher.Dispatch(delegate
+			{
+				Start(taskCompletionSource2, url2);
+			});
+		}
+		static void Start(TaskCompletionSource<string> taskCompletionSource2, string url2)
+		{
+			try
+			{
+				Timing.RunCoroutine(Run(taskCompletionSource2, GetCoroutine(url2)));
+			}
+			catch (Exception exception)
+			{
+				taskCompletionSource2.TrySetException(exception);
+			}
+		}
 	}
 
 	public static HttpCoroutine GetCoroutine(string url)
 	{
-		return default;
+		try
+		{
+			NativeData url2 = new NativeData(url.AsSpan());
+			try
+			{
+				return new Coroutine(SendRequestAsync(url2, default(NativeData), default(NativeData)));
+			}
+			finally
+			{
+				url2.Dispose();
+			}
+		}
+		catch (Exception exception)
+		{
+			return new Coroutine(exception);
+		}
 	}
 
 	public static string Post(string url, string data, string contentType)
 	{
-		return default;
+		using NativeData url2 = new NativeData(url.AsSpan());
+		using NativeData data2 = new NativeData(data.AsSpan());
+		using NativeData contentType2 = new NativeData(contentType.AsSpan());
+		using Output output = SendRequest(url2, data2, contentType2);
+		return Encoding.UTF8.GetString(output.AsSpan());
 	}
 
-	public static global::System.Threading.Tasks.Task<string> PostAsync(string url, string data, string contentType)
+	public static Task<string> PostAsync(string url, string data, string contentType)
 	{
-		return default;
+		TaskCompletionSource<string> taskCompletionSource = new TaskCompletionSource<string>();
+		if (PlatformInfo.singleton.IsMainThread)
+		{
+			Start(taskCompletionSource, url, data, contentType);
+		}
+		else
+		{
+			Dispatch(taskCompletionSource, url, data, contentType);
+		}
+		return taskCompletionSource.Task;
+		static void Dispatch(TaskCompletionSource<string> taskCompletionSource2, string url2, string data2, string contentType2)
+		{
+			MainThreadDispatcher.Dispatch(delegate
+			{
+				Start(taskCompletionSource2, url2, data2, contentType2);
+			});
+		}
+		static void Start(TaskCompletionSource<string> taskCompletionSource2, string url2, string data2, string contentType2)
+		{
+			try
+			{
+				Timing.RunCoroutine(Run(taskCompletionSource2, PostCoroutine(url2, data2, contentType2)));
+			}
+			catch (Exception exception)
+			{
+				taskCompletionSource2.TrySetException(exception);
+			}
+		}
 	}
 
 	public static HttpCoroutine PostCoroutine(string url, string data, string contentType)
 	{
-		return default;
+		try
+		{
+			NativeData url2 = new NativeData(url.AsSpan());
+			NativeData contentType2 = new NativeData(contentType.AsSpan());
+			try
+			{
+				return new Coroutine(SendRequestAsync(url2, new NativeData(data.AsSpan()), contentType2));
+			}
+			finally
+			{
+				url2.Dispose();
+				contentType2.Dispose();
+			}
+		}
+		catch (Exception exception)
+		{
+			return new Coroutine(exception);
+		}
 	}
 
-	private static global::System.Collections.Generic.IEnumerator<float> Run(global::System.Threading.Tasks.TaskCompletionSource<string> taskCompletionSource, HttpCoroutine coroutine)
+	private static IEnumerator<float> Run(TaskCompletionSource<string> taskCompletionSource, HttpCoroutine coroutine)
 	{
-		return default;
+		using (coroutine)
+		{
+			yield return coroutine.Wait();
+			try
+			{
+				taskCompletionSource.TrySetResult(coroutine.GetText());
+			}
+			catch (Exception exception)
+			{
+				taskCompletionSource.TrySetException(exception);
+			}
+		}
 	}
 
-	private static NativeHttp.Output SendRequest(NativeHttp.NativeData url, NativeHttp.NativeData data, NativeHttp.NativeData contentType)
+	private unsafe static Output SendRequest(NativeData url, NativeData data, NativeData contentType)
 	{
-		return default;
+		return CheckResult(((delegate* unmanaged[Cdecl]<sbyte*, sbyte*, nuint, sbyte*, Result>)NativeSendRequest)(url.Data, data.Data, data.Length, contentType.Data));
 	}
 
-	private static NativeHttp.AsyncHandle SendRequestAsync(NativeHttp.NativeData url, NativeHttp.NativeData data, NativeHttp.NativeData contentType)
+	private unsafe static AsyncHandle SendRequestAsync(NativeData url, NativeData data, NativeData contentType)
 	{
-		return default;
+		AsyncResult asyncResult = ((delegate* unmanaged[Cdecl]<sbyte*, sbyte*, nuint, sbyte*, AsyncResult>)NativeSendRequestAsync)(url.Data, data.Data, data.Length, contentType.Data);
+		if (asyncResult.Handle != null)
+		{
+			return new AsyncHandle(asyncResult.Handle, data);
+		}
+		data.Dispose();
+		return new AsyncHandle(CheckResult(asyncResult.Result));
 	}
 
-	private static NativeHttp.Output CheckResult(NativeHttp.Result result)
+	private unsafe static Output CheckResult(Result result)
 	{
-		return default;
+		if (result.Code != 0)
+		{
+			Throw(result.Code, result.Output);
+		}
+		return new Output(result.Output);
+		static void Throw(int code, LpString* output)
+		{
+			string message;
+			using (Output output2 = new Output(output))
+			{
+				message = output2.ToString();
+			}
+			throw new NativeHttpException(code, message);
+		}
 	}
 
 	private unsafe static void* GetModule(string name)
 	{
-		//IL_0002: Expected I, but got O
-		return null;
+		if (!GetModuleHandleExW(1u, name, out var module))
+		{
+			throw new Win32Exception(Marshal.GetLastWin32Error());
+		}
+		return (void*)module;
 	}
 
 	private unsafe static void* GetMethod(void* module, string name)
 	{
-		//IL_0002: Expected I, but got O
-		return null;
+		using NativeData nativeData = new NativeData(name.AsSpan());
+		IntPtr procAddress = GetProcAddress((IntPtr)module, nativeData.Data);
+		if (procAddress == IntPtr.Zero)
+		{
+			throw new Win32Exception(Marshal.GetLastWin32Error());
+		}
+		return (void*)procAddress;
 	}
+
+	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+	private static extern bool GetModuleHandleExW(uint dwFlags, string lpModuleName, out IntPtr phModule);
+
+	[DllImport("kernel32.dll", SetLastError = true)]
+	private unsafe static extern IntPtr GetProcAddress(IntPtr hModule, sbyte* lpProcName);
 }

@@ -1201,7 +1201,7 @@ public class ServerConsole : MonoBehaviour, IDisposable
 		}
 	}
 
-	private static void PrintOnOutputs(string text, ConsoleColor color)
+	internal static void PrintOnOutputs(string text, ConsoleColor color)
 	{
 		try
 		{

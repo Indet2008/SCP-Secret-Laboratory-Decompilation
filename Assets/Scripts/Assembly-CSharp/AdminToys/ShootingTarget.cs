@@ -115,6 +115,12 @@ namespace AdminToys
 			base.OnSpawned(admin, arguments);
 		}
 
+		private void Update()
+		{
+			_settingsWindow.text = string.Format("HP: {0}/{1}\nReset time: {2}", _hp, _maxHp, (_autoDestroyTime == 0) ? "n/a" : (_autoDestroyTime + " s"));
+			_syncText.text = (_syncMode ? "Sync Mode" : "Local Mode");
+		}
+
 		public bool Damage(float damage, DamageHandlerBase handler, Vector3 exactHit)
 		{
 			if (!(handler is AttackerDamageHandler attackerDamageHandler))

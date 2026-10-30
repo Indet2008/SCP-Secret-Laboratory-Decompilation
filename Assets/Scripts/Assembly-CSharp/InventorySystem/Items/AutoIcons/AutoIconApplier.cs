@@ -3,62 +3,80 @@ using UnityEngine;
 
 namespace InventorySystem.Items.AutoIcons
 {
-	// Client-only behaviour stripped from the server build: renders the item's icon at runtime
-	// through its generator scene (used by keycards, whose look depends on their details).
 	public class AutoIconApplier : MonoBehaviour
 	{
-		private const int IconResolution = 256;
-
-		// Far away from the facility so the generator camera never captures map geometry.
-		private static readonly Vector3 GeneratorPosition = new Vector3(0f, 10000f, 0f);
+		private static readonly Stack<RenderTexture> RenderTexturePool = new Stack<RenderTexture>();
 
 		private static readonly Dictionary<AutoIconGeneratorScene, AutoIconGeneratorScene> GeneratorInstances = new Dictionary<AutoIconGeneratorScene, AutoIconGeneratorScene>();
+
+		// Not in the original: generator scenes are spawned far away from the facility so their camera never captures map geometry.
+		private static readonly Vector3 GeneratorPosition = new Vector3(0f, 10000f, 0f);
+
+		private RenderTexture _allocatedTexture;
+
+		private bool _everRendered;
+
+		private ItemBase _parentItem;
 
 		[SerializeField]
 		private AutoIconGeneratorScene _generator;
 
-		private RenderTexture _texture;
-
-		public void UpdateIcon()
+		private void OnDestroy()
 		{
-			if (_generator == null || !TryGetComponent<ItemBase>(out var component) || !TryGetGenerator(out var generator))
+			if (!(_allocatedTexture == null))
 			{
-				return;
-			}
-			if (_texture == null)
-			{
-				_texture = new RenderTexture(IconResolution, IconResolution, 24, RenderTextureFormat.ARGB32)
-				{
-					name = base.name + " Icon",
-					antiAliasing = 4
-				};
-			}
-			try
-			{
-				generator.RenderIcon(_texture, component);
-				component.Icon = _texture;
-			}
-			catch (System.Exception exception)
-			{
-				Debug.LogException(exception, this);
+				RenderTexturePool.Push(_allocatedTexture);
 			}
 		}
 
-		private bool TryGetGenerator(out AutoIconGeneratorScene generator)
+		private void LateUpdate()
 		{
-			if (GeneratorInstances.TryGetValue(_generator, out generator) && generator != null)
+			if (_everRendered && !_allocatedTexture.IsCreated())
 			{
-				return true;
+				ReRenderIcon();
 			}
-			bool flag = _generator.gameObject.scene.IsValid();
-			generator = (flag ? _generator : Object.Instantiate(_generator, GeneratorPosition, Quaternion.identity));
-			if (!flag)
+		}
+
+		private static RenderTexture GetFreeTexture()
+		{
+			if (RenderTexturePool.TryPop(out var result))
 			{
-				Object.DontDestroyOnLoad(generator.gameObject);
-				generator.gameObject.SetActive(value: false);
+				return result;
 			}
-			GeneratorInstances[_generator] = generator;
-			return true;
+			return new RenderTexture(512, 512, 24, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
+		}
+
+		private static AutoIconGeneratorScene GetGeneratorScene(AutoIconGeneratorScene template)
+		{
+			if (GeneratorInstances.TryGetValue(template, out var value) && value != null)
+			{
+				return value;
+			}
+			value = Object.Instantiate(template, GeneratorPosition, Quaternion.identity);
+			if (Application.isPlaying)
+			{
+				Object.DontDestroyOnLoad(value);
+			}
+			value.gameObject.SetActive(value: false);
+			GeneratorInstances[template] = value;
+			return value;
+		}
+
+		private void ReRenderIcon()
+		{
+			if (_allocatedTexture == null)
+			{
+				_allocatedTexture = GetFreeTexture();
+				_parentItem = GetComponent<ItemBase>();
+			}
+			GetGeneratorScene(_generator).RenderIcon(_allocatedTexture, _parentItem);
+			_parentItem.Icon = _allocatedTexture;
+			_everRendered = true;
+		}
+
+		public void UpdateIcon()
+		{
+			ReRenderIcon();
 		}
 	}
 }

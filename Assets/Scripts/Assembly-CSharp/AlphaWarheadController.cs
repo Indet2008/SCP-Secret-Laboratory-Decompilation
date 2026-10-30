@@ -456,6 +456,26 @@ public class AlphaWarheadController : NetworkBehaviour
 		WarheadEvents.OnDetonated(new WarheadDetonatedEventArgs(hub));
 	}
 
+	[RuntimeInitializeOnLoadMethod]
+	private static void Init()
+	{
+		PlayerRoles.Spectating.SpectatorTargetTracker.OnTargetChanged += delegate
+		{
+			PlayerRoles.Spectating.SpectatableModuleBase currentTarget = PlayerRoles.Spectating.SpectatorTargetTracker.CurrentTarget;
+			if (!(currentTarget == null) && !currentTarget.MainRole.Pooled && !CanBeDetonated(currentTarget.CameraPosition))
+			{
+				FogController.DisableFogType(FogType.Nuke);
+			}
+		};
+		PlayerRoleManager.OnRoleChanged += delegate(ReferenceHub hub, PlayerRoleBase prevRole, PlayerRoleBase newRole)
+		{
+			if (hub.isLocalPlayer && !(newRole is PlayerRoles.Spectating.SpectatorRole))
+			{
+				FogController.DisableFogType(FogType.Nuke);
+			}
+		};
+	}
+
 	private static bool CanBeDetonated(Vector3 pos, bool includeOnlyLifts = false)
 	{
 		if (pos.GetZone() != FacilityZone.Surface && !includeOnlyLifts)

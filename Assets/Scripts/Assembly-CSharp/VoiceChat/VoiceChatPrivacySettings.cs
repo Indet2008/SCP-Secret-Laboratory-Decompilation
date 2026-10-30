@@ -152,6 +152,23 @@ namespace VoiceChat
 			UpdateToggles();
 		}
 
+		public void Close()
+		{
+			if (base.IsEnabled)
+			{
+				base.IsEnabled = false;
+			}
+			PrivacyFlags |= VcPrivacyFlags.SettingsSelected;
+			_simplifiedRoot.SetActive(value: false);
+			_advancedRoot.SetActive(value: false);
+			if (_forceOpen)
+			{
+				_forceOpen = false;
+				LiteNetLib4MirrorNetworkManager.singleton.StartClient();
+				ToggleableMenuController.HideCurrent();
+			}
+		}
+
 		protected override void OnToggled()
 		{
 			_dimmerBackground.enabled = IsEnabled;

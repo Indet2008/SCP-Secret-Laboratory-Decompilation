@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using MapGeneration.Holidays;
 using PlayerRoles.Spectating;
 
 namespace PlayerRoles.PlayableScps.Scp079
@@ -23,6 +24,32 @@ namespace PlayerRoles.PlayableScps.Scp079
 
 		// Restored from the client build (IL2CPP): SCP-079's screen over-exposes while its camera sees a player
 		// under the Orange Candy effect.
+		private void Awake()
+		{
+			if (!ReferenceHub.TryGetLocalHub(out var hub))
+			{
+				return;
+			}
+			HolidayType[] targetHolidays = hub.playerEffectsController.GetEffect<CustomPlayerEffects.OrangeCandy>().TargetHolidays;
+			if (targetHolidays != null && targetHolidays.Length != 0)
+			{
+				bool flag = false;
+				for (int i = 0; i < targetHolidays.Length; i++)
+				{
+					if (GameCore.Version.ActiveHoliday == targetHolidays[i])
+					{
+						flag = true;
+						break;
+					}
+				}
+				if (!flag)
+				{
+					return;
+				}
+			}
+			base.gameObject.SetActive(true);
+		}
+
 		private void Update()
 		{
 			_orangePlayers.Clear();
