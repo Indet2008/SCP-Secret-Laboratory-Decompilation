@@ -14,8 +14,17 @@ namespace CustomPlayerEffects
 
 		private readonly float multPerTick = 2f;
 
+		private VignettePulse _vignettePulse;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			_vignettePulse = GetComponent<VignettePulse>();
+		}
+
 		public void ExecutePulse()
 		{
+			_vignettePulse.enabled = true;
 		}
 
 		public bool IsHealable(ItemType it)

@@ -316,6 +316,24 @@ namespace GameCore
 
 		internal static void CopyPastebin()
 		{
+			if (!ReferenceHub.TryGetHostHub(out var hub))
+			{
+				AddLog("Can't find host's reference hub. Please join a server.", new Color(1f, 0f, 1f, 1f));
+				return;
+			}
+			string pastebin = hub.characterClassManager.Pastebin;
+			if (string.IsNullOrWhiteSpace(pastebin))
+			{
+				AddLog("Pastebin is null.", new Color(1f, 0f, 1f, 1f));
+			}
+			else if (Misc.ValidatePastebin(pastebin))
+			{
+				GUIUtility.systemCopyBuffer = "https://pastebin.com/raw/" + pastebin;
+			}
+			else
+			{
+				AddLog("Pastebin ID is invalid: " + pastebin, new Color(1f, 0f, 1f, 1f));
+			}
 		}
 
 		private static void HandleStartupArgs()
@@ -398,6 +416,45 @@ namespace GameCore
 
 		public static void RefreshPublicKey()
 		{
+			string text = CentralServerKeyCache.ReadCache();
+			string text2 = string.Empty;
+			if (!string.IsNullOrEmpty(text))
+			{
+				ServerConsole.PublicKey = Cryptography.ECDSA.PublicKeyFromString(text);
+				text2 = Cryptography.Sha.HashToString(Cryptography.Sha.Sha256(Cryptography.ECDSA.KeyToString(ServerConsole.PublicKey)));
+				AddLog("Loaded central server public key from cache.", Color.gray);
+				AddLog("SHA256 of public key: " + text2, Color.gray);
+			}
+			try
+			{
+				PublicKeyResponse publicKeyResponse = JsonSerialize.FromJson<PublicKeyResponse>(HttpQuery.Get(string.Format("{0}v5/publickey.php?credits=2&major={1}", CentralServer.StandardUrl, Version.Major)));
+				if (!Cryptography.ECDSA.VerifyBytes(publicKeyResponse.key + publicKeyResponse.credits, System.Convert.FromBase64String(publicKeyResponse.signature), CentralServerKeyCache.MasterKey))
+				{
+					AddLog("Can't refresh central server public key - invalid signature!", Color.red);
+					return;
+				}
+				ServerConsole.PublicKey = Cryptography.ECDSA.PublicKeyFromString(publicKeyResponse.key);
+				if (!string.IsNullOrEmpty(publicKeyResponse.credits))
+				{
+					CreditsData.LoadData(NorthwoodLib.StringUtils.Base64Decode(publicKeyResponse.credits));
+				}
+				string text3 = Cryptography.Sha.HashToString(Cryptography.Sha.Sha256(Cryptography.ECDSA.KeyToString(ServerConsole.PublicKey)));
+				AddLog("Downloaded public key from central server.", Color.gray);
+				AddLog("SHA256 of public key: " + text3, Color.gray);
+				if (text3 == text2)
+				{
+					AddLog("SHA256 of cached key matches, no need to update cache.", Color.gray);
+				}
+				else
+				{
+					CentralServerKeyCache.SaveCache(publicKeyResponse.key, publicKeyResponse.signature);
+				}
+			}
+			catch (System.Exception ex)
+			{
+				AddLog("Can't refresh central server public key - " + ex.Message, Color.red);
+				AddLog(ex.StackTrace, Color.red);
+			}
 		}
 
 		public void ProceedButton()

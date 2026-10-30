@@ -30,6 +30,8 @@ namespace CentralAuth
 
 		private static readonly Regex _saltRegex;
 
+		internal string RealUserId;
+
 		private bool _authenticationRequested;
 
 		private float _timeoutTimer;
@@ -786,6 +788,17 @@ namespace CentralAuth
 
 		protected void UserCode_RpcRequestAuthentication__String__String(string challenge, string ecdhPublicKey)
 		{
+			if (_authenticationRequested)
+			{
+				GameCore.Console.AddLog("Received a duplicated authentication request from the Game Server.", new Color(1f, 0f, 1f, 1f));
+				return;
+			}
+			_authenticationRequested = true;
+			GameCore.Console.AddLog("Received authentication request from the Game Server.", new Color(0.5f, 0.5f, 0.5f, 1f));
+			CentralAuthManager.TokenChallenge = challenge;
+			CentralAuthManager.ServerEcdhPublicKey = ecdhPublicKey;
+			CentralAuthManager.CurrentPlayerId = _hub.PlayerId;
+			CentralAuthManager.RequestAuthToken = true;
 		}
 
 		protected static void InvokeUserCode_RpcRequestAuthentication__String__String(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -802,6 +815,8 @@ namespace CentralAuth
 
 		protected void UserCode_TargetSetRealId__NetworkConnection__String(NetworkConnection conn, string userId)
 		{
+			RealUserId = userId;
+			PlayerList.RefreshPlayerId(base.gameObject);
 		}
 
 		protected static void InvokeUserCode_TargetSetRealId__NetworkConnection__String(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -923,6 +938,7 @@ namespace CentralAuth
 
 		protected void UserCode_RpcAnimateInvalidPassword()
 		{
+			global::RemoteAdmin.RemoteAdminUIController.Singleton.PlayInvalidPasswordAnimation();
 		}
 
 		protected static void InvokeUserCode_RpcAnimateInvalidPassword(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

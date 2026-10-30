@@ -61,6 +61,43 @@ namespace PlayerRoles.Voice
 			_translationsSet = new bool[num];
 		}
 
+		private string GetTranslation(IcomText text)
+		{
+			if (!_translationsSet[(int)text])
+			{
+				_translations[(int)text] = TranslationReader.Get("Intercom", (int)text, text.ToString());
+				_translationsSet[(int)text] = true;
+			}
+			return _translations[(int)text];
+		}
+
+		private void Update()
+		{
+			if (!string.IsNullOrEmpty(_overrideText))
+			{
+				_text.text = _overrideText;
+				return;
+			}
+			switch (Intercom.State)
+			{
+			case IntercomState.Ready:
+				_text.text = GetTranslation((global::VoiceChat.VoiceChatMuteIndicator.ReceivedFlags != global::VoiceChat.VcMuteFlags.None) ? IcomText.Muted : IcomText.Ready);
+				break;
+			case IntercomState.Starting:
+				_text.text = GetTranslation(IcomText.Wait);
+				break;
+			case IntercomState.InUse:
+				_text.text = (_icom.BypassMode ? GetTranslation(IcomText.TrasmittingBypass) : string.Format(GetTranslation(IcomText.Transmitting), Mathf.Ceil(_icom.RemainingTime)));
+				break;
+			case IntercomState.Cooldown:
+				_text.text = string.Format(GetTranslation(IcomText.Restarting), Mathf.Ceil(_icom.RemainingTime));
+				break;
+			case IntercomState.NotFound:
+				_text.text = GetTranslation(IcomText.Unknown);
+				break;
+			}
+		}
+
 		public static bool TrySetDisplay(string str)
 		{
 			if (_singleton == null)

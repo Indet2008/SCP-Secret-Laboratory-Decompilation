@@ -10,7 +10,10 @@ public class ServerListManager : MonoBehaviour
 	public global::UnityEngine.UI.Text loadingText;
 
 
+	private static string _filter;
+
 	private void Awake()
 	{
+		_filter = string.Empty;
 	}
 }

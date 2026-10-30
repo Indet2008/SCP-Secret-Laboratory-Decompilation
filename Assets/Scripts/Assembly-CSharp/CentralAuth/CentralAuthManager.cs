@@ -13,6 +13,30 @@ namespace CentralAuth
 
 		public static DistributionPlatform Platform { get; private set; }
 
+		public static global::Discord.Discord Discord { get; private set; }
+
+		internal static AuthStatusType AuthStatusType;
+
+		internal static bool NoWatermarking;
+
+		internal static string ApiToken;
+
+		internal static string Nonce;
+
+		internal static string TokenChallenge;
+
+		internal static string ServerEcdhPublicKey;
+
+		internal static bool ForceRenew;
+
+		internal static bool RequestAuthToken;
+
+		internal static int CurrentPlayerId { get; set; }
+
+		internal static bool Authenticated { get; private set; }
+
+		internal static CentralAuthPreauthToken PreauthToken { get; private set; }
+
 		internal static void InitAuth()
 		{
 			if (!_initialized)

@@ -1,3 +1,5 @@
+using System;
+using UnityEngine;
 using MapGeneration.Holidays;
 using Steam;
 
@@ -82,6 +84,36 @@ namespace GameCore
 		}
 
 		public static bool ExtendedVersionCheckNeeded => BuildType != VersionType.Release;
+
+		internal static bool ListedServerCompatibilityCheck(string version)
+		{
+			try
+			{
+				if (string.Equals(version, VersionString, StringComparison.Ordinal))
+				{
+					return true;
+				}
+				if ((ExtendedVersionCheckNeeded || version.Contains("-")) && (!AlwaysAcceptReleaseBuilds || BuildType != VersionType.Release || version.Contains("-")))
+				{
+					return false;
+				}
+				string[] array = version.Split('-')[0].Split('.');
+				if (array.Length != 3 || !byte.TryParse(array[0], out var result) || !byte.TryParse(array[1], out var result2) || !byte.TryParse(array[2], out var result3))
+				{
+					return false;
+				}
+				if (result != Major || result2 != Minor)
+				{
+					return false;
+				}
+				return BackwardCompatibility ? (result3 >= BackwardRevision && result3 <= Revision) : (result3 == Revision);
+			}
+			catch (Exception ex)
+			{
+				Console.AddLog("Failed to process listed server version: " + ex.Message, Color.red);
+				return false;
+			}
+		}
 
 		static Version()
 		{

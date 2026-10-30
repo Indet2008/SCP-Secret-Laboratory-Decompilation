@@ -14,8 +14,17 @@ namespace CustomPlayerEffects
 
 		public float damagePerTick = 20f;
 
+		private VignettePulse _vignettePulse;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			_vignettePulse = GetComponent<VignettePulse>();
+		}
+
 		public void ExecutePulse()
 		{
+			_vignettePulse.enabled = true;
 		}
 
 		protected override void OnTick()

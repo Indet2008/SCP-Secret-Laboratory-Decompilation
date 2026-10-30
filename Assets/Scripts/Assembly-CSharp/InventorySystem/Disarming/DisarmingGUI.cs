@@ -4,8 +4,13 @@ using UnityEngine.UI;
 
 namespace InventorySystem.Disarming
 {
+	// Restored from the 14.2.8 client disassembly.
 	public class DisarmingGUI : MonoBehaviour
 	{
+		private const string TranslationKey = "Disarming";
+
+		public static DisarmingGUI Singleton;
+
 		public Image Circle;
 
 		[SerializeField]
@@ -17,32 +22,44 @@ namespace InventorySystem.Disarming
 		[SerializeField]
 		private TextMeshProUGUI _bottomText;
 
-		private void Awake()
+		private string _adminCuffed;
+
+		private string _detainedFormat;
+
+		private void Start()
 		{
-			if (Circle != null)
-			{
-				Circle.fillAmount = 0f;
-				Circle.enabled = false;
-			}
-			if (_disarmedMessageObject != null)
-			{
-				_disarmedMessageObject.SetActive(value: false);
-			}
+			Singleton = this;
+			_detainedFormat = TranslationReader.Get("Disarming", 0, "You have been detained by {0}.");
+			_adminCuffed = TranslationReader.Get("Disarming", 1, "an administrator");
+			_bottomText.text = TranslationReader.Get("Disarming", 2, "Follow orders or ask teammates for help.");
 		}
 
 		private void Update()
 		{
-			float progress = DisarmingController.Progress;
-			if (Circle != null)
+			bool active = false;
+			if (ReferenceHub.TryGetLocalHub(out var hub))
 			{
-				Circle.enabled = progress > 0f;
-				Circle.fillAmount = progress;
+				foreach (DisarmedPlayers.DisarmedEntry entry in DisarmedPlayers.Entries)
+				{
+					if (entry.DisarmedPlayer != hub.netId)
+					{
+						continue;
+					}
+					active = true;
+					if (entry.Disarmer != 0 && ReferenceHub.TryGetHubNetID(entry.Disarmer, out var hub2))
+					{
+						_disarmedMessageText.text = string.Format(_detainedFormat, hub2.nicknameSync.MyNick);
+						_bottomText.enabled = true;
+					}
+					else
+					{
+						_disarmedMessageText.text = string.Format(_detainedFormat, _adminCuffed);
+						_bottomText.enabled = false;
+					}
+					break;
+				}
 			}
-			bool flag = ReferenceHub.TryGetLocalHub(out var hub) && hub.inventory.IsDisarmed();
-			if (_disarmedMessageObject != null && _disarmedMessageObject.activeSelf != flag)
-			{
-				_disarmedMessageObject.SetActive(flag);
-			}
+			_disarmedMessageObject.SetActive(active);
 		}
 	}
 }

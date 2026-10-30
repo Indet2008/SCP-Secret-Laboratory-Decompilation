@@ -225,17 +225,35 @@ public class PlayerEffectsController : NetworkBehaviour
 		}
 	}
 
-	private void Update()
+	public void GetAllSpectatorEffects(System.Text.StringBuilder strb)
 	{
-		if (NetworkServer.active)
+		StatusEffectBase[] allEffects = AllEffects;
+		foreach (StatusEffectBase statusEffectBase in allEffects)
 		{
+			if (statusEffectBase.Intensity > 0 && statusEffectBase is ISpectatorDataPlayerEffect spectatorDataPlayerEffect && spectatorDataPlayerEffect.GetSpectatorText(out var display))
+			{
+				strb.AppendFormat("\n<color=#DC143C>{0}</color>", display);
+			}
+		}
+	}
+
+	private void ClientSyncEffects(PlayerEffectsController targetEffectController)
+	{
+		if (!NetworkClient.active)
+		{
+			Debug.LogWarning("[Client] function 'System.Void PlayerEffectsController::ClientSyncEffects(PlayerEffectsController)' called when client was not active");
 			return;
 		}
-		int num = Mathf.Min(EffectsLength, _syncEffectsIntensity.Count);
+		int num = Mathf.Min(EffectsLength, targetEffectController._syncEffectsIntensity.Count);
 		for (int i = 0; i < num; i++)
 		{
-			AllEffects[i].ForceIntensity(_syncEffectsIntensity[i]);
+			AllEffects[i].ForceIntensity(targetEffectController._syncEffectsIntensity[i]);
 		}
+	}
+
+	private void Update()
+	{
+		ClientSyncEffects(this);
 	}
 
 	private void Start()

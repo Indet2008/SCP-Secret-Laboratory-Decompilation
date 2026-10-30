@@ -14,6 +14,14 @@ namespace CustomPlayerEffects
 
 		private bool _isSprinting;
 
+		private DiminishingLerpVisuals _diminishingPlayerEffect;
+
+		protected override void Awake()
+		{
+			base.Awake();
+			_diminishingPlayerEffect = GetComponent<DiminishingLerpVisuals>();
+		}
+
 		protected override void OnTick()
 		{
 			if (NetworkServer.active && _isSprinting)
@@ -29,6 +37,10 @@ namespace CustomPlayerEffects
 			if (base.Hub.roleManager.CurrentRole is IFpcRole fpcRole)
 			{
 				_isSprinting = fpcRole.FpcModule.CurrentMovementState == PlayerMovementState.Sprinting;
+			}
+			if ((base.Hub.isLocalPlayer || PlayerRoles.Spectating.SpectatorNetworking.IsLocallySpectated(base.Hub)) && _isSprinting)
+			{
+				_diminishingPlayerEffect.Intensity += effectIncrease;
 			}
 		}
 	}

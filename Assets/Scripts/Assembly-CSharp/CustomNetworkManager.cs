@@ -55,6 +55,8 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 
 	private int _curLogId;
 
+	private bool _cancelSceneLoading;
+
 	internal static bool reconnecting;
 
 	internal static float reconnectTime;
@@ -145,6 +147,24 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 
 	private new void Update()
 	{
+		if ((!popup.activeSelf && !loadingpop.activeSelf) || !Input.GetKeyDown(KeyCode.Escape))
+		{
+			return;
+		}
+		reconnecting = false;
+		triggerReconnectTime = 0f;
+		reconnectTime = 0f;
+		_cancelSceneLoading = true;
+		if (loadingpop.activeSelf)
+		{
+			ShowLoadingScreen(4);
+		}
+		ConnInfoButton[] actions = logs[_curLogId].button.actions;
+		for (int i = 0; i < actions.Length; i++)
+		{
+			actions[i].UseButton();
+		}
+		SteamLobby.singleton?.LeaveLobby();
 	}
 
 	private void FixedUpdate()

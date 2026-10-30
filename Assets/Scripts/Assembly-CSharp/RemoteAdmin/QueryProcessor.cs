@@ -187,6 +187,27 @@ namespace RemoteAdmin
 			RemoteAdminClient.SendQuery(query);
 		}
 
+		public void SendQuery(string query, bool gban = false)
+		{
+			if (!NetworkClient.active)
+			{
+				Debug.LogWarning("[Client] function 'System.Void RemoteAdmin.QueryProcessor::SendQuery(System.String,System.Boolean)' called when client was not active");
+				return;
+			}
+			if (!gban && query.StartsWith("GBAN-KICK ", StringComparison.OrdinalIgnoreCase))
+			{
+				GameCore.Console.AddLog("\"GBAN-KICK\" command can't be executed manually.", Color.magenta);
+			}
+			else if (query.StartsWith("@", StringComparison.Ordinal))
+			{
+				_hub.encryptedChannelManager.TrySendMessageToServer(query.Substring(1), EncryptedChannelManager.EncryptedChannel.AdminChat);
+			}
+			else
+			{
+				RemoteAdminClient.SendQuery(query);
+			}
+		}
+
 		internal void RequestPlayerList()
 		{
 			if (!base.isLocalPlayer || _lastPlayerlistRequest < 1f)

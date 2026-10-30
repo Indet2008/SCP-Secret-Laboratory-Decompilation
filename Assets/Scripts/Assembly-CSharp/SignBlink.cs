@@ -8,5 +8,13 @@ public class SignBlink : MonoBehaviour
 
 	public void Play(int duration)
 	{
+		if (startText == "")
+		{
+			startText = GetComponent<TMPro.TextMeshProUGUI>().text;
+		}
+		else
+		{
+			GetComponent<TMPro.TextMeshProUGUI>().text = startText;
+		}
 	}
 }

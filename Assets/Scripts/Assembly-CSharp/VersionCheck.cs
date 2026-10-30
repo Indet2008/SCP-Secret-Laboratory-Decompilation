@@ -47,6 +47,12 @@ public class VersionCheck : NetworkBehaviour
 
 	protected void UserCode_TargetCheckVersion__NetworkConnection__Byte__Byte__Byte(NetworkConnection conn, byte major, byte minor, byte revision)
 	{
+		if ((!Version.AlwaysAcceptReleaseBuilds || Version.BuildType != Version.VersionType.Release) && (major != Version.Major || minor != Version.Minor || !(Version.BackwardCompatibility ? (revision >= Version.BackwardRevision && revision <= Version.Revision) : (revision == Version.Revision))))
+		{
+			CustomNetworkManager customNetworkManager = Object.FindObjectOfType<CustomNetworkManager>();
+			customNetworkManager.StopClient();
+			customNetworkManager.ShowLog(16, Version.VersionString, string.Format("{0}.{1}.{2}", major, minor, revision), "");
+		}
 	}
 
 	protected static void InvokeUserCode_TargetCheckVersion__NetworkConnection__Byte__Byte__Byte(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -63,6 +69,12 @@ public class VersionCheck : NetworkBehaviour
 
 	protected void UserCode_TargetCheckExactVersion__NetworkConnection__String(NetworkConnection conn, string version)
 	{
+		if ((!Version.AlwaysAcceptReleaseBuilds || Version.BuildType != Version.VersionType.Release) && !Version.ListedServerCompatibilityCheck(version))
+		{
+			CustomNetworkManager customNetworkManager = Object.FindObjectOfType<CustomNetworkManager>();
+			customNetworkManager.StopClient();
+			customNetworkManager.ShowLog(16, Version.VersionString, version, "");
+		}
 	}
 
 	protected static void InvokeUserCode_TargetCheckExactVersion__NetworkConnection__String(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

@@ -223,6 +223,29 @@ namespace RemoteAdmin
 			}
 		}
 
+		private bool _invalidPasswordAnimationInProgress;
+
+		internal void PlayInvalidPasswordAnimation()
+		{
+			if (!_invalidPasswordAnimationInProgress)
+			{
+				MEC.Timing.RunCoroutine(InvalidPasswordAnimation(), MEC.Segment.FixedUpdate);
+			}
+		}
+
+		private System.Collections.Generic.IEnumerator<float> InvalidPasswordAnimation()
+		{
+			_invalidPasswordAnimationInProgress = true;
+			ConfirmButton.interactable = false;
+			RawImage component = PasswordField.GetComponent<RawImage>();
+			Texture texture = component.texture;
+			component.texture = WrongPasswordTexture;
+			yield return MEC.Timing.WaitForSeconds(2f);
+			_invalidPasswordAnimationInProgress = false;
+			ConfirmButton.interactable = true;
+			component.texture = texture;
+		}
+
 		public void RefreshStatus()
 		{
 			bool isEnabled = IsEnabled;

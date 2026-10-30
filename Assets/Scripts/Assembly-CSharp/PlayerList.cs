@@ -134,6 +134,36 @@ public class PlayerList : SimpleToggleableMenu
 	}
 
 	// because the hub's mode, nickname and badge all arrive through separate syncvars after OnPlayerAdded.
+	internal static bool DisplayProfileButton(global::CentralAuth.PlayerAuthenticationManager authManager)
+	{
+		if (global::CentralAuth.CentralAuthManager.Platform != global::GameCore.DistributionPlatform.Steam || !global::Steamworks.SteamUtils.IsOverlayEnabled)
+		{
+			return false;
+		}
+		string userId = authManager.UserId;
+		if (!string.IsNullOrEmpty(userId))
+		{
+			return userId.EndsWith("@steam", global::System.StringComparison.Ordinal);
+		}
+		return false;
+	}
+
+	public static void RefreshPlayerId(GameObject player)
+	{
+		if (!ReferenceHub.TryGetHub(player, out var hub))
+		{
+			return;
+		}
+		foreach (Instance instance in instances)
+		{
+			if (!(instance.owner == null) && !(instance.owner.gameObject != player))
+			{
+				instance.listElementReference.OpenProfile.SetActive(DisplayProfileButton(hub.authManager));
+				break;
+			}
+		}
+	}
+
 	private static bool ShouldBeListed(ReferenceHub hub)
 	{
 		if (hub == null || hub.Mode == ClientInstanceMode.DedicatedServer || hub.IsDummy)

@@ -87,5 +87,11 @@ public class ServerShutdown : MonoBehaviour
 
 	private static void HandleServerShutdown(ServerShutdownMessage ssm)
 	{
+		if (!NetworkServer.active)
+		{
+			GameCore.Console.AddLog("Server is shutting down...", UnityEngine.Color.yellow);
+			NetworkManager.singleton.StopClient();
+			((CustomNetworkManager)Mirror.LiteNetLib4Mirror.LiteNetLib4MirrorNetworkManager.singleton).ShowLog(37, "", "", "");
+		}
 	}
 }

@@ -150,6 +150,12 @@ namespace RemoteAdmin
 
 		public void CheckEasterEgg()
 		{
+			string text = InputFieldText.text;
+			if (System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(text, "MRBOOBOOSTANK", 0, text.Length, System.Globalization.CompareOptions.IgnoreCase) >= 0)
+			{
+				InputFieldText.textComponent.color = UnityEngine.Color.green;
+				InputFieldText.SetTextWithoutNotify("An incredibly well-made guide, useful to many in this community. Thank you, mrbooboostank! :)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1577299753");
+			}
 		}
 
 		public void CopyToClipboard()

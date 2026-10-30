@@ -72,6 +72,11 @@ public class AspectRatioSync : NetworkBehaviour
 
 	private void FixedUpdate()
 	{
+		if (base.isLocalPlayer && (Screen.height != _savedHeight || Screen.width != _savedWidth))
+		{
+			UpdateAspectRatio();
+			AspectRatioSync.OnAspectRatioChanged?.Invoke();
+		}
 	}
 
 	[Command(channel = 4)]

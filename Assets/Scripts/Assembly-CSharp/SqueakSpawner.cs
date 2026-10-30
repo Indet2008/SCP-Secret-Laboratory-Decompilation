@@ -64,6 +64,11 @@ public class SqueakSpawner : NetworkBehaviour
 
 	protected void UserCode_TargetHitMouse__NetworkConnection(NetworkConnection networkConnection)
 	{
+		if (_spawnedMouse != null && _spawnedMouse.enabled)
+		{
+			_spawnedMouse.ClientInteract(null);
+			_spawnedMouse.gameObject.SetActive(value: false);
+		}
 	}
 
 	protected static void InvokeUserCode_TargetHitMouse__NetworkConnection(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

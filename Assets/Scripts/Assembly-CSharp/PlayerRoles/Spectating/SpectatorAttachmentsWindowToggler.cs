@@ -20,6 +20,10 @@ namespace PlayerRoles.Spectating
 
 		private void OnDisable()
 		{
+			if (IsEnabled)
+			{
+				ToggleableMenuController.HideCurrent();
+			}
 		}
 	}
 }

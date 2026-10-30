@@ -3,30 +3,38 @@ using UnityEngine.Rendering;
 
 namespace CustomPlayerEffects
 {
-	[RequireComponent(typeof(Volume))]
 	public class LerpPostProcessVisuals : LerpVisualsBase
 	{
-		private Volume _volume;
+		protected Volume ProcessVolume { get; private set; }
 
-		protected Volume TargetVolume
+		protected override void Awake()
 		{
-			get
-			{
-				if (_volume == null)
-				{
-					_volume = GetComponent<Volume>();
-				}
-				return _volume;
-			}
+			base.Awake();
+			ProcessVolume = GetComponent<Volume>();
 		}
 
-		protected override void ApplyWeight(float weight)
+		protected override void OnWeightChanged(float weight)
 		{
-			Volume targetVolume = TargetVolume;
-			if (!(targetVolume == null))
+			ProcessVolume.weight = weight;
+		}
+
+		protected override void OnActivated()
+		{
+			ProcessVolume.enabled = true;
+		}
+
+		protected override void OnShutdown()
+		{
+			ProcessVolume.enabled = false;
+		}
+
+		private void OnValidate()
+		{
+			if (!Application.isPlaying)
 			{
-				targetVolume.weight = weight;
-				targetVolume.enabled = weight > 0f;
+				Volume component = GetComponent<Volume>();
+				component.weight = 0f;
+				component.enabled = false;
 			}
 		}
 	}

@@ -1,4 +1,5 @@
 using System;
+using AudioPooling;
 using System.Collections.Generic;
 using GameCore;
 using MEC;
@@ -204,6 +205,29 @@ namespace Christmas.Scp2536
 
 		private void Update()
 		{
+			if (_hidden)
+			{
+				return;
+			}
+			foreach (Material mat in _mats)
+			{
+				float num = mat.GetFloat(Scp559Cake.ShaderDissolveProperty);
+				if (_shaderIncrease ? (num < 1f) : (num > 0f))
+				{
+					float num2 = Time.deltaTime * 1.5f;
+					if (!_shaderIncrease)
+					{
+						num2 = 0f - num2;
+					}
+					mat.SetFloat(Scp559Cake.ShaderDissolveProperty, num + num2);
+				}
+			}
+		}
+
+		private IEnumerator<float> SyncDisappearWithAudio()
+		{
+			yield return Timing.WaitForSeconds(0.5f);
+			_shaderIncrease = true;
 		}
 
 		[ClientRpc]
@@ -277,6 +301,12 @@ namespace Christmas.Scp2536
 		protected void UserCode_RpcMoveTree__Vector3__Quaternion__Byte(Vector3 newPos, Quaternion newRot, byte randomSeed)
 		{
 			base.transform.SetPositionAndRotation(newPos, newRot);
+			_shaderIncrease = false;
+			if (_musicClips.Count > 0 && _musicSource != null)
+			{
+				_musicSource.clip = _musicClips[randomSeed % _musicClips.Count];
+			}
+			_musicSource.Play();
 		}
 
 		protected static void InvokeUserCode_RpcMoveTree__Vector3__Quaternion__Byte(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -293,6 +323,8 @@ namespace Christmas.Scp2536
 
 		protected void UserCode_RpcHideTree()
 		{
+			base.transform.position = Vector3.down * 8000f;
+			_hidden = true;
 		}
 
 		protected static void InvokeUserCode_RpcHideTree(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -309,6 +341,13 @@ namespace Christmas.Scp2536
 
 		protected void UserCode_RpcPlayDisappear()
 		{
+			foreach (Material mat in _mats)
+			{
+				mat.SetFloat(Scp559Cake.ShaderDissolveProperty, 0f);
+			}
+			_musicSource.Stop();
+			AudioSourcePoolManager.PlayAtPosition(_disappearClip, base.transform.position, 40f, 1f, (FalloffType)0, (MixerChannel)0);
+			Timing.RunCoroutine(SyncDisappearWithAudio().CancelWith(this));
 		}
 
 		protected static void InvokeUserCode_RpcPlayDisappear(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)
@@ -325,6 +364,15 @@ namespace Christmas.Scp2536
 
 		protected void UserCode_RpcPlayTeamSpawn__Team__Vector3(Team team, Vector3 position)
 		{
+			_hidden = false;
+			foreach (Material mat in _mats)
+			{
+				mat.SetFloat(Scp559Cake.ShaderDissolveProperty, 1f);
+			}
+			if (TeamClips.TryGetValue(team, out var value))
+			{
+				AudioSourcePoolManager.PlayAtPosition(value, position, 40f, 1f, (FalloffType)0, (MixerChannel)0);
+			}
 		}
 
 		protected static void InvokeUserCode_RpcPlayTeamSpawn__Team__Vector3(NetworkBehaviour obj, NetworkReader reader, NetworkConnectionToClient senderConnection)

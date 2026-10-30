@@ -340,9 +340,72 @@ public class ServerRoles : NetworkBehaviour
 		}
 	}
 
+	private static BadgePreferences _userBadgePreferencesClient;
+
+	private static BadgeVisibilityPreferences _globalBadgePreferencesClient;
+
+	private static BadgeVisibilityPreferences _localBadgePreferencesClient;
+
 	public static BadgeVisibilityPreferences GetGlobalBadgePreferences()
 	{
-		return BadgeVisibilityPreferences.NoPreference;
+		return _globalBadgePreferencesClient;
+	}
+
+	[RuntimeInitializeOnLoadMethod]
+	private static void Init()
+	{
+		_userBadgePreferencesClient = (BadgePreferences)UserSettings.UserSetting<int>.Get(UserSettings.OtherSettings.MiscPrivacySetting.BadgePreferences);
+		_globalBadgePreferencesClient = (BadgeVisibilityPreferences)UserSettings.UserSetting<int>.Get((UserSettings.OtherSettings.MiscPrivacySetting)5);
+		_localBadgePreferencesClient = (BadgeVisibilityPreferences)UserSettings.UserSetting<int>.Get((UserSettings.OtherSettings.MiscPrivacySetting)6);
+		UserSettings.UserSetting<int>.AddListener(UserSettings.OtherSettings.MiscPrivacySetting.BadgePreferences, SetBadgePreferences);
+		UserSettings.UserSetting<int>.AddListener((UserSettings.OtherSettings.MiscPrivacySetting)5, SetGlobalBadgePreferences);
+		UserSettings.UserSetting<int>.AddListener((UserSettings.OtherSettings.MiscPrivacySetting)6, SetLocalBadgePreferences);
+	}
+
+	private static void SetBadgePreferences(int value)
+	{
+		_userBadgePreferencesClient = (BadgePreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void SetGlobalBadgePreferences(int value)
+	{
+		_globalBadgePreferencesClient = (BadgeVisibilityPreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void SetLocalBadgePreferences(int value)
+	{
+		_localBadgePreferencesClient = (BadgeVisibilityPreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void ResyncPreferences()
+	{
+		if (NetworkClient.active && ReferenceHub.TryGetLocalHub(out var hub))
+		{
+			hub.serverRoles.CmdSetLocalTagPreferences(_userBadgePreferencesClient, _globalBadgePreferencesClient, _localBadgePreferencesClient, refresh: true);
+		}
+	}
+
+	private static string TranslateGlobalBadge(string badge, bool hidden = false)
+	{
+		if (string.IsNullOrEmpty(badge))
+		{
+			return badge;
+		}
+		string text = badge;
+		if (!hidden && badge.Length > 2 && badge.StartsWith("[", System.StringComparison.Ordinal) && badge.EndsWith("]", System.StringComparison.Ordinal))
+		{
+			string key = badge.Substring(1, badge.Length - 2);
+			string[] fallbackKeys = TranslationReader.GetFallbackKeys("Badges");
+			int num = ((fallbackKeys == null) ? (-1) : System.Array.IndexOf(fallbackKeys, key));
+			if (num >= 0)
+			{
+				text = "[" + TranslationReader.Get("Badges", num, key) + "]";
+			}
+		}
+		return Misc.SanitizeRichText(text);
 	}
 
 	public void Start()
