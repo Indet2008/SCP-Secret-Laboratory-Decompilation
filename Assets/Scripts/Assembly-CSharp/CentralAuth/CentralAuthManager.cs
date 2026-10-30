@@ -92,6 +92,14 @@ namespace CentralAuth
 			{
 				return;
 			}
+			// Not in the original: the auth ticket is signed by the official launcher (SL-AC). Without it the central
+			// server always rejects the session, so skip authentication instead of retrying forever.
+			if (!LauncherCommunicator.Available)
+			{
+				AuthStatusType = AuthStatusType.PlatformAuthFailure;
+				GameCore.Console.AddLog("Central server authentication skipped: the game was not started through the official launcher (no ticket signer). Online-mode servers will reject this client.", Color.yellow, nospace: true);
+				return;
+			}
 			if (StartupArgs.Args.Any((string arg) => string.Equals(arg, "-authdebug", StringComparison.OrdinalIgnoreCase)) || File.Exists(FileManager.GetAppFolder(addSeparator: true) + "EnableDebug.txt"))
 			{
 				_authDebugEnabled = true;
