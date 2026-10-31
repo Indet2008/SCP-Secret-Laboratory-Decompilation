@@ -1,0 +1,8 @@
+// Stand-in for ripped VFX graph compute shaders that have no source and can't be built.
+// Effects using it build but don't simulate until the original .vfx graphs are restored.
+#pragma kernel CSMain
+
+[numthreads(64, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+}

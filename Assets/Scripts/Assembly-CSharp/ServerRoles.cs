@@ -340,9 +340,84 @@ public class ServerRoles : NetworkBehaviour
 		}
 	}
 
+	private static BadgePreferences _userBadgePreferencesClient;
+
+	private static BadgeVisibilityPreferences _globalBadgePreferencesClient;
+
+	private static BadgeVisibilityPreferences _localBadgePreferencesClient;
+
 	public static BadgeVisibilityPreferences GetGlobalBadgePreferences()
 	{
-		return BadgeVisibilityPreferences.NoPreference;
+		return _globalBadgePreferencesClient;
+	}
+
+	[RuntimeInitializeOnLoadMethod]
+	private static void Init()
+	{
+		_userBadgePreferencesClient = (BadgePreferences)UserSettings.UserSetting<int>.Get(UserSettings.OtherSettings.MiscPrivacySetting.BadgePreferences);
+		_globalBadgePreferencesClient = (BadgeVisibilityPreferences)UserSettings.UserSetting<int>.Get((UserSettings.OtherSettings.MiscPrivacySetting)5);
+		_localBadgePreferencesClient = (BadgeVisibilityPreferences)UserSettings.UserSetting<int>.Get((UserSettings.OtherSettings.MiscPrivacySetting)6);
+		UserSettings.UserSetting<int>.AddListener(UserSettings.OtherSettings.MiscPrivacySetting.BadgePreferences, SetBadgePreferences);
+		UserSettings.UserSetting<int>.AddListener((UserSettings.OtherSettings.MiscPrivacySetting)5, SetGlobalBadgePreferences);
+		UserSettings.UserSetting<int>.AddListener((UserSettings.OtherSettings.MiscPrivacySetting)6, SetLocalBadgePreferences);
+	}
+
+	private static void SetBadgePreferences(int value)
+	{
+		_userBadgePreferencesClient = (BadgePreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void SetGlobalBadgePreferences(int value)
+	{
+		_globalBadgePreferencesClient = (BadgeVisibilityPreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void SetLocalBadgePreferences(int value)
+	{
+		_localBadgePreferencesClient = (BadgeVisibilityPreferences)value;
+		ResyncPreferences();
+	}
+
+	private static void ResyncPreferences()
+	{
+		if (NetworkClient.active && ReferenceHub.TryGetLocalHub(out var hub))
+		{
+			hub.serverRoles.CmdSetLocalTagPreferences(_userBadgePreferencesClient, _globalBadgePreferencesClient, _localBadgePreferencesClient, refresh: true);
+		}
+	}
+
+	private static string TranslateGlobalBadge(string badge, bool hidden = false)
+	{
+		string text = badge;
+		if (!hidden)
+		{
+			if (!badge.StartsWith("[", System.StringComparison.Ordinal) || !badge.EndsWith("]", System.StringComparison.Ordinal))
+			{
+				return badge;
+			}
+			text = badge.Substring(1, badge.Length - 2);
+		}
+		if (!TranslationReader.Fallback.TryGetValue("Badges", out var value))
+		{
+			return badge;
+		}
+		int num = -1;
+		for (int i = 0; i < value.Length; i++)
+		{
+			if (!(value[i] != text))
+			{
+				num = i;
+				break;
+			}
+		}
+		if (num <= -1)
+		{
+			return badge;
+		}
+		string content = (hidden ? (TranslationReader.Get("Badges", num, text) ?? string.Empty) : ("[" + TranslationReader.Get("Badges", num, text) + "]"));
+		return Misc.SanitizeRichText(content, string.Empty, string.Empty);
 	}
 
 	public void Start()
@@ -833,8 +908,20 @@ public class ServerRoles : NetworkBehaviour
 			}
 			_bgc = token.BadgeColor;
 			SetColor(_bgc);
-			_bgt = token.BadgeText;
-			MyText = _bgt;
+			if (NetworkServer.active)
+			{
+				_bgt = token.BadgeText;
+				SetText(_bgt);
+			}
+			else
+			{
+				_bgt = TranslateGlobalBadge(token.BadgeText);
+				if (_bgt != MyText)
+				{
+					SetText(_bgt);
+					GameCore.Console.AddLog("Loaded translation for a global badge. " + token.BadgeText + ": " + MyText + " - " + _bgt + " /-/ " + MyColor + " - " + _bgc, Color.gray, nospace: true);
+				}
+			}
 			_authorizeBadge = true;
 		}
 		goto IL_03fa;
@@ -1087,7 +1174,7 @@ public class ServerRoles : NetworkBehaviour
 			else
 			{
 				SetColor("silver");
-				FixedBadge = Misc.SanitizeRichText(role.Replace("[", string.Empty).Replace("]", string.Empty)) + " " + TranslationReader.Get("Legacy_Interfaces", 18, "(hidden)");
+				FixedBadge = TranslateGlobalBadge(Misc.SanitizeRichText(role.Replace("[", string.Empty).Replace("]", string.Empty)), hidden: true) + " " + TranslationReader.Get("Legacy_Interfaces", 18, "(hidden)");
 				SetText(FixedBadge);
 			}
 		}

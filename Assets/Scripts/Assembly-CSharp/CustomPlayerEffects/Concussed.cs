@@ -1,3 +1,4 @@
+using PlayerRoles.Spectating;
 namespace CustomPlayerEffects
 {
 	public class Concussed : StatusEffectBase, IHealableEffect
@@ -15,8 +16,6 @@ namespace CustomPlayerEffects
 
 		private DiminishingLerpVisuals _postProcessBehavior;
 
-		private float _blur;
-
 		protected override void Awake()
 		{
 			base.Awake();
@@ -27,24 +26,22 @@ namespace CustomPlayerEffects
 		{
 			base.Enabled();
 			_prevRot = base.transform.rotation;
-			_blur = 0f;
 		}
 
 		protected override void OnEffectUpdate()
 		{
 			base.OnEffectUpdate();
-			if (!IsPOV || _postProcessBehavior == null)
+			if (base.Hub.isLocalPlayer || base.Hub.IsLocallySpectated())
 			{
-				return;
+				global::UnityEngine.Quaternion rotation = base.transform.rotation;
+				float num = global::UnityEngine.Mathf.Abs(global::UnityEngine.Quaternion.Dot(_prevRot, rotation));
+				float num2 = ((num > 0.999999f) ? 0f : (global::UnityEngine.Mathf.Acos(global::UnityEngine.Mathf.Min(num, 1f)) * 2f * 57.29578f));
+				float num3 = num2 / 90f * intensityIncreasePer90Degree;
+				float num4 = RainbowTaste.CurrentMultiplier(base.Hub);
+				_prevRot = rotation;
+				_postProcessBehavior.Intensity -= global::UnityEngine.Time.deltaTime * intensityDecreaseTimeFactor / RainbowTaste.CurrentMultiplier(base.Hub);
+				_postProcessBehavior.Intensity += num4 * num3;
 			}
-			global::UnityEngine.Quaternion rot = base.transform.rotation;
-			float angle = global::UnityEngine.Quaternion.Angle(_prevRot, rot);
-			_prevRot = rot;
-			float multiplier = RainbowTaste.CurrentMultiplier(base.Hub);
-			_blur += angle / 90f * intensityIncreasePer90Degree * multiplier;
-			_blur -= global::UnityEngine.Time.deltaTime * intensityDecreaseTimeFactor;
-			_blur = global::UnityEngine.Mathf.Clamp01(_blur);
-			_postProcessBehavior.Weight = _blur * multiplier;
 		}
 
 		public bool IsHealable(ItemType it)

@@ -187,6 +187,65 @@ namespace RemoteAdmin
 			RemoteAdminClient.SendQuery(query);
 		}
 
+		internal void RefreshPlayerList()
+		{
+			if (base.isLocalPlayer && Mirror.NetworkClient.active && !(RemoteAdminUIController.Singleton == null) && RemoteAdminUIController.Singleton.IsEnabled)
+			{
+				RemoteAdmin.Communication.RaPlayerList.Request(isSilent: true, RemoteAdminUIController.GetSorting(), RemoteAdminUIController.DescendingSort);
+			}
+		}
+
+		internal static void StaticRefreshPlayerList()
+		{
+			if (ReferenceHub.TryGetLocalHub(out var hub))
+			{
+				hub.queryProcessor.RefreshPlayerList();
+			}
+		}
+
+		private void ProcessReply(string content, bool isSuccess, bool logInConsole, string overrideDisplay, bool secure)
+		{
+			RemoteAdminClient.ProcessReply(content, isSuccess, logInConsole, overrideDisplay, secure);
+		}
+
+		private static void ClientHandleAdminChat(EncryptedChannelManager.EncryptedMessage content, EncryptedChannelManager.SecurityLevel securityLevel)
+		{
+			string content2 = Utf8.GetString(content.Content);
+			string[] array = content2.Split(new char[1] { '!' }, 2);
+			if (array.Length != 2 || !uint.TryParse(array[0], out var result))
+			{
+				return;
+			}
+			string content3 = array[1];
+			ParseAdminChat(ref content3, out var monospaced, out var time, out var silent);
+			StaffChatMenu.TryAddMessage(result, monospaced ? string.Format("<font=\"RobotoMono\">{0}</font>", content3) : content3);
+			if (!silent && ReferenceHub.TryGetHubNetID(result, out var hub))
+			{
+				Broadcast.AddElement(hub.nicknameSync.MyNick + " ~" + content3, (time == 0) ? ((ushort)5) : time, Broadcast.BroadcastFlags.AdminChat);
+			}
+		}
+
+		public void SendQuery(string query, bool gban = false)
+		{
+			if (!NetworkClient.active)
+			{
+				Debug.LogWarning("[Client] function 'System.Void RemoteAdmin.QueryProcessor::SendQuery(System.String,System.Boolean)' called when client was not active");
+				return;
+			}
+			if (!gban && query.StartsWith("GBAN-KICK ", StringComparison.OrdinalIgnoreCase))
+			{
+				GameCore.Console.AddLog("\"GBAN-KICK\" command can't be executed manually.", Color.magenta);
+			}
+			else if (query.StartsWith("@", StringComparison.Ordinal))
+			{
+				_hub.encryptedChannelManager.TrySendMessageToServer(query.Substring(1), EncryptedChannelManager.EncryptedChannel.AdminChat);
+			}
+			else
+			{
+				RemoteAdminClient.SendQuery(query);
+			}
+		}
+
 		internal void RequestPlayerList()
 		{
 			if (!base.isLocalPlayer || _lastPlayerlistRequest < 1f)

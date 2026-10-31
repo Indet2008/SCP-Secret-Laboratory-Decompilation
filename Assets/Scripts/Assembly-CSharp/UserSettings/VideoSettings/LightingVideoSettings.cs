@@ -1,56 +1,134 @@
-using System.Collections.Generic;
+using MapGeneration;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.SceneManagement;
 
 namespace UserSettings.VideoSettings
 {
+	// Restored from the 14.2.8 client disassembly.
 	public static class LightingVideoSettings
 	{
-		// Lights that cast shadows as authored; only these get shadows toggled back on.
-		private static readonly HashSet<HDAdditionalLightData> AuthoredShadowCasters = new HashSet<HDAdditionalLightData>();
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-		private static void Init()
+		private readonly struct RoomLightInfo
 		{
-			UserSetting<bool>.SetDefaultValue(LightingVideoSetting.RenderShadows, defaultValue: true);
-			UserSetting<int>.SetDefaultValue(LightingVideoSetting.ShadowResolution, 2);
-			UserSetting<bool>.SetDefaultValue(LightingVideoSetting.RenderLights, defaultValue: true);
-			UserSetting<bool>.AddListener(LightingVideoSetting.RenderShadows, delegate
+			public readonly RoomLight Light;
+
+			public readonly HDAdditionalLightData Data;
+
+			public readonly bool ShadowsAllowed;
+
+			public RoomLightInfo(RoomLight light, HDAdditionalLightData data, bool shadowsAllowed)
 			{
-				ApplyShadowSettings();
-			});
-			UserSetting<int>.AddListener(LightingVideoSetting.ShadowResolution, delegate
-			{
-				ApplyShadowSettings();
-			});
-			SceneManager.sceneLoaded += delegate
-			{
-				ApplyShadowSettings();
-			};
+				Light = light;
+				Data = data;
+				ShadowsAllowed = shadowsAllowed;
+			}
 		}
 
-		public static void ApplyShadowSettings()
+		private static readonly RoomLightInfo[] Lights = new RoomLightInfo[4096];
+
+		private static int _lightsCount;
+
+		private static bool _renderLights;
+
+		private static bool _shadowsEnabled;
+
+		private static ShadowResolution _shadowResolution;
+
+		private const bool DefaultRenderLights = true;
+
+		private const bool DefaultShadowsEnabled = true;
+
+		private const int DefaultShadowResolution = 2;
+
+		[RuntimeInitializeOnLoadMethod]
+		private static void Init()
 		{
-			bool flag = UserSetting<bool>.Get(LightingVideoSetting.RenderShadows);
-			int shadowResolutionLevel = Mathf.Clamp(UserSetting<int>.Get(LightingVideoSetting.ShadowResolution), 0, 3);
-			HDAdditionalLightData[] array = Object.FindObjectsByType<HDAdditionalLightData>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-			foreach (HDAdditionalLightData hDAdditionalLightData in array)
+			UserSetting<bool>.SetDefaultValue(LightingVideoSetting.RenderLights, defaultValue: true);
+			UserSetting<bool>.AddListener(LightingVideoSetting.RenderLights, delegate(bool x)
 			{
-				Light component = hDAdditionalLightData.GetComponent<Light>();
-				if (component == null || component.type == LightType.Directional)
+				_renderLights = x;
+				UpdateConditionally();
+			});
+			UserSetting<bool>.SetDefaultValue(LightingVideoSetting.RenderShadows, defaultValue: true);
+			UserSetting<bool>.AddListener(LightingVideoSetting.RenderShadows, delegate(bool x)
+			{
+				_shadowsEnabled = x;
+				UpdateConditionally();
+			});
+			UserSetting<int>.SetDefaultValue(LightingVideoSetting.ShadowResolution, 2);
+			UserSetting<int>.AddListener(LightingVideoSetting.ShadowResolution, delegate(int x)
+			{
+				_shadowResolution = (ShadowResolution)x;
+				UpdateConditionally();
+			});
+			SeedSynchronizer.OnGenerationFinished += OnMapGenerated;
+			RoomLightController.OnAdded += OnRoomLightInstanceAdded;
+		}
+
+		private static void OnRoomLightInstanceAdded(RoomLightController rlc)
+		{
+			if (SeedSynchronizer.MapGenerated)
+			{
+				RegisterLightController(rlc);
+			}
+		}
+
+		private static void OnMapGenerated()
+		{
+			_lightsCount = 0;
+			_renderLights = UserSetting<bool>.Get(LightingVideoSetting.RenderLights);
+			_shadowsEnabled = UserSetting<bool>.Get(LightingVideoSetting.RenderShadows);
+			_shadowResolution = (ShadowResolution)UserSetting<int>.Get(LightingVideoSetting.ShadowResolution);
+			foreach (RoomLightController instance in RoomLightController.Instances)
+			{
+				RegisterLightController(instance);
+			}
+		}
+
+		private static void RegisterLightController(RoomLightController ctrl)
+		{
+			ctrl.LightsInRoom.ForEach(RegisterLight);
+		}
+
+		private static void RegisterLight(RoomLight rl)
+		{
+			if (!(rl == null) && rl.HasLight && rl.LightSource.gameObject.TryGetComponent<HDAdditionalLightData>(out var component) && _lightsCount < Lights.Length)
+			{
+				RoomLightInfo info = new RoomLightInfo(rl, component, rl.LightSource.shadows != LightShadows.None);
+				Lights[_lightsCount++] = info;
+				UpdateInstance(info);
+			}
+		}
+
+		private static void UpdateConditionally()
+		{
+			if (SeedSynchronizer.MapGenerated && _renderLights)
+			{
+				for (int i = 0; i < _lightsCount; i++)
 				{
-					continue;
+					UpdateInstance(Lights[i]);
 				}
-				if (component.shadows != LightShadows.None)
+			}
+		}
+
+		private static void UpdateInstance(RoomLightInfo info)
+		{
+			if (!info.ShadowsAllowed || info.Data == null)
+			{
+				return;
+			}
+			if (_shadowsEnabled)
+			{
+				info.Light.LightSource.shadows = LightShadows.Soft;
+				if (!info.Data.shadowResolution.useOverride)
 				{
-					AuthoredShadowCasters.Add(hDAdditionalLightData);
+					info.Data.shadowResolution.useOverride = true;
 				}
-				if (AuthoredShadowCasters.Contains(hDAdditionalLightData))
-				{
-					hDAdditionalLightData.EnableShadows(flag);
-					hDAdditionalLightData.SetShadowResolutionLevel(shadowResolutionLevel);
-				}
+				info.Data.RequestShadowMapRendering();
+				info.Data.SetShadowResolution(1 << (int)(_shadowResolution + 7));
+			}
+			else
+			{
+				info.Light.LightSource.shadows = LightShadows.None;
 			}
 		}
 	}

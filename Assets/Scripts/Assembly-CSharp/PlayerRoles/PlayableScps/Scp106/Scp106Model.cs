@@ -82,8 +82,8 @@ namespace PlayerRoles.PlayableScps.Scp106
 				{
 					base.Animator.SetFloat(SpeedHash, num / targetTransitionDuration);
 				}
-				// Original: the portal/goo objects show while submerged or while the animation locks movement.
-				bool active = targetSubmerged || _sinkhole.LockMovement;
+				// _hiddenObjects are the body meshes: shown above ground and during the submerge/emerge animation.
+				bool active = !targetSubmerged || _sinkhole.LockMovement;
 				GameObject[] hiddenObjects = _hiddenObjects;
 				for (int i = 0; i < hiddenObjects.Length; i++)
 				{

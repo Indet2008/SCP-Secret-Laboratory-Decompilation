@@ -371,6 +371,32 @@ public static class Misc
 		return array[length, length2];
 	}
 
+	internal static string ProcessSmallText(string text, uint minSize, uint minPercentageSize)
+	{
+		MatchCollection matchCollection = _stpRgx.Matches(text);
+		if (matchCollection.Count == 0)
+		{
+			return text;
+		}
+		for (int num = matchCollection.Count - 1; num >= 0; num--)
+		{
+			Match match = matchCollection[num];
+			string value = match.Value.Substring(6, match.Value.Length - 7);
+			if (value.EndsWith("%"))
+			{
+				if (uint.TryParse(value.Substring(0, value.Length - 1), out var result) && result < minPercentageSize)
+				{
+					text = text.Substring(0, match.Index) + "<size=" + minPercentageSize + "%>" + text.Substring(match.Index + match.Length);
+				}
+			}
+			else if (uint.TryParse(value, out var result2) && result2 < minSize)
+			{
+				text = text.Substring(0, match.Index) + "<size=" + minSize + ">" + text.Substring(match.Index + match.Length);
+			}
+		}
+		return text;
+	}
+
 	public static string LongestCommonSubstring(string a, string b)
 	{
 		if (a == null || b == null)

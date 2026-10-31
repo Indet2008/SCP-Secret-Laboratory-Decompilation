@@ -200,6 +200,10 @@ namespace Utf8Json.Resolvers.Internal
 
 		public static object BuildFormatterToAssembly<T>(DynamicAssembly assembly, IJsonFormatterResolver selfResolver, Func<string, string> nameMutator, bool excludeNull)
 		{
+			if (!DynamicAssembly.IsSupported)
+			{
+				return null;
+			}
 			TypeInfo typeInfo = typeof(T).GetTypeInfo();
 			if (typeInfo.IsNullable())
 			{
@@ -229,6 +233,10 @@ namespace Utf8Json.Resolvers.Internal
 
 		public static object BuildFormatterToDynamicMethod<T>(IJsonFormatterResolver selfResolver, Func<string, string> nameMutator, bool excludeNull, bool allowPrivate)
 		{
+			if (!DynamicAssembly.IsSupported)
+			{
+				return null;
+			}
 			TypeInfo typeInfo = typeof(T).GetTypeInfo();
 			if (typeInfo.IsNullable())
 			{

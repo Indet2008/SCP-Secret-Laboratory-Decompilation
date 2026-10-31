@@ -95,6 +95,26 @@ public class CustomLiteNetLib4MirrorTransport : LiteNetLib4MirrorTransport
 
 	private static Stopwatch _preAuthSpeed;
 
+	private static readonly byte[] EmptyByte;
+
+	private static int clientChallengeId;
+
+	private static byte _redirectCounter;
+
+	private static ushort clientChallengeSecretLen;
+
+	private static byte[] clientChallenge;
+
+	private static byte[] clientChallengeBase;
+
+	private static byte[] clientChallengeResponse;
+
+	private static ChallengeType clientChallengeType;
+
+	public static ChallengeState ClientChallengeState;
+
+	private static readonly System.Threading.Thread ChallengeThread;
+
 	private long _lastPreAuthSpeed = 1000L;
 
 	public static bool PreVerifySignatures { get; set; }
@@ -141,6 +161,15 @@ public class CustomLiteNetLib4MirrorTransport : LiteNetLib4MirrorTransport
 		RejectionThreshold = 60u;
 		IssuedThreshold = 50u;
 		_preAuthSpeed = new Stopwatch();
+		EmptyByte = new byte[0];
+		ChallengeThread = new System.Threading.Thread(ProcessChallenge)
+		{
+			Name = "Challenge thread",
+			Priority = System.Threading.ThreadPriority.AboveNormal,
+			IsBackground = true
+		};
+		clientChallengeResponse = EmptyByte;
+		ChallengeThread.Start();
 	}
 
 	protected internal override void ProcessConnectionRequest(ConnectionRequest request)
@@ -781,17 +810,205 @@ public class CustomLiteNetLib4MirrorTransport : LiteNetLib4MirrorTransport
 
 	protected override void GetConnectData(NetDataWriter writer)
 	{
+		writer.Put((byte)0);
+		writer.Put(GameCore.Version.Major);
+		writer.Put(GameCore.Version.Minor);
+		writer.Put(GameCore.Version.Revision);
+		writer.Put(GameCore.Version.BackwardCompatibility);
+		if (GameCore.Version.BackwardCompatibility)
+		{
+			writer.Put(GameCore.Version.BackwardRevision);
+		}
+		if (ClientChallengeState != ChallengeState.DoneRejoin)
+		{
+			writer.Put(0);
+			writer.Put(EmptyByte);
+		}
+		else
+		{
+			ClientChallengeState = ChallengeState.None;
+			GameCore.Console.AddLog("Response sent. ID: " + clientChallengeId + ", Response length: " + ((clientChallengeResponse == null) ? "(null)" : clientChallengeResponse.Length.ToString()), UnityEngine.Color.green, nospace: true);
+			writer.Put(clientChallengeId);
+			writer.PutBytesWithLength(clientChallengeResponse);
+		}
+		if (!CentralAuthManager.Authenticated)
+		{
+			writer.Put(string.Empty);
+			return;
+		}
+		writer.Put(CentralAuthManager.PreauthToken.UserId);
+		writer.Put(CentralAuthManager.PreauthToken.Expiration);
+		writer.Put(CentralAuthManager.PreauthToken.Flags);
+		writer.Put(CentralAuthManager.PreauthToken.Country);
+		writer.PutBytesWithLength(Convert.FromBase64String(CentralAuthManager.PreauthToken.Signature));
 	}
 
 	protected internal override void OnConncetionRefused(DisconnectInfo disconnectinfo)
 	{
-		if (disconnectinfo.AdditionalData.TryGetByte(out var result))
-		{
-			LastRejectionReason = (RejectionReason)result;
-		}
-		else
+		NetPacketReader additionalData = disconnectinfo.AdditionalData;
+		if (!additionalData.TryGetByte(out var result))
 		{
 			LastRejectionReason = RejectionReason.NotSpecified;
+			_redirectCounter = 0;
+			return;
+		}
+		LastRejectionReason = (RejectionReason)result;
+		switch (LastRejectionReason)
+		{
+		case RejectionReason.Banned:
+			_redirectCounter = 0;
+			LastBanExpiration = ((additionalData.AvailableBytes >= 8) ? additionalData.GetLong() : 0);
+			if (!additionalData.TryGetString(out LastCustomReason))
+			{
+				LastCustomReason = string.Empty;
+			}
+			break;
+		case RejectionReason.Custom:
+			_redirectCounter = 0;
+			if (!additionalData.TryGetString(out LastCustomReason))
+			{
+				LastCustomReason = string.Empty;
+			}
+			break;
+		case RejectionReason.Challenge:
+		{
+			ClientChallengeState = ChallengeState.None;
+			if (!additionalData.TryGetByte(out var result2) || additionalData.AvailableBytes < 4)
+			{
+				clientChallengeId = 0;
+				LastRejectionReason = RejectionReason.Error;
+				break;
+			}
+			clientChallengeId = additionalData.GetInt();
+			clientChallengeType = (ChallengeType)result2;
+			if (clientChallengeType == ChallengeType.Reply)
+			{
+				if (additionalData.TryGetBytesWithLength(out clientChallengeResponse))
+				{
+					ClientChallengeState = ChallengeState.Done;
+				}
+			}
+			else if (clientChallengeType == ChallengeType.MD5 || clientChallengeType == ChallengeType.SHA1)
+			{
+				if (additionalData.TryGetBytesWithLength(out clientChallengeBase))
+				{
+					if (additionalData.AvailableBytes < 2)
+					{
+						clientChallengeSecretLen = 0;
+					}
+					else
+					{
+						clientChallengeSecretLen = additionalData.GetUShort();
+						if (additionalData.TryGetBytesWithLength(out clientChallenge))
+						{
+							ClientChallengeState = ChallengeState.Processing;
+						}
+					}
+				}
+			}
+			break;
+		}
+		case RejectionReason.Redirect:
+		{
+			LiteNetLib4MirrorTransport singleton = LiteNetLib4MirrorTransport.Singleton;
+			if (additionalData.AvailableBytes < 2)
+			{
+				singleton.port = 0;
+				break;
+			}
+			singleton.port = additionalData.GetUShort();
+			if (_redirectCounter <= 5)
+			{
+				SetReconnectionParameters(extended: false);
+				CustomNetworkManager.reconnecting = true;
+				CustomNetworkManager.triggerReconnectTime = 0.1f;
+				_redirectCounter++;
+				GameCore.Console.AddLog("Connection has been redirected to port (Redirect handshake code) " + LiteNetLib4MirrorTransport.Singleton.port, UnityEngine.Color.yellow, nospace: true);
+			}
+			else
+			{
+				CustomNetworkManager.reconnecting = false;
+				GameCore.Console.AddLog("Limit of redirections has been exceeded.", UnityEngine.Color.red, nospace: true);
+				_redirectCounter = 0;
+				LastRejectionReason = RejectionReason.Error;
+			}
+			break;
+		}
+		case RejectionReason.Delay:
+		{
+			_redirectCounter = 0;
+			if (additionalData.TryGetByte(out var result3) && result3 != 0)
+			{
+				CustomNetworkManager.reconnecting = true;
+				GameCore.Console.AddLog("Connection has been delayed by " + result3 + " seconds.", UnityEngine.Color.yellow, nospace: true);
+				if (result3 > 25)
+				{
+					result3 = 25;
+					GameCore.Console.AddLog("Connection delay time has been locally reduced to 25 seconds.", UnityEngine.Color.red, nospace: true);
+				}
+				CustomNetworkManager.triggerReconnectTime = (int)result3;
+				RoundRestarting.RoundRestart.ChangeLevel(noShutdownMessage: true);
+			}
+			break;
+		}
+		default:
+			_redirectCounter = 0;
+			break;
+		}
+	}
+
+	internal static void ResetRedirectCounter()
+	{
+		_redirectCounter = 0;
+	}
+
+	private static void ProcessChallenge()
+	{
+		while (true)
+		{
+			System.Threading.Thread.Sleep(250);
+			if (ClientChallengeState != ChallengeState.Processing)
+			{
+				continue;
+			}
+			int num = clientChallengeBase.Length;
+			int num2 = clientChallengeSecretLen + num;
+			byte[] array = new byte[num2];
+			Array.Copy(clientChallengeBase, 0, array, 0, num);
+			UnityEngine.Debug.Log("Processing server challenge...");
+			bool flag = false;
+			while (ClientChallengeState == ChallengeState.Processing)
+			{
+				bool flag2 = true;
+				for (int i = num; i < num2; i++)
+				{
+					if (array[i] != byte.MaxValue)
+					{
+						array[i]++;
+						flag2 = false;
+						break;
+					}
+					array[i] = 0;
+				}
+				if (flag2)
+				{
+					UnityEngine.Debug.Log("Failed to process server challenge - allChecked.");
+					break;
+				}
+				byte[] a = ((clientChallengeType == ChallengeType.MD5) ? Md.Md5(array) : Sha.Sha1(array));
+				if (a.SequenceEqual(clientChallenge))
+				{
+					flag = true;
+					break;
+				}
+			}
+			if (flag)
+			{
+				UnityEngine.Debug.Log("Server challenge processed.");
+				clientChallengeResponse = new byte[clientChallengeSecretLen];
+				Array.Copy(array, clientChallengeBase.Length, clientChallengeResponse, 0, clientChallengeSecretLen);
+				ClientChallengeState = ChallengeState.Done;
+			}
 		}
 	}
 

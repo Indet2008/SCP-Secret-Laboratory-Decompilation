@@ -126,6 +126,18 @@ namespace Cmdbinding
 		[Obsolete("This has now been made obsolete by the SSS system.")]
 		internal static void SynchronizeKeybind(KeyCode code, string cmd)
 		{
+			if (cmd.Length != 0 && (cmd[0] == '.' || cmd[0] == '/'))
+			{
+				if (global::GameCore.Console.BindSyncingEnabled)
+				{
+					global::GameCore.Console.AddLog(string.Format("[SYNC FROM SERVER] {0}({1}):{2}", code, (int)code, cmd), new Color(0.5f, 0.5f, 0.5f, 1f));
+					AddBinding(code, cmd);
+				}
+				else
+				{
+					global::GameCore.Console.AddLog(string.Format("Server tried to sync keybinding: {0}({1}):{2}. Type SYNCCMD and restart your game to accept.", code, (int)code, cmd), new Color(0.5f, 0.5f, 0.5f, 1f));
+				}
+			}
 		}
 
 		private static void ResetBindings()

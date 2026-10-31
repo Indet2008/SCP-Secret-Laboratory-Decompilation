@@ -43,6 +43,12 @@ namespace CustomPlayerEffects
 			EffectValue = _defaultIntensity + Mathf.Sin(_timer) * WaveIntensity;
 		}
 
+		public void EnableEffect()
+		{
+			base.enabled = true;
+			_disabling = false;
+		}
+
 		public void DisableEffect()
 		{
 			if (base.enabled)

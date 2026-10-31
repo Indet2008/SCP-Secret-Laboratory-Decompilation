@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Audio;
 
 namespace CustomPlayerEffects
 {
@@ -11,24 +11,29 @@ namespace CustomPlayerEffects
 		[SerializeField]
 		private float _mixerTargetValue;
 
-		private float? _defaultValue;
+		private PlayerEffectsController _playerEffectsController;
 
-		protected override void ApplyWeight(float weight)
+		private float _defaultMixerValue;
+
+		private static readonly Dictionary<string, float> DefaultValues = new Dictionary<string, float>();
+
+		protected override void Awake()
 		{
-			AudioMixer audioMixer = ((base.Effect != null && base.Effect.Hub != null) ? base.Effect.Hub.playerEffectsController.mixer : null);
-			if (audioMixer == null || string.IsNullOrEmpty(_mixerFloatName))
+			base.Awake();
+			_playerEffectsController = base.TargetEffect.Hub.playerEffectsController;
+			if (DefaultValues.TryGetValue(_mixerFloatName, out var value))
 			{
-				return;
+				_defaultMixerValue = value;
 			}
-			if (!_defaultValue.HasValue)
+			else if (_playerEffectsController.mixer.GetFloat(_mixerFloatName, out _defaultMixerValue))
 			{
-				if (!audioMixer.GetFloat(_mixerFloatName, out var value))
-				{
-					return;
-				}
-				_defaultValue = value;
+				DefaultValues.Add(_mixerFloatName, _defaultMixerValue);
 			}
-			audioMixer.SetFloat(_mixerFloatName, Mathf.Lerp(_defaultValue.Value, _mixerTargetValue, weight));
+		}
+
+		protected override void OnWeightChanged(float weight)
+		{
+			_playerEffectsController.mixer.SetFloat(_mixerFloatName, Mathf.Lerp(_defaultMixerValue, _mixerTargetValue, Mathf.Clamp01(weight)));
 		}
 	}
 }

@@ -1,3 +1,5 @@
+using InventorySystem.Items.Firearms.Modules;
+
 namespace InventorySystem.Items.Firearms.Extensions
 {
 	public class DisruptorGlitchExtension : global::UnityEngine.MonoBehaviour, global::InventorySystem.Items.Firearms.Extensions.IViewmodelExtension
@@ -36,16 +38,33 @@ namespace InventorySystem.Items.Firearms.Extensions
 		{
 			get
 			{
-				return default;
+				if (_profileCopy == null)
+				{
+					_profileCopy = _postProcessVolume.profile;
+				}
+				_postProcessVolume.sharedProfile = _profileCopy;
+				return _profileCopy;
 			}
 		}
 
 		public void InitViewmodel(global::InventorySystem.Items.Firearms.AnimatedFirearmViewmodel viewmodel)
 		{
+			if (viewmodel.ParentFirearm.TryGetModules<MagazineModule, DisruptorAdsModule>(out _magModule, out _adsModule))
+			{
+				GlobalProfile.TryGet<global::CustomRendering.Glitch>(out _glitchVfx);
+			}
 		}
 
 		private void LateUpdate()
 		{
+			GlitchSettings glitchSettings = (_adsModule.AdsTarget ? _adsGlichSettings : _hipGlitchSettings);
+			if (!_ammoWeighted.HasValue)
+			{
+				_ammoWeighted = _magModule.GetAmmoStoredForSerial(_magModule.Firearm.ItemSerial);
+			}
+			_ammoWeighted = global::UnityEngine.Mathf.MoveTowards(_ammoWeighted.Value, _magModule.GetAmmoStoredForSerial(_magModule.Firearm.ItemSerial), global::UnityEngine.Time.deltaTime * _vfxAdjustSpeed);
+			_glitchVfx.Amount.value = glitchSettings.AmountOverAmmo.Evaluate(_ammoWeighted.Value);
+			_glitchVfx.Noise.value = glitchSettings.NoiseOverAmmo.Evaluate(_ammoWeighted.Value);
 		}
 
 		public DisruptorGlitchExtension()

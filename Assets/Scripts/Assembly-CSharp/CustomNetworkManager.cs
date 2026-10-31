@@ -55,6 +55,8 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 
 	private int _curLogId;
 
+	private bool _cancelSceneLoading;
+
 	internal static bool reconnecting;
 
 	internal static float reconnectTime;
@@ -145,10 +147,45 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 
 	private new void Update()
 	{
+		if ((!popup.activeSelf && !loadingpop.activeSelf) || !Input.GetKeyDown(KeyCode.Escape))
+		{
+			return;
+		}
+		reconnecting = false;
+		triggerReconnectTime = 0f;
+		reconnectTime = 0f;
+		_cancelSceneLoading = true;
+		if (loadingpop.activeSelf)
+		{
+			ShowLoadingScreen(4);
+		}
+		ConnInfoButton[] actions = logs[_curLogId].button.actions;
+		for (int i = 0; i < actions.Length; i++)
+		{
+			actions[i].UseButton();
+		}
+		SteamLobby.singleton?.LeaveLobby();
 	}
 
 	private void FixedUpdate()
 	{
+		if (CustomLiteNetLib4MirrorTransport.ClientChallengeState == ChallengeState.Done)
+		{
+			CustomLiteNetLib4MirrorTransport.ClientChallengeState = ChallengeState.DoneRejoin;
+			reconnectTime = 0.1f;
+			triggerReconnectTime = 0f;
+			Reconnect();
+		}
+		else if (triggerReconnectTime > 0f && reconnecting)
+		{
+			triggerReconnectTime -= Time.fixedUnscaledDeltaTime;
+			if (triggerReconnectTime <= 0f)
+			{
+				triggerReconnectTime = 0f;
+				reconnectTime = 0.5f;
+				Reconnect();
+			}
+		}
 		if (!NetworkServer.active)
 		{
 			return;
@@ -606,6 +643,108 @@ public class CustomNetworkManager : LiteNetLib4MirrorNetworkManager
 		{
 			ServerConsole.RunRefreshPublicKey();
 		}
+	}
+
+	internal static void StartNondedicated(bool forceShow = false)
+	{
+		if (TypedSingleton.createPopForce != null)
+		{
+			TypedSingleton.createPopForce.SetActive(forceShow || GameCore.Console.DisplayCreateServer);
+		}
+		TypedSingleton.createpop.SetActive(value: true);
+	}
+
+	private void NonsteamHost()
+	{
+		onlineScene = "Facility";
+		MaxPlayers = 20;
+		int num = ConfigFile.ServerConfig.GetInt("players_limit", -1);
+		if (num > 0 && MaxPlayers > num)
+		{
+			MaxPlayers = num;
+		}
+		StartHostWithPort();
+	}
+
+	public void StartHostWithPort()
+	{
+		LiteNetLib4MirrorTransport.Singleton.serverIPv4BindAddress = ConfigFile.ServerConfig.GetString("ipv4_bind_ip", "0.0.0.0");
+		string text = ((LiteNetLib4MirrorTransport.Singleton.serverIPv4BindAddress == "0.0.0.0") ? ("Server starting at all IPv4 addresses and port " + LiteNetLib4MirrorTransport.Singleton.port) : ("Server starting at IPv4 " + LiteNetLib4MirrorTransport.Singleton.serverIPv4BindAddress + " and port " + LiteNetLib4MirrorTransport.Singleton.port));
+		ServerConsole.PrintFormattedString(text, ConsoleColor.Gray);
+		ServerConsole.PrintOnOutputs(text, ConsoleColor.Gray);
+		LiteNetLib4MirrorTransport.Singleton.serverIPv6BindAddress = ConfigFile.ServerConfig.GetString("ipv6_bind_ip", "::");
+		text = ((LiteNetLib4MirrorTransport.Singleton.serverIPv6BindAddress == "::") ? ("Server starting at all IPv6 addresses and port " + LiteNetLib4MirrorTransport.Singleton.port) : ("Server starting at IPv6 " + LiteNetLib4MirrorTransport.Singleton.serverIPv6BindAddress + " and port " + LiteNetLib4MirrorTransport.Singleton.port));
+		ServerConsole.PrintFormattedString(text, ConsoleColor.Gray);
+		ServerConsole.PrintOnOutputs(text, ConsoleColor.Gray);
+		StartHost();
+	}
+
+	private string GUIDSplit(string GUID)
+	{
+		string text = string.Empty;
+		while (GUID.Length > 5)
+		{
+			text = text + GUID.Substring(0, 5) + "-";
+			GUID = GUID.Substring(5, GUID.Length - 5);
+		}
+		return text + GUID;
+	}
+
+	private void CreateVersionFile(bool privbeta, string id, string path)
+	{
+		try
+		{
+			File.WriteAllText(path, GUIDSplit(NorthwoodLib.StringUtils.Base64Encode(GameCore.Version.VersionString + ";" + id + ";-")));
+		}
+		catch (Exception ex)
+		{
+			GameCore.Console.AddLog(ex.Message, Color.red, nospace: true);
+		}
+	}
+
+	private static string GetUserId()
+	{
+		switch (CentralAuthManager.Platform)
+		{
+		case DistributionPlatform.Steam:
+			if (!SteamManager.Running)
+			{
+				GameCore.Console.AddLog("Failed to init SteamAPI.", Color.red, nospace: true);
+				return null;
+			}
+			return SteamManager.SteamId64.ToString();
+		case DistributionPlatform.Discord:
+			if (CentralAuthManager.Discord == null)
+			{
+				GameCore.Console.AddLog("Failed to init Discord GameSDK.", Color.red, nospace: true);
+				return null;
+			}
+			return CentralAuthManager.Discord.GetUserManager().GetCurrentUser().Id.ToString();
+		default:
+			return null;
+		}
+	}
+
+	private static string SanitizeRejectionReason(string reason)
+	{
+		bool flag = true;
+		for (int i = 0; i < reason.Length; i++)
+		{
+			if (!char.IsWhiteSpace(reason[i]))
+			{
+				flag = false;
+				break;
+			}
+		}
+		if (flag)
+		{
+			return reason;
+		}
+		if (System.Linq.Enumerable.Count(reason, (char c) => c == '\n') > 4)
+		{
+			reason = reason.Replace("\n", string.Empty);
+		}
+		return reason.Replace("\r", string.Empty).Replace("<", "(").Replace(">", ")");
 	}
 
 	// Client-only in the original (StartNondedicated, see SL 12 CE): shows the "Create server" popup,

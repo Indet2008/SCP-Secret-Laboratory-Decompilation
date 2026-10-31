@@ -1,79 +1,114 @@
+using PlayerRoles;
+using PlayerRoles.Spectating;
 using UnityEngine;
 
 namespace CustomPlayerEffects
 {
-	// Client-only behaviour stripped from the server build: fades an effect's visuals
-	// in while the owning effect is enabled on the player we are looking through.
+	// Restored from the 14.2.8 client disassembly.
 	public abstract class LerpVisualsBase : MonoBehaviour
 	{
-		[SerializeField]
-		protected bool UpdateOnRoleChange;
+		private bool _enableInstant;
+
+		private bool _disableInstant;
+
+		private float _weight;
 
 		[SerializeField]
-		protected float EnableSpeed;
+		protected bool UpdateOnRoleChange = true;
 
 		[SerializeField]
-		protected float DisableSpeed;
+		protected float EnableSpeed = 1f;
 
-		private bool _effectSearched;
+		[SerializeField]
+		protected float DisableSpeed = 1f;
 
-		protected StatusEffectBase Effect { get; private set; }
+		protected StatusEffectBase TargetEffect { get; private set; }
 
-		protected float CurrentWeight { get; private set; }
-
-		// Set by effects that drive their visuals themselves (e.g. Concussed); null = follow the effect's state.
-		public float? Weight { get; set; }
-
-		protected virtual float TargetWeight
+		protected float Weight
 		{
 			get
 			{
-				if (Effect == null || !Effect.IsEnabled || Effect.Hub == null || !Effect.IsPOV)
+				return _weight;
+			}
+			set
+			{
+				if (_weight == 0f && value > 0f)
 				{
-					return 0f;
+					OnActivated();
 				}
-				return Weight ?? 1f;
+				_weight = Mathf.Clamp01(value);
+				OnWeightChanged(_weight);
+				if (_weight == 0f)
+				{
+					OnShutdown();
+					base.enabled = false;
+				}
+			}
+		}
+
+		protected abstract void OnWeightChanged(float weight);
+
+		protected virtual void OnActivated()
+		{
+		}
+
+		protected virtual void OnShutdown()
+		{
+		}
+
+		protected virtual void Update()
+		{
+			if (TargetEffect.Intensity > 0)
+			{
+				Weight = (_enableInstant ? 1f : (_weight + Time.deltaTime / EnableSpeed));
+			}
+			else
+			{
+				Weight = (_disableInstant ? 0f : (_weight - Time.deltaTime / DisableSpeed));
 			}
 		}
 
 		protected virtual void Awake()
 		{
-			FindEffect();
-			ApplyWeight(0f);
+			TargetEffect = GetComponent<StatusEffectBase>();
+			StatusEffectBase.OnEnabled += UpdateState;
+			StatusEffectBase.OnDisabled += UpdateState;
+			PlayerRoleManager.OnRoleChanged += UpdateRoleChange;
+			SpectatorTargetTracker.OnTargetChanged += UpdateSpectator;
+			_enableInstant = Mathf.Abs(EnableSpeed) < 0.001f;
+			_disableInstant = Mathf.Abs(DisableSpeed) < 0.001f;
 		}
 
-		protected virtual void Update()
+		private void OnDestroy()
 		{
-			if (!_effectSearched)
-			{
-				FindEffect();
-			}
-			float targetWeight = TargetWeight;
-			float num = ((targetWeight > CurrentWeight) ? EnableSpeed : DisableSpeed);
-			float num2 = ((num > 0f) ? Mathf.MoveTowards(CurrentWeight, targetWeight, num * Time.deltaTime) : targetWeight);
-			if (num2 != CurrentWeight)
-			{
-				CurrentWeight = num2;
-				ApplyWeight(num2);
-			}
+			StatusEffectBase.OnEnabled -= UpdateState;
+			StatusEffectBase.OnDisabled -= UpdateState;
+			PlayerRoleManager.OnRoleChanged -= UpdateRoleChange;
+			SpectatorTargetTracker.OnTargetChanged -= UpdateSpectator;
 		}
 
-		protected virtual void OnDisable()
+		private void UpdateState(StatusEffectBase triggeredEffect)
 		{
-			CurrentWeight = 0f;
-			ApplyWeight(0f);
-		}
-
-		private void FindEffect()
-		{
-			_effectSearched = true;
-			Effect = GetComponentInParent<StatusEffectBase>(includeInactive: true);
-			if (Effect == null)
+			if ((TargetEffect.Hub.isLocalPlayer || TargetEffect.Hub.IsLocallySpectated()) && !(triggeredEffect != TargetEffect))
 			{
-				Effect = GetComponentInChildren<StatusEffectBase>(includeInactive: true);
+				base.enabled = true;
 			}
 		}
 
-		protected abstract void ApplyWeight(float weight);
+		private void UpdateSpectator()
+		{
+			if (TargetEffect.Hub.IsLocallySpectated())
+			{
+				Weight = ((TargetEffect.Intensity > 0) ? 1f : 0f);
+			}
+		}
+
+		private void UpdateRoleChange(ReferenceHub hub, PlayerRoleBase prevRole, PlayerRoleBase newRole)
+		{
+			if (!(hub != TargetEffect.Hub) && UpdateOnRoleChange)
+			{
+				Weight = 0f;
+			}
+		}
 	}
 }

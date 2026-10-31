@@ -224,8 +224,52 @@ namespace PlayerRoles.PlayableScps.Scp079.GUI
 			{
 				return false;
 			}
-			// Mouse buttons and Escape do not skip (they are used for menus).
-			return !Input.GetKeyDown(KeyCode.Escape) && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1);
+			if (_allKeyCodes == null)
+			{
+				_allKeyCodes = (KeyCode[])global::System.Enum.GetValues(typeof(KeyCode));
+			}
+			KeyCode[] allKeyCodes = _allKeyCodes;
+			for (int i = 0; i < allKeyCodes.Length; i++)
+			{
+				if (CheckKey(allKeyCodes[i]))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private static KeyCode[] _allKeyCodes;
+
+		private bool CheckKey(KeyCode key)
+		{
+			if (!Input.GetKeyDown(key))
+			{
+				return false;
+			}
+			if (key >= KeyCode.Mouse0 && key <= KeyCode.Mouse6)
+			{
+				return false;
+			}
+			if (ToggleableMenus.ToggleableMenuController.AnyEnabled)
+			{
+				return false;
+			}
+			NewInput.ActionDefinition[] definedActions = NewInput.DefinedActions;
+			foreach (NewInput.ActionDefinition actionDefinition in definedActions)
+			{
+				if (NewInput.GetKey(actionDefinition.Name) == key && (actionDefinition.Category == ActionCategory.Communication || actionDefinition.Category == ActionCategory.System))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		[ContextMenu("Print total time")]
+		private void PrintTotalTime()
+		{
+			UnityEngine.Debug.Log(string.Format("Total (unscaled) cutscene time is {0}s", System.Linq.Enumerable.Sum(_entries, (Entry x) => x.RemainingDuration)));
 		}
 	}
 }

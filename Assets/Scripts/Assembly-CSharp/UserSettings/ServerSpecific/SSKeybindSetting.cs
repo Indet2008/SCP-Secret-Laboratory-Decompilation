@@ -44,6 +44,47 @@ namespace UserSettings.ServerSpecific
 			}
 		}
 
+		private bool AllowInteraction
+		{
+			get
+			{
+				if (!Application.isFocused)
+				{
+					return false;
+				}
+				if (GameCore.Console.Singleton.IsEnabled || global::RemoteAdmin.RemoteAdminUIController.Singleton.IsEnabled)
+				{
+					if (IsLocallySpectating && !AllowSpectatorTrigger)
+					{
+						return false;
+					}
+					return !PreventInteractionOnGUI;
+				}
+				if (IsLocallySpectating)
+				{
+					return AllowSpectatorTrigger;
+				}
+				if (InventorySystem.GUI.InventoryGuiController.ItemsSafeForInteraction)
+				{
+					return true;
+				}
+				return !PreventInteractionOnGUI;
+			}
+		}
+
+		public override void OnUpdate()
+		{
+			if (AssignedKeyCode != KeyCode.None)
+			{
+				bool flag = Input.GetKey(AssignedKeyCode) && AllowInteraction;
+				if (flag != SyncIsPressed)
+				{
+					SyncIsPressed = flag;
+					ClientSendValue();
+				}
+			}
+		}
+
 		public SSKeybindSetting(int? id, string label, KeyCode suggestedKey = KeyCode.None, bool preventInteractionOnGui = true, bool allowSpectatorTrigger = true, string hint = null, byte collectionId = byte.MaxValue)
 		{
 			SetId(id, label);

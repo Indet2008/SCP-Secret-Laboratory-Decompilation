@@ -69,17 +69,6 @@ public class UserMainInterface : MonoBehaviour
 		}
 		// Search radial is driven by SearchCoordinator.UpdateClient.
 		SetActiveSafe(PlyStats, hub.IsAlive() && hub.roleManager.CurrentRole is IHealthbarRole);
-		UpdateNoclip(hub);
-	}
-
-	private void UpdateNoclip(ReferenceHub hub)
-	{
-		FpcNoclip fpcNoclip = ((hub.roleManager.CurrentRole is IFpcRole fpcRole) ? fpcRole.FpcModule.Noclip : null);
-		bool flag = fpcNoclip != null && fpcNoclip.IsActive;
-		if (noclipUI != null && (flag || noclipUI.activeSelf))
-		{
-			SetNoclipIndicator(flag, FpcNoclip.CurSpeed);
-		}
 	}
 
 	// Original (called by FpcNoclip.UpdateNoclip in the client build).

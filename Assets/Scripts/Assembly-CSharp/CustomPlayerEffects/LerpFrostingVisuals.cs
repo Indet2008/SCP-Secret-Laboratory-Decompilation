@@ -1,3 +1,4 @@
+using CustomRendering;
 using UnityEngine;
 
 namespace CustomPlayerEffects
@@ -6,12 +7,20 @@ namespace CustomPlayerEffects
 	{
 		[SerializeField]
 		[Tooltip("This effect bugs out when Frosting is set to 1.\n\nYou have been warned!")]
-		private float _maxFrosting;
+		private float _maxFrosting = 0.99f;
 
-		protected override void ApplyWeight(float weight)
+		private VignetteRefraction _refraction;
+
+		protected override void Awake()
 		{
-			float num = ((_maxFrosting > 0f) ? Mathf.Min(_maxFrosting, 0.99f) : 0.99f);
-			base.ApplyWeight(weight * num);
+			base.Awake();
+			base.ProcessVolume.profile.TryGet<VignetteRefraction>(out _refraction);
+		}
+
+		protected override void OnWeightChanged(float weight)
+		{
+			base.ProcessVolume.weight = ((weight > 0f) ? 1f : 0f);
+			_refraction.Frosting.value = Mathf.Min(weight, _maxFrosting);
 		}
 	}
 }

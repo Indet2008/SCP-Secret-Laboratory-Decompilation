@@ -122,6 +122,14 @@ namespace RemoteAdmin
 			}
 		}
 
+		private void HideToolTip()
+		{
+			if (ConsoleToolTip != null && Time.unscaledTime > _toolTipHideTime)
+			{
+				ConsoleToolTip.SetActive(value: false);
+			}
+		}
+
 		private void MoveToolTip()
 		{
 			if (ConsoleToolTipBackground == null)
@@ -216,16 +224,72 @@ namespace RemoteAdmin
 
 		public void CallSendPassword()
 		{
-			GameCore.Console.AddLog("Remote Admin password login is not supported in this build. Use a permission group from config_remoteadmin.txt.", Color.yellow);
-			if (PasswordField != null && WrongPasswordTexture != null && PasswordField.TryGetComponent<RawImage>(out var component))
+			if (Mirror.NetworkServer.active)
 			{
-				component.texture = WrongPasswordTexture;
+				GameCore.Console.AddLog("Password authentication is not available for the host!", Color.red, nospace: true);
 			}
+			else if (!_invalidPasswordAnimationInProgress)
+			{
+				if (!ReferenceHub.LocalHub.queryProcessor.OverridePasswordEnabled)
+				{
+					GameCore.Console.AddLog("Password authentication is disabled on this server!", Color.red, nospace: true);
+				}
+				else
+				{
+					ReferenceHub.LocalHub.authManager.ClientStartAuthentication(PasswordField.text);
+				}
+			}
+		}
+
+		internal void SetRemoteAdminState(bool state)
+		{
+			LoggedIn = state;
+			RefreshStatus();
+		}
+
+		private bool _invalidPasswordAnimationInProgress;
+
+		internal void AnimateInvalidPassword()
+		{
+			PlayInvalidPasswordAnimation();
+		}
+
+		internal void PlayInvalidPasswordAnimation()
+		{
+			if (!_invalidPasswordAnimationInProgress)
+			{
+				MEC.Timing.RunCoroutine(InvalidPasswordAnimation(), MEC.Segment.FixedUpdate);
+			}
+		}
+
+		private System.Collections.Generic.IEnumerator<float> InvalidPasswordAnimation()
+		{
+			_invalidPasswordAnimationInProgress = true;
+			ConfirmButton.interactable = false;
+			RawImage component = PasswordField.GetComponent<RawImage>();
+			Texture texture = component.texture;
+			component.texture = WrongPasswordTexture;
+			yield return MEC.Timing.WaitForSeconds(2f);
+			_invalidPasswordAnimationInProgress = false;
+			ConfirmButton.interactable = true;
+			component.texture = texture;
 		}
 
 		public void RefreshStatus()
 		{
 			bool isEnabled = IsEnabled;
+			if (isEnabled && !LoggedIn && !Mirror.NetworkServer.active && ReferenceHub.TryGetLocalHub(out var hub))
+			{
+				bool overridePasswordEnabled = hub.queryProcessor.OverridePasswordEnabled;
+				if (PasswordField != null)
+				{
+					PasswordField.interactable = overridePasswordEnabled;
+				}
+				if (PasswordPlaceholder != null)
+				{
+					PasswordPlaceholder.text = (overridePasswordEnabled ? "PASSWORD..." : "Password-based auth disabled");
+				}
+			}
 			if (RootPanel != null)
 			{
 				RootPanel.SetActive(isEnabled && LoggedIn && !_textBasedVersion);

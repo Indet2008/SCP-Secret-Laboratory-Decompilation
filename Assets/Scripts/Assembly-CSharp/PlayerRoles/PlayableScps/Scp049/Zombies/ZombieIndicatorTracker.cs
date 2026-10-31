@@ -16,6 +16,12 @@ namespace PlayerRoles.PlayableScps.Scp049.Zombies
 
 		private static readonly List<ReferenceHub> ToRemove = new List<ReferenceHub>();
 
+		protected override void Awake()
+		{
+			base.Awake();
+			ReferenceHub.OnPlayerRemoved += DestroyIndicator;
+		}
+
 		public override void ResetObject()
 		{
 			base.ResetObject();

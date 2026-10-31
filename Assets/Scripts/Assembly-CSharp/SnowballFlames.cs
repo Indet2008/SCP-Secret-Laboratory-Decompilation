@@ -23,20 +23,52 @@ public class SnowballFlames : global::UnityEngine.MonoBehaviour
 	{
 		get
 		{
-			return default;
+			if (_serialGetter == null)
+			{
+				if (_thirdpersonItem != null)
+				{
+					_serialGetter = () => _thirdpersonItem.ItemId.SerialNumber;
+				}
+				else if (_projectile != null)
+				{
+					_serialGetter = () => _projectile.Info.Serial;
+				}
+				else
+				{
+					if (!(_viewmodel != null))
+					{
+						return 0;
+					}
+					_serialGetter = () => _viewmodel.ItemId.SerialNumber;
+				}
+			}
+			return _serialGetter();
 		}
 	}
 
 	private void Start()
 	{
+		UpdateFlame(ignoreAudio: true);
 	}
 
 	private void Update()
 	{
+		UpdateFlame(ignoreAudio: false);
 	}
 
 	private void UpdateFlame(bool ignoreAudio)
 	{
+		bool flag = global::InventorySystem.Items.ThrowableProjectiles.SnowballItem.IsCooked(Serial, _projectile != null);
+		if (flag != _isIgnited)
+		{
+			_isIgnited = flag;
+			global::UnityEngine.ParticleSystem.EmissionModule emission = _flames.emission;
+			emission.enabled = flag;
+			if (flag && !ignoreAudio && _igniteSound != null)
+			{
+				_igniteSound.Play();
+			}
+		}
 	}
 
 	public SnowballFlames()

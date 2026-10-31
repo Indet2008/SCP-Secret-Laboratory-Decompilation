@@ -107,10 +107,6 @@ namespace PlayerRoles.FirstPersonControl
 			}
 			_wasEnabled = true;
 			_lastNcSw.Restart();
-			if (_hub.isLocalPlayer && Input.GetKeyDown(_keyFog) && !Cursor.visible)
-			{
-				SetFogDisabled(!FogDisabled);
-			}
 			if (NetworkServer.active)
 			{
 				_fpmm.Motor.ResetFallDamageCooldown();
@@ -136,16 +132,12 @@ namespace PlayerRoles.FirstPersonControl
 			DisableNoclipClientside();
 		}
 
+		// Inlined into UpdateNoclip in the original.
 		private void UpdateLocalMovement()
 		{
-			if (Cursor.visible)
+			if (Cursor.visible || CursorManagement.CursorManager.MovementLocked)
 			{
 				return;
-			}
-			float axis = Input.GetAxis(AxisName);
-			if (axis != 0f)
-			{
-				CurSpeed = Mathf.Clamp(CurSpeed * ((axis > 0f) ? 1.25f : 0.8f), MinNoclipSpeed, MaxNoclipSpeed);
 			}
 			Transform playerCameraReference = _hub.PlayerCameraReference;
 			Vector3 zero = Vector3.zero;
@@ -167,42 +159,32 @@ namespace PlayerRoles.FirstPersonControl
 			}
 			if (Input.GetKey(_keyUpw))
 			{
-				zero += Vector3.up;
+				zero += playerCameraReference.up;
 			}
 			if (Input.GetKey(_keyDnw))
 			{
-				zero -= Vector3.up;
+				zero -= playerCameraReference.up;
 			}
-			if (!(zero.sqrMagnitude < 0.0001f))
+			float speedChange = Input.GetAxis(AxisName) * CurSpeed;
+			if (Mathf.Abs(speedChange) > float.Epsilon)
 			{
-				float num = CurSpeed * ((Input.GetKey(KeyCode.LeftShift) ? 2f : 1f));
-				_fpmm.Position += zero.normalized * (num * Time.deltaTime);
+				CurSpeed = Mathf.Clamp(CurSpeed + speedChange, MinNoclipSpeed, MaxNoclipSpeed);
 			}
+			_fpmm.Position += zero.normalized * (CurSpeed * Time.deltaTime);
+			if (Input.GetKeyDown(_keyFog))
+			{
+				GameObject fog = CustomRendering.FogController.Singleton.gameObject;
+				fog.SetActive(!fog.activeSelf);
+			}
+			UserMainInterface.singleton.SetNoclipIndicator(state: true, CurSpeed);
 		}
 
 		private void DisableNoclipClientside()
 		{
 			if (_hub.isLocalPlayer)
 			{
-				SetFogDisabled(state: false);
-			}
-			if (_hub.isLocalPlayer && _fpmm.CharController != null)
-			{
-				_fpmm.Motor.ResetFallDamageCooldown();
-			}
-		}
-
-		public static bool FogDisabled { get; private set; }
-
-		// The game's fog is the FogController custom pass; deactivating its object removes the fog
-		// (FogController.OnDisable pushes the fog distance to infinity) and is what the noclip UI reads.
-		private static void SetFogDisabled(bool state)
-		{
-			FogDisabled = state;
-			CustomRendering.FogController singleton = CustomRendering.FogController.Singleton;
-			if (singleton != null && singleton.gameObject.activeSelf == state)
-			{
-				singleton.gameObject.SetActive(!state);
+				CustomRendering.FogController.Singleton.gameObject.SetActive(true);
+				UserMainInterface.singleton.SetNoclipIndicator(state: false, CurSpeed);
 			}
 		}
 

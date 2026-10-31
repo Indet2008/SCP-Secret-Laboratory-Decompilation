@@ -13,27 +13,35 @@ namespace Discord.Basic
 
 		public bool Equals(global::Discord.Basic.DiscordUser other)
 		{
-			return default;
+			if (userId == other.userId && username == other.username && discriminator == other.discriminator)
+			{
+				return avatar == other.avatar;
+			}
+			return false;
 		}
 
 		public override bool Equals(object obj)
 		{
-			return default;
+			if (obj is global::Discord.Basic.DiscordUser other)
+			{
+				return Equals(other);
+			}
+			return false;
 		}
 
 		public override int GetHashCode()
 		{
-			return default;
+			return global::System.HashCode.Combine(userId, username, discriminator, avatar);
 		}
 
 		public static bool operator ==(global::Discord.Basic.DiscordUser left, global::Discord.Basic.DiscordUser right)
 		{
-			return default;
+			return left.Equals(right);
 		}
 
 		public static bool operator !=(global::Discord.Basic.DiscordUser left, global::Discord.Basic.DiscordUser right)
 		{
-			return default;
+			return !left.Equals(right);
 		}
 	}
 }

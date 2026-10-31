@@ -36,4 +36,17 @@ public class ScpInterfaces : MonoBehaviour
 	{
 		singleton = this;
 	}
+
+	public void DecayedPopup()
+	{
+		StopAllCoroutines();
+		Scp049_decayedPopup.gameObject.SetActive(true);
+		StartCoroutine(HideDecayedPopup());
+	}
+
+	private global::System.Collections.IEnumerator HideDecayedPopup()
+	{
+		yield return new WaitForSeconds(4f);
+		Scp049_decayedPopup.gameObject.SetActive(false);
+	}
 }

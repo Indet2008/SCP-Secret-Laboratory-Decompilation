@@ -49,6 +49,7 @@ namespace VoiceChat
 
 		public void ShowPrivacySettings()
 		{
+			VoiceChatPrivacySettings.Singleton.Open(advanced: true, forceOpen: false);
 		}
 	}
 }

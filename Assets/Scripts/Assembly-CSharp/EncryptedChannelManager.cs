@@ -103,6 +103,8 @@ public class EncryptedChannelManager : NetworkBehaviour
 
 	private ECDHBasicAgreement _exchange;
 
+	private bool _exchangeRequested;
+
 	private static readonly SecureRandom SecureRandom = new SecureRandom();
 
 	private static readonly Dictionary<EncryptedChannel, EncryptedMessageClientHandler> ClientChannelHandlers = new Dictionary<EncryptedChannel, EncryptedMessageClientHandler>();
@@ -147,6 +149,39 @@ public class EncryptedChannelManager : NetworkBehaviour
 			EcdhKeys = ECDH.GenerateKeys();
 			_exchange = ECDH.Init(EcdhKeys);
 		}
+	}
+
+	internal static void ClientProcessExchange(string publicKey, out AsymmetricKeyParameter clientPublicKey, out byte[] signature)
+	{
+		clientPublicKey = null;
+		signature = null;
+		if (!NetworkClient.active)
+		{
+			GameCore.Console.AddLog("Network client is not active. Skipping ECDH exchange.", Color.gray, nospace: true);
+			return;
+		}
+		if (!ReferenceHub.TryGetLocalHub(out var hub))
+		{
+			GameCore.Console.AddLog("Failed to find local client ReferenceHub. Skipping ECDH exchange.", Color.red, nospace: true);
+			return;
+		}
+		hub.encryptedChannelManager.ClientProcessExchangeInternal(publicKey, out signature);
+		clientPublicKey = hub.encryptedChannelManager.EcdhKeys.Public;
+	}
+
+	private void ClientProcessExchangeInternal(string publicKey, out byte[] signature)
+	{
+		signature = null;
+		if (_exchangeRequested || EncryptionKey != null)
+		{
+			GameCore.Console.AddLog("Rejected duplicated Elliptic-curve Diffie–Hellman (ECDH) parameters from server.", Color.red, nospace: true);
+			return;
+		}
+		_exchangeRequested = true;
+		PrepareExchange();
+		signature = ECDSA.SignBytes(ECDSA.KeyToString(EcdhKeys.Public), CentralAuth.CentralAuthManager.SessionKeys.Private);
+		EncryptionKey = ECDH.DeriveKey(_exchange, ECDSA.PublicKeyFromString(publicKey));
+		GameCore.Console.AddLog("Obtained encryption key using ECDH exchange.", Color.gray, nospace: true);
 	}
 
 	internal void ServerProcessExchange(string publicKey)

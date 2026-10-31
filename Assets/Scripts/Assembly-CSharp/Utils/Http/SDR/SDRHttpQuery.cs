@@ -64,7 +64,7 @@ namespace Utils.Http.SDR
 
 			public override void Dispose()
 			{
-				throw new NotImplementedException();
+				// Nothing to release: the request lives in SteamDatagramRelayHandler.
 			}
 		}
 

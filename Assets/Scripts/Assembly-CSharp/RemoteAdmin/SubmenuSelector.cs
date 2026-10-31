@@ -198,6 +198,79 @@ namespace RemoteAdmin
 			}
 		}
 
+		public void AdminToolsConfirm(string tool)
+		{
+			QueryProcessor queryProcessor = ReferenceHub.LocalHub.queryProcessor;
+			if (tool == "GoTo")
+			{
+				PlayerRecord playerRecord = System.Linq.Enumerable.FirstOrDefault(PlayerRecord.Instances, (PlayerRecord x) => x != null && x.IsSelected);
+				if (playerRecord != null)
+				{
+					queryProcessor.SendQuery("goto " + playerRecord.PlayerId);
+				}
+				return;
+			}
+			string text = GetSelectedPlayerIds();
+			if (text.Length == 0)
+			{
+				return;
+			}
+			switch (tool)
+			{
+			case "BypassDisable":
+				queryProcessor.SendQuery("bypass " + text + " 0");
+				break;
+			case "BypassEnable":
+				queryProcessor.SendQuery("bypass " + text + " 1");
+				break;
+			case "Disarm":
+				queryProcessor.SendQuery("disarm " + text);
+				break;
+			case "Release":
+				queryProcessor.SendQuery("release " + text);
+				break;
+			case "OverwatchDisable":
+				queryProcessor.SendQuery("overwatch " + text + " 0");
+				break;
+			case "OverwatchEnable":
+				queryProcessor.SendQuery("overwatch " + text + " 1");
+				break;
+			case "GodDisable":
+				queryProcessor.SendQuery("god " + text + " 0");
+				break;
+			case "GodEnable":
+				queryProcessor.SendQuery("god " + text + " 1");
+				break;
+			case "NoclipDisable":
+				queryProcessor.SendQuery("noclip " + text + " disable");
+				break;
+			case "NoclipEnable":
+				queryProcessor.SendQuery("noclip " + text + " enable");
+				break;
+			case "Mute":
+				queryProcessor.SendQuery("mute " + text);
+				break;
+			case "Unmute":
+				queryProcessor.SendQuery("unmute " + text);
+				break;
+			case "Imute":
+				queryProcessor.SendQuery("imute " + text);
+				break;
+			case "Iunmute":
+				queryProcessor.SendQuery("iunmute " + text);
+				break;
+			case "Bring":
+				queryProcessor.SendQuery("bring " + text);
+				break;
+			case "Heal":
+				queryProcessor.SendQuery("heal " + text);
+				break;
+			case "Lockdown":
+				queryProcessor.SendQuery("lockdown");
+				break;
+			}
+		}
+
 		public void RunCommand(string command)
 		{
 			if (string.IsNullOrEmpty(command))

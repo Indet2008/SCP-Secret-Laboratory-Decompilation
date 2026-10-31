@@ -49,6 +49,17 @@ public class CheaterReport : NetworkBehaviour
 		_commandRateLimit = _hub.playerRateLimitHandler.RateLimits[1];
 	}
 
+	internal void Report(uint playerNetId, string reason, bool notifyGm)
+	{
+		if (!ReferenceHub.TryGetHubNetID(playerNetId, out var hub))
+		{
+			GameCore.Console.AddLog("[REPORTING] Can't find player with that PlayerID.", Color.red, nospace: true);
+			return;
+		}
+		byte[] signature = (notifyGm ? ECDSA.SignBytes(hub.authManager.SyncedUserId + ";" + ConvertToLatin(reason), CentralAuth.CentralAuthManager.SessionKeys.Private) : null);
+		CmdReport(playerNetId, reason, signature, notifyGm);
+	}
+
 	[Command(channel = 4)]
 	private void CmdReport(uint playerNetId, string reason, byte[] signature, bool notifyGm)
 	{

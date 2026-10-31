@@ -3,52 +3,52 @@ using UnityEngine.Rendering;
 
 namespace CustomPlayerEffects
 {
-	// Fades in like the other lerp visuals, then decays along _intensityCurve over _diminishingTime.
 	public class DiminishingLerpVisuals : LerpVisualsBase
 	{
 		[SerializeField]
 		private AnimationCurve _intensityCurve;
 
 		[SerializeField]
-		private float _diminishingTime;
+		private float _diminishingTime = 1f;
 
-		private float _enabledTime = -1f;
+		private Volume _processVolume;
 
-		private Volume _volume;
-
-		protected override float TargetWeight
+		public float Intensity
 		{
 			get
 			{
-				float targetWeight = base.TargetWeight;
-				if (targetWeight <= 0f)
-				{
-					_enabledTime = -1f;
-					return 0f;
-				}
-				if (_enabledTime < 0f)
-				{
-					_enabledTime = Time.time;
-				}
-				if (_intensityCurve == null || _diminishingTime <= 0f)
-				{
-					return targetWeight;
-				}
-				return targetWeight * Mathf.Clamp01(_intensityCurve.Evaluate((Time.time - _enabledTime) / _diminishingTime));
+				return base.Weight;
+			}
+			set
+			{
+				base.Weight = value;
 			}
 		}
 
-		protected override void ApplyWeight(float weight)
+		protected override void Awake()
 		{
-			if (_volume == null)
-			{
-				_volume = GetComponent<Volume>();
-			}
-			if (_volume != null)
-			{
-				_volume.weight = weight;
-				_volume.enabled = weight > 0f;
-			}
+			base.Awake();
+			_processVolume = GetComponent<Volume>();
+		}
+
+		protected override void Update()
+		{
+			base.Weight -= Time.deltaTime / _diminishingTime;
+		}
+
+		protected override void OnActivated()
+		{
+			_processVolume.enabled = true;
+		}
+
+		protected override void OnShutdown()
+		{
+			_processVolume.enabled = false;
+		}
+
+		protected override void OnWeightChanged(float weight)
+		{
+			_processVolume.weight = _intensityCurve.Evaluate(weight);
 		}
 	}
 }

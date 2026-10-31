@@ -1,23 +1,12 @@
+using PlayerRoles;
+using UnityEngine;
+
 namespace Discord.Elements
 {
-	[global::UnityEngine.CreateAssetMenu(fileName = "New Team Element", menuName = "ScriptableObject/Discord/Team Element")]
-	public class DiscordTeamElement : global::Discord.Elements.DiscordElementBase
+	[CreateAssetMenu(fileName = "New Team Element", menuName = "ScriptableObject/Discord/Team Element")]
+	public class DiscordTeamElement : DiscordElementBase
 	{
-		public global::PlayerRoles.Team TeamId
-		{
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			get
-			{
-				return default;
-			}
-			[global::System.Runtime.CompilerServices.CompilerGenerated]
-			private set
-			{
-			}
-		}
-
-		public DiscordTeamElement()
-		{
-		}
+		[field: SerializeField]
+		public Team TeamId { get; private set; }
 	}
 }

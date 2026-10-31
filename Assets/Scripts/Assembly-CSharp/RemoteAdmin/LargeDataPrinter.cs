@@ -2,15 +2,13 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using ZXing;
+using ZXing.Common;
 
 namespace RemoteAdmin
 {
 	public class LargeDataPrinter : MonoBehaviour
 	{
-		private const int Size = 700;
-
-		private const float DisplayDuration = 30f;
-
 		public GameObject Panel;
 
 		public RawImage QrDisplay;
@@ -19,63 +17,62 @@ namespace RemoteAdmin
 
 		private static LargeDataPrinter _singleton;
 
-		private Texture2D _texture;
+		private static BarcodeWriterGeneric _barcodeWriter;
 
-		private float _remaining;
-
-		private void Awake()
+		private void OnEnable()
 		{
 			_singleton = this;
+			if (_barcodeWriter == null)
+			{
+				_barcodeWriter = new BarcodeWriterGeneric
+				{
+					Format = BarcodeFormat.QR_CODE,
+					Options = new EncodingOptions
+					{
+						Height = 800,
+						Width = 800
+					}
+				};
+			}
 		}
 
 		private void Update()
 		{
-			if (Panel == null || !Panel.activeSelf)
+			if (Input.GetKeyDown(KeyCode.Escape) && Panel.activeSelf)
 			{
-				return;
+				Panel.SetActive(value: false);
 			}
-			_remaining -= Time.unscaledDeltaTime;
-			if (TimeDisplay != null)
+		}
+
+		private void FixedUpdate()
+		{
+			TimeDisplay.text = DateTime.UtcNow.ToString("d/M/yyyy HH:mm:ss");
+		}
+
+		public static void Display(string content)
+		{
+			BitMatrix bitMatrix = _barcodeWriter.Encode(content);
+			Texture2D texture2D = new Texture2D(800, 800, TextureFormat.RGBA32, mipChain: false);
+			for (int i = 0; i < 800; i++)
 			{
-				TimeDisplay.text = Mathf.CeilToInt(Mathf.Max(0f, _remaining)).ToString();
+				for (int j = 0; j < 800; j++)
+				{
+					texture2D.SetPixel(i, j, bitMatrix[i, j] ? Color.black : Color.white);
+				}
 			}
-			if (_remaining <= 0f || Input.GetKeyDown(KeyCode.Escape))
-			{
-				Hide();
-			}
+			texture2D.Apply(updateMipmaps: true);
+			_singleton.Panel.SetActive(value: true);
+			_singleton.QrDisplay.texture = texture2D;
 		}
 
 		public static void Display(string content, bool replaceToBr)
 		{
-			if (!(_singleton == null))
-			{
-				if (replaceToBr)
-				{
-					content = content.Replace("\n", "<br>");
-				}
-				if (_singleton._texture != null)
-				{
-					UnityEngine.Object.Destroy(_singleton._texture);
-				}
-				_singleton._texture = QrTextureUtility.Create(content, Size);
-				if (_singleton.QrDisplay != null)
-				{
-					_singleton.QrDisplay.texture = _singleton._texture;
-				}
-				_singleton._remaining = DisplayDuration;
-				if (_singleton.Panel != null)
-				{
-					_singleton.Panel.SetActive(value: true);
-				}
-			}
+			Display(replaceToBr ? content.Replace("\n", "<br>") : content);
 		}
 
 		public static void Hide()
 		{
-			if (_singleton != null && _singleton.Panel != null)
-			{
-				_singleton.Panel.SetActive(value: false);
-			}
+			_singleton.Panel.SetActive(value: false);
 		}
 	}
 }

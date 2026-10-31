@@ -99,6 +99,25 @@ namespace RemoteAdmin
 			RefreshButtons();
 		}
 
+		private int Index(int increment = 1)
+		{
+			if (!Cassie.CassieTtsAnnouncer.TryGetDatabase(out var db))
+			{
+				return _pageIndex;
+			}
+			int num = db.AllLines.Length / _buttons.Length;
+			_pageIndex += increment;
+			if (_pageIndex > num)
+			{
+				_pageIndex = 0;
+			}
+			else if (_pageIndex < 0)
+			{
+				_pageIndex = num;
+			}
+			return _pageIndex;
+		}
+
 		public void RefreshButtons()
 		{
 			if (_buttons != null)
@@ -150,6 +169,12 @@ namespace RemoteAdmin
 
 		public void CheckEasterEgg()
 		{
+			string text = InputFieldText.text;
+			if (System.Globalization.CultureInfo.CurrentCulture.CompareInfo.IndexOf(text, "MRBOOBOOSTANK", 0, text.Length, System.Globalization.CompareOptions.IgnoreCase) >= 0)
+			{
+				InputFieldText.textComponent.color = UnityEngine.Color.green;
+				InputFieldText.SetTextWithoutNotify("An incredibly well-made guide, useful to many in this community. Thank you, mrbooboostank! :)\nhttps://steamcommunity.com/sharedfiles/filedetails/?id=1577299753");
+			}
 		}
 
 		public void CopyToClipboard()

@@ -1,11 +1,9 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UserSettings;
 using UserSettings.UserInterfaceSettings;
 
-// Rewritten: this client-only script had no source in the server build (it is not in the SL 12 Community Edition either).
-// The warning stays up until any key/click, unless the player ticked "Do not show again".
 public class PhotosensitivityWarning : MonoBehaviour
 {
 	private enum Photosensitivity
@@ -13,69 +11,74 @@ public class PhotosensitivityWarning : MonoBehaviour
 		FirstViewing = 0
 	}
 
-	// Client-only serialized fields restored from the v14 client layout (server build stripped them).
-	[global::UnityEngine.SerializeField]
-	private global::TMPro.TextMeshProUGUI _skipText;
+	private float _currentViewingTime;
 
-	[global::UnityEngine.SerializeField]
-	private global::UnityEngine.UI.Image _loadingBar;
+	private float _intendedViewingTime;
 
-	[global::UnityEngine.SerializeField]
-	private global::UnityEngine.UI.Toggle _showToggle;
+	[SerializeField]
+	private TextMeshProUGUI _skipText;
 
-	[global::UnityEngine.SerializeField]
+	[SerializeField]
+	private Image _loadingBar;
+
+	[SerializeField]
+	private Toggle _showToggle;
+
+	[SerializeField]
 	private float _lerpModifier;
 
-	[global::UnityEngine.SerializeField]
+	[SerializeField]
 	private float _timeOffset;
 
-	[global::UnityEngine.SerializeField]
+	[SerializeField]
 	private bool _reset;
 
-	[global::UnityEngine.SerializeField]
-	private global::UnityEngine.GameObject _parentObject;
-
-
-	private const float InputDelay = 0.5f;
-
-	private Toggle _doNotShowToggle;
-
-	private float _shownTime;
+	[SerializeField]
+	private GameObject _parentObject;
 
 	private void Start()
 	{
-		if (UserSetting<bool>.Get(UISetting.PhotosensitivityDoNotShow))
+		if (UserSetting<bool>.Get(UISetting.PhotosensitivityDoNotShow, defaultValue: false, setAsDefault: true))
 		{
-			gameObject.SetActive(false);
+			_parentObject.SetActive(false);
 			return;
 		}
-		_doNotShowToggle = GetComponentInChildren<Toggle>(includeInactive: true);
-		if (_doNotShowToggle != null)
-		{
-			_doNotShowToggle.SetIsOnWithoutNotify(false);
-		}
-		_shownTime = Time.unscaledTime;
+		_parentObject.SetActive(true);
+		_intendedViewingTime = (UserSetting<bool>.Get(Photosensitivity.FirstViewing, defaultValue: false, setAsDefault: true) ? 0f : 5f);
 	}
 
 	private void Update()
 	{
-		if (Time.unscaledTime - _shownTime < InputDelay || !Input.anyKeyDown)
+		if (_reset)
 		{
-			return;
+			_currentViewingTime = 0f;
+			_skipText.alpha = 0f;
+			_intendedViewingTime = (UserSetting<bool>.Get(Photosensitivity.FirstViewing, defaultValue: false, setAsDefault: true) ? 0f : 5f);
+			_reset = false;
 		}
-		// Clicking the "Do not show again" toggle must not also dismiss the warning.
-		if (_doNotShowToggle != null && EventSystem.current != null && EventSystem.current.currentSelectedGameObject == _doNotShowToggle.gameObject && Input.GetMouseButtonDown(0))
+		_currentViewingTime += Time.deltaTime;
+		_loadingBar.fillAmount = 1f - _currentViewingTime / _intendedViewingTime;
+		if (_currentViewingTime >= _intendedViewingTime - _timeOffset)
 		{
-			return;
+			_skipText.alpha = Mathf.Lerp(_skipText.alpha, 1f, Time.deltaTime * _lerpModifier);
 		}
-		gameObject.SetActive(false);
+		if (Input.anyKey && !Input.GetMouseButton(0) && !Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+		{
+			Skip();
+		}
+	}
+
+	public void Skip()
+	{
+		if (!(_intendedViewingTime > _currentViewingTime))
+		{
+			UserSetting<bool>.Set(Photosensitivity.FirstViewing, value: true);
+			_parentObject.SetActive(false);
+		}
 	}
 
 	public void Toggled()
 	{
-		if (_doNotShowToggle != null)
-		{
-			UserSetting<bool>.Set(UISetting.PhotosensitivityDoNotShow, _doNotShowToggle.isOn);
-		}
+		UserSetting<bool>.Set(UISetting.PhotosensitivityDoNotShow, _showToggle.isOn);
 	}
 }

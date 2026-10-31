@@ -6,6 +6,7 @@ public class SteamServerManager : global::UnityEngine.MonoBehaviour
 
 	private void Start()
 	{
+		Instance = this;
 	}
 
 	public SteamServerManager()

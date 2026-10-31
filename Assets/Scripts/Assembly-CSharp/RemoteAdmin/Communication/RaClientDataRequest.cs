@@ -16,6 +16,14 @@ namespace RemoteAdmin.Communication
 			OnDataReceived?.Invoke(data);
 		}
 
+		public void Request()
+		{
+			if (ReferenceHub.TryGetLocalHub(out var hub) && Mirror.NetworkClient.active)
+			{
+				hub.queryProcessor.SendQuery(string.Format("${0} 0", DataId));
+			}
+		}
+
 		public virtual void ReceiveData(CommandSender sender, string data)
 		{
 			_stringBuilder.Clear();

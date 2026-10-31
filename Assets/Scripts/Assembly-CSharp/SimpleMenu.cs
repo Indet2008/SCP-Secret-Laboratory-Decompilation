@@ -117,7 +117,7 @@ public class SimpleMenu : MonoBehaviour
 		LoadCorrectScene();
 	}
 
-	private static void Refresh()
+	public static void Refresh()
 	{
 		_targetSceneName = (_server ? "FastMenu" : MenuSceneNames[(!_forceSettings) ? 1 : Mathf.Clamp(PlayerPrefsSl.Get("menumode", 1), 0, 2)]);
 		UnityEngine.Object.FindObjectOfType<CustomNetworkManager>().offlineScene = _targetSceneName;

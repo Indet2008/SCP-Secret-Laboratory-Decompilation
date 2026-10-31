@@ -30,6 +30,12 @@ namespace VoiceChat
 			public byte Flags;
 		}
 
+		private static VoiceChatMuteIndicator _singleton;
+
+		private const VcMuteFlags Filter = VcMuteFlags.LocalRegular | VcMuteFlags.GlobalRegular;
+
+		public static VcMuteFlags ReceivedFlags { get; private set; }
+
 		[RuntimeInitializeOnLoadMethod]
 		private static void Init()
 		{
@@ -47,10 +53,75 @@ namespace VoiceChat
 					});
 				}
 			};
+			VoiceChatPrivacySettings.OnUserFlagsChanged += RefreshIndicator;
+			global::CentralAuth.PlayerAuthenticationManager.OnInstanceModeChanged += (ReferenceHub hub, global::CentralAuth.ClientInstanceMode mode) =>
+			{
+				RefreshIndicator(hub);
+			};
 		}
 
 		private static void ReceiveMessage(SyncMuteMessage smm)
 		{
+			ReceivedFlags = (VcMuteFlags)(smm.Flags & 5);
+			if (_singleton != null)
+			{
+				_singleton.RefreshIndicator();
+			}
+		}
+
+		private void Start()
+		{
+			_singleton = this;
+			RefreshIndicator();
+		}
+
+		private static void RefreshIndicator(ReferenceHub hub)
+		{
+			if (hub.isLocalPlayer && _singleton != null)
+			{
+				_singleton.RefreshIndicator();
+			}
+		}
+
+		private void RefreshIndicator()
+		{
+			if ((VoiceChatPrivacySettings.PrivacyFlags & VcPrivacyFlags.AllowMicCapture) == 0)
+			{
+				_locally.SetActive(value: false);
+				_globally.SetActive(value: false);
+				_unauthed.SetActive(value: false);
+				_root.SetActive(value: true);
+				_privacy.SetActive(value: true);
+				_privacyText.text = TranslationReader.GetFormatted("Voicechat", 18, "Press \"{0}\" and navigate to \"Settings\" to adjust.", new ReadableKeyCode(NewInput.GetKey(ActionName.PauseMenu)));
+				return;
+			}
+			_privacy.SetActive(value: false);
+			switch (ReceivedFlags)
+			{
+			case VcMuteFlags.None:
+				if (ReferenceHub.TryGetLocalHub(out var hub) && hub.authManager.InstanceMode != global::CentralAuth.ClientInstanceMode.Unverified)
+				{
+					_root.SetActive(value: false);
+					break;
+				}
+				_root.SetActive(value: true);
+				_locally.SetActive(value: false);
+				_globally.SetActive(value: false);
+				_unauthed.SetActive(value: true);
+				break;
+			case VcMuteFlags.LocalRegular:
+				_root.SetActive(value: true);
+				_locally.SetActive(value: true);
+				_globally.SetActive(value: false);
+				_unauthed.SetActive(value: false);
+				break;
+			case VcMuteFlags.GlobalRegular:
+				_root.SetActive(value: true);
+				_locally.SetActive(value: false);
+				_globally.SetActive(value: true);
+				_unauthed.SetActive(value: false);
+				break;
+			}
 		}
 	}
 }

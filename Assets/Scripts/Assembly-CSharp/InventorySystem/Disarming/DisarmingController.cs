@@ -1,120 +1,161 @@
-using System;
+using System.Diagnostics;
+using Interactables;
+using InventorySystem.Items;
 using Mirror;
 using UnityEngine;
 
 namespace InventorySystem.Disarming
 {
-	// Client-only logic stripped from the server build: hold Interact while looking at a
-	// player to cuff (or uncuff) them, then send a DisarmMessage the server validates.
+	// Restored from the 14.2.8 client disassembly.
 	public static class DisarmingController
 	{
-		private const float MaxDistance = 3.5f;
+		private const float DisarmingTime = 1.1f;
 
-		private const float DisarmTime = 3f;
+		private const float DisarmingDistanceSqrt = 10.2f;
 
-		private static readonly RaycastHit[] HitBuffer = new RaycastHit[16];
+		private static KeyCode _disarmKey;
 
-		private static ReferenceHub _target;
+		private static bool _hasTarget;
 
-		private static bool _targetDisarm;
+		private static bool _targetState;
 
-		public static float Progress { get; private set; }
+		private static ReferenceHub _newTarget;
 
-		public static bool IsTargetingDisarm => _targetDisarm;
+		private static readonly Stopwatch Progress = new Stopwatch();
 
 		[RuntimeInitializeOnLoadMethod]
 		private static void Init()
 		{
+			Inventory.OnLocalClientStarted += Start;
 			StaticUnityMethods.OnUpdate += Update;
+			NewInput.OnKeyModified += delegate(ActionName action, KeyCode key)
+			{
+				if (action == ActionName.Interact)
+				{
+					_disarmKey = key;
+				}
+			};
+		}
+
+		private static void Start()
+		{
+			_disarmKey = NewInput.GetKey(ActionName.Interact);
 		}
 
 		private static void Update()
 		{
-			if (!NetworkClient.active || !ReferenceHub.TryGetLocalHub(out var hub) || Cursor.visible || !Input.GetKey(NewInput.GetKey(ActionName.Interact)) || !TryGetLookedAtPlayer(hub, out var target))
+			if (!StaticUnityMethods.IsPlaying)
 			{
-				ResetProgress();
 				return;
 			}
-			bool flag;
-			if (target.inventory.IsDisarmed())
+			if (Input.GetKeyDown(_disarmKey))
 			{
-				if (!hub.CanUndisarm(target))
+				GetNewTarget();
+			}
+			float num = 0f;
+			if (_hasTarget)
+			{
+				num = (float)Progress.Elapsed.TotalSeconds / 1.1f;
+				if (num >= 1f)
 				{
-					ResetProgress();
-					return;
+					ConfirmTarget();
+					num = 0f;
 				}
-				flag = false;
-			}
-			else
-			{
-				if (!hub.CanStartDisarming(target))
+				else if (!Input.GetKey(_disarmKey) || !ValidateAll(_newTarget))
 				{
-					ResetProgress();
-					return;
+					CancelTarget();
+					num = 0f;
 				}
-				flag = true;
 			}
-			if (target != _target || flag != _targetDisarm)
+			DisarmingGUI singleton = DisarmingGUI.Singleton;
+			if (!(singleton == null))
 			{
-				_target = target;
-				_targetDisarm = flag;
-				Progress = 0f;
-			}
-			Progress += Time.deltaTime / DisarmTime;
-			if (!(Progress < 1f))
-			{
-				NetworkClient.Send(new DisarmMessage(target, flag, isNull: false));
-				ResetProgress();
+				singleton.Circle.fillAmount = num;
+				singleton.Circle.enabled = _hasTarget;
 			}
 		}
 
-		private static void ResetProgress()
+		private static void GetNewTarget()
 		{
-			Progress = 0f;
-			_target = null;
+			Transform transform = CenterScreenRaycast.LastRaycastHit.transform;
+			if (transform == null || !transform.gameObject.TryGetComponent<HitboxIdentity>(out var component) || component.TargetHub == null)
+			{
+				return;
+			}
+			ReferenceHub targetHub = component.TargetHub;
+			if (!ValidateAll(targetHub))
+			{
+				return;
+			}
+			bool flag = targetHub.inventory.IsDisarmed();
+			if (flag)
+			{
+				ReferenceHub localHub = ReferenceHub.LocalHub;
+				if (targetHub.roleManager.CurrentRole is IInventoryRole inventoryRole && !inventoryRole.AllowUndisarming(localHub))
+				{
+					return;
+				}
+			}
+			else if (!ReferenceHub.LocalHub.CanStartDisarming(targetHub))
+			{
+				return;
+			}
+			_newTarget = targetHub;
+			_hasTarget = true;
+			_targetState = !flag;
+			Progress.Restart();
 		}
 
-		private static bool TryGetLookedAtPlayer(ReferenceHub hub, out ReferenceHub target)
+		private static void CancelTarget()
 		{
-			target = null;
-			Transform playerCameraReference = hub.PlayerCameraReference;
-			if (playerCameraReference == null)
+			_newTarget = null;
+			_hasTarget = false;
+			Progress.Stop();
+		}
+
+		private static void ConfirmTarget()
+		{
+			Progress.Stop();
+			if (_newTarget != null && _targetState != _newTarget.inventory.IsDisarmed())
+			{
+				NetworkClient.Send(new DisarmMessage(_newTarget, _targetState, isNull: false));
+			}
+			CancelTarget();
+		}
+
+		private static bool ValidateAll(ReferenceHub hub)
+		{
+			if (!ValidateDistance(hub))
 			{
 				return false;
 			}
-			int num = Physics.RaycastNonAlloc(playerCameraReference.position, playerCameraReference.forward, HitBuffer, MaxDistance, -1, QueryTriggerInteraction.Ignore);
-			Array.Sort(HitBuffer, 0, num, HitDistanceComparer.Instance);
-			for (int i = 0; i < num; i++)
+			if (!ValidateHeldItem(hub.inventory))
 			{
-				Collider collider = HitBuffer[i].collider;
-				HitboxIdentity componentInParent = collider.GetComponentInParent<HitboxIdentity>();
-				if (componentInParent != null)
-				{
-					ReferenceHub targetHub = componentInParent.TargetHub;
-					if (targetHub == hub)
-					{
-						continue;
-					}
-					target = targetHub;
-					return target != null;
-				}
-				if (collider.GetComponentInParent<ReferenceHub>() == hub)
-				{
-					continue;
-				}
 				return false;
 			}
-			return false;
+			return !ReferenceHub.LocalHub.inventory.IsDisarmed();
 		}
 
-		private class HitDistanceComparer : System.Collections.Generic.IComparer<RaycastHit>
+		private static bool ValidateDistance(ReferenceHub hub)
 		{
-			public static readonly HitDistanceComparer Instance = new HitDistanceComparer();
-
-			public int Compare(RaycastHit x, RaycastHit y)
+			if (hub == null)
 			{
-				return x.distance.CompareTo(y.distance);
+				return false;
 			}
+			return (hub.transform.position - ReferenceHub.LocalHub.transform.position).sqrMagnitude <= 10.2f;
+		}
+
+		private static bool ValidateHeldItem(Inventory inv)
+		{
+			if (inv.CurItem.TypeId == ItemType.None)
+			{
+				return true;
+			}
+			if (!InventoryItemLoader.AvailableItems.TryGetValue(inv.CurItem.TypeId, out var value))
+			{
+				return true;
+			}
+			return value.TierFlags == ItemTierFlags.Common;
 		}
 	}
 }

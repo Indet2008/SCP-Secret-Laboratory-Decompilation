@@ -57,7 +57,8 @@ namespace RemoteAdmin.Menus
 				raEffectButton.gameObject.SetActive(value: true);
 				raEffectButton.CommandMenu = this;
 				raEffectButton.EffectId = item.GetType().Name;
-				raEffectButton.EffectName = (IsCustomDisplay(item, out var display) ? display.DisplayName : BuildName(item.GetType().Name));
+				raEffectButton.EffectName = item.GetEffectName();
+				raEffectButton.Text.color = item.GetEffectColor();
 				raEffectButton.Setup();
 				_effectButtons.Add(raEffectButton);
 			}
@@ -74,4 +75,4 @@ namespace RemoteAdmin.Menus
 			return Regex.Replace(objectName, "(\\B[A-Z])", " $1");
 		}
 	}
-}
+}

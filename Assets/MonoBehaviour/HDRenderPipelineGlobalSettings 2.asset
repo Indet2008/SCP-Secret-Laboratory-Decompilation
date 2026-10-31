@@ -20,8 +20,10 @@ MonoBehaviour:
     m_BeforeTAACustomPostProcesses:
       m_InjectionPoint: 3
       m_CustomPostProcessTypesAsString:
-      - CustomRendering.EdgeDetection, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Sharpen, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomRendering.EdgeDetection, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Sharpen, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
     m_BeforePostProcessCustomPostProcesses:
       m_InjectionPoint: 1
       m_CustomPostProcessTypesAsString:
@@ -35,31 +37,56 @@ MonoBehaviour:
     m_AfterPostProcessCustomPostProcesses:
       m_InjectionPoint: 2
       m_CustomPostProcessTypesAsString:
-      - CustomRendering.FogEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Overlay, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Grayscale, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.VignetteRefraction, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Arcade, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Artefact, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Glitch, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Kuwahara, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Refraction, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Ripples, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.RadialBlur, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Scanlines, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.SpeedLines, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.TiltShift, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Pixelize, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.BlurEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.CameraShake, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.DoubleVision, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.FadeEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Darken, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Static, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.Lighten, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.ScreenDissolve, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.CustomVignette, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      - CustomRendering.BloodHit, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      - CustomRendering.FogEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Overlay, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.Grayscale, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.VignetteRefraction, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Arcade, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.Artefact, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Glitch, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.Kuwahara, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Refraction, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Ripples, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.RadialBlur, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Scanlines, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.SpeedLines, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.TiltShift, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Pixelize, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.BlurEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.CameraShake, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.DoubleVision, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.FadeEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.Darken, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.Static, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.Lighten, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+      - CustomRendering.ScreenDissolve, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.CustomVignette, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+      - CustomRendering.BloodHit, CustomPostProcessing.Runtime, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses:
   - UnityEngine.Rendering.HighDefinition.Compositor.ChromaKeying, Unity.RenderPipelines.HighDefinition.Runtime,
@@ -282,7 +309,23 @@ MonoBehaviour:
       - rid: 3483930706255020245
       - rid: 3483930706255020246
     m_RuntimeSettings:
-      m_List: []
+      m_List:
+      - rid: 3483930706255020215
+      - rid: 3483930706255020217
+      - rid: 3483930706255020219
+      - rid: 3483930706255020220
+      - rid: 3483930706255020222
+      - rid: 3483930706255020223
+      - rid: 3483930706255020224
+      - rid: 3483930706255020227
+      - rid: 3483930706255020228
+      - rid: 3483930706255020229
+      - rid: 3483930706255020230
+      - rid: 3483930706255020232
+      - rid: 3483930706255020234
+      - rid: 3483930706255020238
+      - rid: 3483930706255020242
+      - rid: 3483930706255020245
   renderingLayerNames:
   - Light Layer default
   - Light Layer 1
@@ -455,8 +498,10 @@ MonoBehaviour:
         m_BeforeTAACustomPostProcesses:
           m_InjectionPoint: 3
           m_CustomPostProcessTypesAsString:
-          - CustomRendering.EdgeDetection, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Sharpen, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - CustomRendering.EdgeDetection, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Sharpen, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
         m_BeforePostProcessCustomPostProcesses:
           m_InjectionPoint: 1
           m_CustomPostProcessTypesAsString: []
@@ -466,31 +511,56 @@ MonoBehaviour:
         m_AfterPostProcessCustomPostProcesses:
           m_InjectionPoint: 2
           m_CustomPostProcessTypesAsString:
-          - CustomRendering.FogEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Overlay, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Grayscale, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.VignetteRefraction, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Arcade, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Artefact, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Glitch, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Kuwahara, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Refraction, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Ripples, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.RadialBlur, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Scanlines, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.SpeedLines, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.TiltShift, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Pixelize, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.BlurEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.CameraShake, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.DoubleVision, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.FadeEffect, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Darken, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Static, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.Lighten, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.ScreenDissolve, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.CustomVignette, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-          - CustomRendering.BloodHit, CustomPostProcessing.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+          - CustomRendering.FogEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Overlay, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Grayscale, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.VignetteRefraction, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Arcade, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Artefact, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Glitch, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Kuwahara, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Refraction, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Ripples, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.RadialBlur, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Scanlines, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.SpeedLines, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.TiltShift, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Pixelize, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.BlurEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.CameraShake, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.DoubleVision, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.FadeEffect, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Darken, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Static, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.Lighten, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.ScreenDissolve, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.CustomVignette, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+          - CustomRendering.BloodHit, CustomPostProcessing.Runtime, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
     - rid: 3483930706255020221
       type: {class: DiffusionProfileDefaultSettings, ns: UnityEngine.Rendering.HighDefinition, asm: Unity.RenderPipelines.HighDefinition.Runtime}
       data:

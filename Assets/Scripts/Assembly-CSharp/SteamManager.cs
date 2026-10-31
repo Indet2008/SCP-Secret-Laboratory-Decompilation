@@ -100,6 +100,7 @@ public class SteamManager : MonoBehaviour
 
 	private static void OnDebugCallback(CallbackType arg1, string arg2, bool arg3)
 	{
+		Debug.Log(string.Format("Steam Debug: {0} {1} {2}", arg1, arg2, arg3));
 	}
 
 	private static void OnSteamException(Exception ex)

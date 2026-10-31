@@ -121,6 +121,11 @@ namespace RemoteAdmin
 			}
 		}
 
+		private IEnumerable<PlayerRecord> ToSelect(int oldIndex, int newIndex)
+		{
+			return System.Linq.Enumerable.Take(System.Linq.Enumerable.Skip(Instances, oldIndex), newIndex - oldIndex);
+		}
+
 		private void Update()
 		{
 			if (!_hasLink || _textComponent == null || RemoteAdminUIController.Singleton == null)

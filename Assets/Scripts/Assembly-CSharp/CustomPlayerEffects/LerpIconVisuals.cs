@@ -11,18 +11,19 @@ namespace CustomPlayerEffects
 		[SerializeField]
 		private GameObject _iconParent;
 
-		protected override void ApplyWeight(float weight)
+		protected override void OnWeightChanged(float weight)
 		{
-			if (_iconParent != null)
-			{
-				_iconParent.SetActive(weight > 0f);
-			}
-			if (_icon != null)
-			{
-				Color color = _icon.color;
-				color.a = weight;
-				_icon.color = color;
-			}
+			_icon.fillAmount = weight;
+		}
+
+		protected override void OnActivated()
+		{
+			_iconParent.SetActive(value: true);
+		}
+
+		protected override void OnShutdown()
+		{
+			_iconParent.SetActive(value: false);
 		}
 	}
 }

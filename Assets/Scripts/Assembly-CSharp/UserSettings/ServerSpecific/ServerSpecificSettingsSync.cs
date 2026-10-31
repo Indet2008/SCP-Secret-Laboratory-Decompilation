@@ -218,6 +218,17 @@ namespace UserSettings.ServerSpecific
 
 		private static void ClientProcessPackMsg(SSSEntriesPack pack)
 		{
+			DefinedSettings = pack.Settings;
+			Version = pack.Version;
+			global::UserSettings.ServerSpecific.Entries.SSEntrySpawner.Refresh();
+			ServerSpecificSettingBase[] definedSettings = DefinedSettings;
+			for (int i = 0; i < definedSettings.Length; i++)
+			{
+				if (definedSettings[i].ResponseMode == ServerSpecificSettingBase.UserResponseMode.AcquisitionAndChange)
+				{
+					definedSettings[i].ClientSendValue();
+				}
+			}
 		}
 
 		private static void ClientProcessUpdateMsg(SSSUpdateMessage msg)

@@ -1,23 +1,30 @@
+using UnityEngine;
+
 namespace Discord.Modules
 {
-	public abstract class DiscordModuleBase : global::UnityEngine.MonoBehaviour
+	public abstract class DiscordModuleBase : MonoBehaviour
 	{
-		[global::UnityEngine.SerializeField]
+		[SerializeField]
 		private bool _isEnabled;
 
 		public virtual bool IsEnabled
 		{
 			get
 			{
-				return default;
+				return _isEnabled;
 			}
 			set
 			{
+				_isEnabled = value;
 			}
 		}
 
 		public void UpdateModule()
 		{
+			if (IsEnabled)
+			{
+				OnUpdateModule();
+			}
 		}
 
 		protected virtual void OnUpdateModule()
@@ -25,10 +32,6 @@ namespace Discord.Modules
 		}
 
 		protected virtual void OnDestroy()
-		{
-		}
-
-		protected DiscordModuleBase()
 		{
 		}
 	}

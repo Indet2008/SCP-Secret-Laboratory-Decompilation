@@ -48,6 +48,11 @@ namespace RemoteAdmin.Generic
 
 		protected virtual void OnUpdateSlider(float value)
 		{
+			if (RepresentingSlider.value != value)
+			{
+				RepresentingSlider.value = value;
+			}
+			RepresentingSlider.SetText(value);
 		}
 	}
 }

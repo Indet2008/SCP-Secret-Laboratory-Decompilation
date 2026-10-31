@@ -59,6 +59,11 @@ namespace RemoteAdmin.Generic
 			}
 		}
 
+		protected override void OnSave()
+		{
+			PlayerPrefsSl.Set(Path, Value);
+		}
+
 		protected override void OnLoad()
 		{
 			float stored = PlayerPrefsSl.Get(Path, DefaultValue);

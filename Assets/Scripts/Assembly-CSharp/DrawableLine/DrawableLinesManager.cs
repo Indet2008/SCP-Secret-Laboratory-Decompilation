@@ -62,6 +62,24 @@ namespace DrawableLine
 			}
 		}
 
+		private void Awake()
+		{
+			_singleton = this;
+			_singletonSet = true;
+			_props = new MaterialPropertyBlock();
+		}
+
+		private void LateUpdate()
+		{
+			DrawMeshes();
+		}
+
+		private void OnDestroy()
+		{
+			_singleton = null;
+			_singletonSet = false;
+		}
+
 		private void DrawMeshes()
 		{
 			if (_matrices.Count > 0)

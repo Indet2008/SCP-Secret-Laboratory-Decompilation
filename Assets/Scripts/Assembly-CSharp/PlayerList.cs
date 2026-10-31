@@ -111,6 +111,60 @@ public class PlayerList : SimpleToggleableMenu
 		UpdateColors();
 	}
 
+	internal static void UpdatePlayerCount()
+	{
+		if (ReferenceHub.TryGetHostHub(out var hub))
+		{
+			SetPlayerCountText(instances.Count, hub.characterClassManager.MaxPlayers);
+		}
+	}
+
+	private static void SetPlayerCountText(int current, int max)
+	{
+		if (!(singleton == null))
+		{
+			singleton.PlayerCount.text = string.Format("👤  {0}/{1}", current, max);
+		}
+	}
+
+	[RuntimeInitializeOnLoadMethod]
+	private static void Init()
+	{
+		CharacterClassManager.OnMaxPlayersChanged += delegate(ushort max)
+		{
+			if (!(singleton == null))
+			{
+				SetPlayerCountText(instances.Count, max);
+			}
+		};
+	}
+
+	public void Report(bool toGM = false)
+	{
+		int result = -1;
+		TMPro.TextMeshProUGUI[] componentsInChildren = reportForm.GetComponentsInChildren<TMPro.TextMeshProUGUI>();
+		foreach (TMPro.TextMeshProUGUI textMeshProUGUI in componentsInChildren)
+		{
+			if (!(textMeshProUGUI.name != "Player ID"))
+			{
+				int.TryParse(textMeshProUGUI.text, out result);
+				break;
+			}
+		}
+		if (result > 0)
+		{
+			GameCore.Console.Singleton.TypeCommand("report " + result + " " + (toGM ? "1" : "0") + " " + reportForm.GetComponentInChildren<UnityEngine.UI.InputField>().text);
+			reportPopup.SetActive(value: true);
+			reportPopupText.SetText(TranslationReader.Get("ReportForm", 6, "Please wait..."));
+		}
+	}
+
+	public void ShowReportResponse(string response)
+	{
+		reportPopup.SetActive(value: true);
+		reportPopupText.SetText(response);
+	}
+
 	public void CloseForm()
 	{
 		if (reportForm != null)
@@ -134,6 +188,36 @@ public class PlayerList : SimpleToggleableMenu
 	}
 
 	// because the hub's mode, nickname and badge all arrive through separate syncvars after OnPlayerAdded.
+	internal static bool DisplayProfileButton(global::CentralAuth.PlayerAuthenticationManager authManager)
+	{
+		if (global::CentralAuth.CentralAuthManager.Platform != global::GameCore.DistributionPlatform.Steam || !global::Steamworks.SteamUtils.IsOverlayEnabled)
+		{
+			return false;
+		}
+		string userId = authManager.UserId;
+		if (!string.IsNullOrEmpty(userId))
+		{
+			return userId.EndsWith("@steam", global::System.StringComparison.Ordinal);
+		}
+		return false;
+	}
+
+	public static void RefreshPlayerId(GameObject player)
+	{
+		if (!ReferenceHub.TryGetHub(player, out var hub))
+		{
+			return;
+		}
+		foreach (Instance instance in instances)
+		{
+			if (!(instance.owner == null) && !(instance.owner.gameObject != player))
+			{
+				instance.listElementReference.OpenProfile.SetActive(DisplayProfileButton(hub.authManager));
+				break;
+			}
+		}
+	}
+
 	private static bool ShouldBeListed(ReferenceHub hub)
 	{
 		if (hub == null || hub.Mode == ClientInstanceMode.DedicatedServer || hub.IsDummy)
@@ -229,6 +313,7 @@ public class PlayerList : SimpleToggleableMenu
 			listElementReference = component
 		};
 		instances.Add(item);
+		UpdatePlayerCount();
 		RefreshElement(item);
 		ApplyInterfaceColor(component);
 	}
@@ -270,6 +355,7 @@ public class PlayerList : SimpleToggleableMenu
 			UnityEngine.Object.Destroy(listElementReference.gameObject);
 		}
 		instances.RemoveAt(index);
+		UpdatePlayerCount();
 	}
 
 	private void Start()

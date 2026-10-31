@@ -90,7 +90,7 @@ namespace InventorySystem.Searching
 			Hub = ReferenceHub.GetHub(base.gameObject);
 			SessionPipe = new SearchSessionPipe(this, NetworkServer.active ? Hub.playerRateLimitHandler.RateLimits[0] : null);
 			SessionPipe.RequestUpdated += HandleRequest;
-			SessionPipe.SessionUpdated += OnSessionUpdated;
+			SessionPipe.SessionUpdated += HandleSession;
 			SessionPipe.RegisterHandlers();
 			PlayerRoleManager.OnRoleChanged += RoleChanged;
 		}
@@ -103,6 +103,37 @@ namespace InventorySystem.Searching
 			}
 			PlayerRoleManager.OnRoleChanged -= RoleChanged;
 		}
+
+		private readonly struct ProgressBezier
+		{
+			private readonly SearchRequest _request;
+
+			private readonly SearchSession _session;
+
+			private readonly double _requestProgress;
+
+			private readonly double _sessionReceivedTime;
+
+			public double Progress
+			{
+				get
+				{
+					double num = (NetworkTime.time - _sessionReceivedTime) / (_session.FinishTime - _sessionReceivedTime);
+					double num2 = 1.0 - num;
+					return num2 * num2 * _requestProgress + 2.0 * num2 * num + num * num;
+				}
+			}
+
+			public ProgressBezier(SearchRequest request, SearchSession session)
+			{
+				_request = request;
+				_session = session;
+				_requestProgress = request.Body.Progress;
+				_sessionReceivedTime = NetworkTime.time;
+			}
+		}
+
+		private ProgressBezier _progressBezier;
 
 		private byte _ticketId;
 
@@ -120,7 +151,7 @@ namespace InventorySystem.Searching
 		{
 			if (base.isLocalPlayer && SessionPipe != null)
 			{
-				UpdateClient();
+				ContinuePickupClient();
 			}
 			if (NetworkServer.active && SessionPipe.Status == SearchSessionPipe.Activity.Promised)
 			{
@@ -221,20 +252,21 @@ namespace InventorySystem.Searching
 			}
 		}
 
-		private void OnSessionUpdated()
+		private void HandleSession()
 		{
+			_progressBezier = new ProgressBezier(SessionPipe.Request, SessionPipe.Session);
 			_sessionReceivedTime = NetworkTime.time;
 			_requestProgressAtPromise = SessionPipe.Request.Progress;
 		}
 
-		private void UpdateClient()
+		private void ContinuePickupClient()
 		{
 			if (SessionPipe.Status == SearchSessionPipe.Activity.Idle)
 			{
 				_sessionReceivedTime = 0.0;
 				_requestProgressAtPromise = 0.0;
 				SetSearching(state: false);
-				TryStartSearch();
+				Raycast();
 				return;
 			}
 			KeyCode key = NewInput.GetKey(ActionName.Interact);
@@ -254,7 +286,7 @@ namespace InventorySystem.Searching
 				double num3 = (flag2 ? _requestProgressAtPromise : 0.0);
 				double num4 = SessionPipe.Session.FinishTime - num2;
 				double t = ((num4 > 0.0) ? ((NetworkTime.time - num2) / num4) : 0.0);
-				num = num3 + (1.0 - num3) * Math.Max(0.0, Math.Min(1.0, t));
+				num = (flag2 ? _progressBezier.Progress : (num3 + (1.0 - num3) * Math.Max(0.0, Math.Min(1.0, t))));
 			}
 			else
 			{
@@ -268,7 +300,7 @@ namespace InventorySystem.Searching
 			}
 		}
 
-		private void TryStartSearch()
+		private void Raycast()
 		{
 			KeyCode key = NewInput.GetKey(ActionName.Interact);
 			if (!Input.GetKeyDown(key) || Cursor.visible || !(Hub.roleManager.CurrentRole is IFpcRole))
