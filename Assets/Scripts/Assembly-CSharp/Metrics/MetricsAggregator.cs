@@ -103,7 +103,17 @@ namespace Metrics
 				{
 					throw new ArgumentException("Cannot record the static collector definition. Create a new instance to record data.");
 				}
-				string jsonData = JsonSerializer.ToJsonString(data);
+				string jsonData;
+				try
+				{
+					jsonData = JsonSerializer.ToJsonString(data);
+				}
+				catch (FormatterNotRegisteredException)
+				{
+					// IL2CPP builds have no runtime-generated Utf8Json formatters for metric types; skip the metric
+					// instead of aborting the caller (CharacterClassManager.Init runs this on round start).
+					return;
+				}
 				CollectedMetrics.Add(new CollectedMetric(typeof(T), jsonData));
 			}
 		}

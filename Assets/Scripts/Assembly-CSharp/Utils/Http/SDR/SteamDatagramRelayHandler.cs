@@ -228,7 +228,12 @@ namespace Utils.Http.SDR
 			{
 				return;
 			}
-			DebugLog("Switching to SDR due to exception in normal HTTP.", UnityEngine.Color.yellow);
+			// The server answered with an error status (e.g. 401 for an unauthenticated client): HTTP works, SDR won't help.
+			if (obj.InnerException is System.Net.Http.HttpRequestException { InnerException: null })
+			{
+				return;
+			}
+			DebugLog("Switching to SDR due to exception in normal HTTP: " + obj, UnityEngine.Color.yellow);
 			_sdrInUse = true;
 			new Thread(GameCore.Console.RefreshPublicKey)
 			{

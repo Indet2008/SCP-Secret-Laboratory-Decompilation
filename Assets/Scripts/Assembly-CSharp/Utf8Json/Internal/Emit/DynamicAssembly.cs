@@ -12,6 +12,12 @@ namespace Utf8Json.Internal.Emit
 
 		private readonly object gate = new object();
 
+#if ENABLE_IL2CPP
+		public static bool IsSupported { get; private set; } = false;
+#else
+		public static bool IsSupported { get; private set; } = true;
+#endif
+
 		public TypeBuilder DefineType(string name, TypeAttributes attr)
 		{
 			lock (gate)
@@ -38,8 +44,16 @@ namespace Utf8Json.Internal.Emit
 
 		public DynamicAssembly(string moduleName)
 		{
-			assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(moduleName), AssemblyBuilderAccess.Run);
-			moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
+			// IL2CPP has no Reflection.Emit; the dynamic resolvers then return no formatter and the next resolver is tried.
+			try
+			{
+				assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(moduleName), AssemblyBuilderAccess.Run);
+				moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
+			}
+			catch (PlatformNotSupportedException)
+			{
+				IsSupported = false;
+			}
 		}
 	}
 }

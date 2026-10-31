@@ -104,8 +104,8 @@ Shader "HDRP/HairFadeable"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -204,6 +204,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_4 = vertex_output_4;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			static float4 fragment_input_1;
@@ -223,7 +226,7 @@ Shader "HDRP/HairFadeable"
 			{
 			}
 
-			void main(Fragment_Stage_Input stage_input)
+			void frag(Fragment_Stage_Input stage_input)
 			{
 				fragment_input_1 = stage_input.fragment_input_1;
 				fragment_input_2 = stage_input.fragment_input_2;
@@ -232,11 +235,9 @@ Shader "HDRP/HairFadeable"
 				frag_main();
 			}
 
-			#endif // !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-
-
-			#if defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -335,6 +336,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_4 = vertex_output_4;
 				return stage_output;
 			}
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _ProjectionParams;
@@ -437,7 +441,7 @@ Shader "HDRP/HairFadeable"
 				discard_exit();
 			}
 
-			void main(Fragment_Stage_Input stage_input)
+			void frag(Fragment_Stage_Input stage_input)
 			{
 				gl_FragCoord = stage_input.gl_FragCoord;
 				gl_FragCoord.w = 1.0 / gl_FragCoord.w;
@@ -448,41 +452,147 @@ Shader "HDRP/HairFadeable"
 				frag_main();
 			}
 
-			#endif // defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4x4 unity_ObjectToWorld;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 vertex_uniform_buffer_0[49];
+			static float4 vertex_uniform_buffer_1[4];
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_input_5;
+			static float4 vertex_input_6;
+			static float4 vertex_output_1;
+			static float4 vertex_output_2;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float4 vertex_input_5 : TEXCOORD2; // TEXCOORD_2
+				float4 vertex_input_6 : TEXCOORD3; // TEXCOORD_3
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 vertex_output_1 : INTERP; // INTERP
+				float4 vertex_output_2 : INTERP1; // INTERP_1
+				float4 vertex_output_3 : INTERP2; // INTERP_2
+				float4 vertex_output_4 : INTERP3; // INTERP_3
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				float vertex_unnamed_80 = asfloat(1065353216u);
+				float vertex_unnamed_82 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_80));
+				float vertex_unnamed_111 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_80));
+				float vertex_unnamed_141 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_80));
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_141, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_111, vertex_unnamed_82 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_141, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_111, vertex_unnamed_82 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_141, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_111, vertex_unnamed_82 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_141, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_111, vertex_unnamed_82 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+				vertex_output_1.x = vertex_input_3.x;
+				vertex_output_1.y = vertex_input_3.y;
+				vertex_output_1.z = vertex_input_3.z;
+				vertex_output_1.w = vertex_input_3.w;
+				vertex_output_2.x = vertex_input_4.x;
+				vertex_output_2.y = vertex_input_4.y;
+				vertex_output_2.z = vertex_input_4.z;
+				vertex_output_2.w = vertex_input_4.w;
+				vertex_output_3.x = vertex_input_5.x;
+				vertex_output_3.y = vertex_input_5.y;
+				vertex_output_3.z = vertex_input_5.z;
+				vertex_output_3.w = vertex_input_5.w;
+				vertex_output_4.x = vertex_input_6.x;
+				vertex_output_4.y = vertex_input_6.y;
+				vertex_output_4.z = vertex_input_6.z;
+				vertex_output_4.w = vertex_input_6.w;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vertex_input_6 = stage_input.vertex_input_6;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			static float4 fragment_input_1;
+			static float4 fragment_input_2;
+			static float4 fragment_input_3;
+			static float4 fragment_input_4;
+
+			struct Fragment_Stage_Input
+			{
+				float4 fragment_input_1 : INTERP; // INTERP
+				float4 fragment_input_2 : INTERP1; // INTERP_1
+				float4 fragment_input_3 : INTERP2; // INTERP_2
+				float4 fragment_input_4 : INTERP3; // INTERP_3
+			};
+
+			void frag_main()
+			{
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			void frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_input_1 = stage_input.fragment_input_1;
+				fragment_input_2 = stage_input.fragment_input_2;
+				fragment_input_3 = stage_input.fragment_input_3;
+				fragment_input_4 = stage_input.fragment_input_4;
+				frag_main();
+			}
 
+			#endif
 
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -522,8 +632,8 @@ Shader "HDRP/HairFadeable"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4x4 _NonJitteredViewProjMatrix;
@@ -708,6 +818,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_9 = vertex_output_9;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _ScreenSize;
@@ -834,11 +947,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
-
-
-			#if defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4x4 _NonJitteredViewProjMatrix;
@@ -1023,6 +1134,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_9 = vertex_output_9;
 				return stage_output;
 			}
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _ProjectionParams;
@@ -1223,11 +1337,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
-
-
-			#if defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ScreenSize;
 			float _GlobalMipBias;
@@ -1420,11 +1532,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-
-
-			#if defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ProjectionParams;
 			float4 _ScreenParams;
@@ -1691,41 +1801,331 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4x4 _NonJitteredViewProjMatrix;
+			float4x4 _PrevViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
+			float4x4 unity_MatrixPreviousM;
+			float4 unity_MotionVectorsParams;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 vertex_uniform_buffer_0[49];
+			static float4 vertex_uniform_buffer_1[39];
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_input_5;
+			static float4 vertex_input_6;
+			static float3 vertex_input_7;
+			static float3 vertex_output_0;
+			static float3 vertex_output_1;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
+			static float4 vertex_output_5;
+			static float4 vertex_output_6;
+			static float4 vertex_output_7;
+			static float3 vertex_output_8;
+			static float3 vertex_output_9;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD0; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float4 vertex_input_5 : TEXCOORD2; // TEXCOORD_2
+				float4 vertex_input_6 : TEXCOORD3; // TEXCOORD_3
+				float3 vertex_input_7 : TEXCOORD4; // TEXCOORD_4
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float3 vertex_output_0 : TEXCOORD8; // TEXCOORD_8
+				float3 vertex_output_1 : TEXCOORD9; // TEXCOORD_9
+				float4 vertex_output_3 : INTERP; // INTERP
+				float4 vertex_output_4 : INTERP1; // INTERP_1
+				float4 vertex_output_5 : INTERP2; // INTERP_2
+				float4 vertex_output_6 : INTERP3; // INTERP_3
+				float4 vertex_output_7 : INTERP4; // INTERP_4
+				float3 vertex_output_8 : INTERP5; // INTERP_5
+				float3 vertex_output_9 : INTERP6; // INTERP_6
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				float vertex_unnamed_87 = asfloat(1065353216u);
+				float vertex_unnamed_89 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_87));
+				float vertex_unnamed_107 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_87));
+				float vertex_unnamed_125 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_87));
+				float vertex_unnamed_140 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[4u].xyz));
+				float vertex_unnamed_155 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[5u].xyz));
+				float vertex_unnamed_170 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[6u].xyz));
+				float vertex_unnamed_179 = rsqrt(max(dot(float3(vertex_unnamed_140, vertex_unnamed_155, vertex_unnamed_170), float3(vertex_unnamed_140, vertex_unnamed_155, vertex_unnamed_170)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_9.x = vertex_unnamed_179 * vertex_unnamed_140;
+				vertex_output_9.y = vertex_unnamed_179 * vertex_unnamed_155;
+				vertex_output_9.z = vertex_unnamed_179 * vertex_unnamed_170;
+				float vertex_unnamed_214 = mad(vertex_uniform_buffer_1[2u].x, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].x, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].x));
+				float vertex_unnamed_215 = mad(vertex_uniform_buffer_1[2u].y, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].y, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].y));
+				float vertex_unnamed_216 = mad(vertex_uniform_buffer_1[2u].z, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].z, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].z));
+				float vertex_unnamed_221 = rsqrt(max(dot(float3(vertex_unnamed_214, vertex_unnamed_215, vertex_unnamed_216), float3(vertex_unnamed_214, vertex_unnamed_215, vertex_unnamed_216)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_3.x = vertex_unnamed_221 * vertex_unnamed_214;
+				vertex_output_3.y = vertex_unnamed_221 * vertex_unnamed_215;
+				vertex_output_3.z = vertex_unnamed_221 * vertex_unnamed_216;
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_125, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_125, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_125, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_125, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+				vertex_output_0.x = mad(vertex_uniform_buffer_0[34u].x, vertex_unnamed_125, mad(vertex_uniform_buffer_0[32u].x, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[33u].x)) + vertex_uniform_buffer_0[35u].x;
+				vertex_output_0.y = mad(vertex_uniform_buffer_0[34u].y, vertex_unnamed_125, mad(vertex_uniform_buffer_0[32u].y, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[33u].y)) + vertex_uniform_buffer_0[35u].y;
+				vertex_output_0.z = mad(vertex_uniform_buffer_0[34u].w, vertex_unnamed_125, mad(vertex_uniform_buffer_0[32u].w, vertex_unnamed_89, vertex_unnamed_107 * vertex_uniform_buffer_0[33u].w)) + vertex_uniform_buffer_0[35u].w;
+				if (vertex_uniform_buffer_1[38u].y == 0.0f)
+				{
+					vertex_output_1.x = 0.0f;
+					vertex_output_1.y = 0.0f;
+					vertex_output_1.z = 1.0f;
+				}
+				else
+				{
+					bool vertex_unnamed_329 = 0.0f < vertex_uniform_buffer_1[38u].x;
+					float vertex_unnamed_342 = vertex_unnamed_329 ? vertex_input_7.x : vertex_input_0.x;
+					float vertex_unnamed_343 = vertex_unnamed_329 ? vertex_input_7.y : vertex_input_0.y;
+					float vertex_unnamed_344 = vertex_unnamed_329 ? vertex_input_7.z : vertex_input_0.z;
+					float vertex_unnamed_378 = asfloat(1065353216u);
+					float vertex_unnamed_379 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).x), asfloat(asuint(vertex_uniform_buffer_1[31u]).x), asfloat(asuint(vertex_uniform_buffer_1[32u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[33u].x), float4(vertex_unnamed_342, vertex_unnamed_343, vertex_unnamed_344, vertex_unnamed_378));
+					float vertex_unnamed_397 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).y), asfloat(asuint(vertex_uniform_buffer_1[31u]).y), asfloat(asuint(vertex_uniform_buffer_1[32u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[33u].y), float4(vertex_unnamed_342, vertex_unnamed_343, vertex_unnamed_344, vertex_unnamed_378));
+					float vertex_unnamed_415 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).z), asfloat(asuint(vertex_uniform_buffer_1[31u]).z), asfloat(asuint(vertex_uniform_buffer_1[32u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[33u].z), float4(vertex_unnamed_342, vertex_unnamed_343, vertex_unnamed_344, vertex_unnamed_378));
+					vertex_output_1.x = mad(vertex_uniform_buffer_0[42u].x, vertex_unnamed_415, mad(vertex_uniform_buffer_0[40u].x, vertex_unnamed_379, vertex_unnamed_397 * vertex_uniform_buffer_0[41u].x)) + vertex_uniform_buffer_0[43u].x;
+					vertex_output_1.y = mad(vertex_uniform_buffer_0[42u].y, vertex_unnamed_415, mad(vertex_uniform_buffer_0[40u].y, vertex_unnamed_379, vertex_unnamed_397 * vertex_uniform_buffer_0[41u].y)) + vertex_uniform_buffer_0[43u].y;
+					vertex_output_1.z = mad(vertex_uniform_buffer_0[42u].w, vertex_unnamed_415, mad(vertex_uniform_buffer_0[40u].w, vertex_unnamed_379, vertex_unnamed_397 * vertex_uniform_buffer_0[41u].w)) + vertex_uniform_buffer_0[43u].w;
+				}
+				vertex_output_3.w = vertex_input_2.w;
+				vertex_output_4.x = vertex_input_3.x;
+				vertex_output_4.y = vertex_input_3.y;
+				vertex_output_4.z = vertex_input_3.z;
+				vertex_output_4.w = vertex_input_3.w;
+				vertex_output_5.x = vertex_input_4.x;
+				vertex_output_5.y = vertex_input_4.y;
+				vertex_output_5.z = vertex_input_4.z;
+				vertex_output_5.w = vertex_input_4.w;
+				vertex_output_6.x = vertex_input_5.x;
+				vertex_output_6.y = vertex_input_5.y;
+				vertex_output_6.z = vertex_input_5.z;
+				vertex_output_6.w = vertex_input_5.w;
+				vertex_output_7.x = vertex_input_6.x;
+				vertex_output_7.y = vertex_input_6.y;
+				vertex_output_7.z = vertex_input_6.z;
+				vertex_output_7.w = vertex_input_6.w;
+				vertex_output_8.x = vertex_unnamed_89;
+				vertex_output_8.y = vertex_unnamed_107;
+				vertex_output_8.z = vertex_unnamed_125;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[32] = float4(_NonJitteredViewProjMatrix[0][0], _NonJitteredViewProjMatrix[1][0], _NonJitteredViewProjMatrix[2][0], _NonJitteredViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[33] = float4(_NonJitteredViewProjMatrix[0][1], _NonJitteredViewProjMatrix[1][1], _NonJitteredViewProjMatrix[2][1], _NonJitteredViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[34] = float4(_NonJitteredViewProjMatrix[0][2], _NonJitteredViewProjMatrix[1][2], _NonJitteredViewProjMatrix[2][2], _NonJitteredViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[35] = float4(_NonJitteredViewProjMatrix[0][3], _NonJitteredViewProjMatrix[1][3], _NonJitteredViewProjMatrix[2][3], _NonJitteredViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[40] = float4(_PrevViewProjMatrix[0][0], _PrevViewProjMatrix[1][0], _PrevViewProjMatrix[2][0], _PrevViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[41] = float4(_PrevViewProjMatrix[0][1], _PrevViewProjMatrix[1][1], _PrevViewProjMatrix[2][1], _PrevViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[42] = float4(_PrevViewProjMatrix[0][2], _PrevViewProjMatrix[1][2], _PrevViewProjMatrix[2][2], _PrevViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[43] = float4(_PrevViewProjMatrix[0][3], _PrevViewProjMatrix[1][3], _PrevViewProjMatrix[2][3], _PrevViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_uniform_buffer_1[30] = float4(unity_MatrixPreviousM[0][0], unity_MatrixPreviousM[1][0], unity_MatrixPreviousM[2][0], unity_MatrixPreviousM[3][0]);
+				vertex_uniform_buffer_1[31] = float4(unity_MatrixPreviousM[0][1], unity_MatrixPreviousM[1][1], unity_MatrixPreviousM[2][1], unity_MatrixPreviousM[3][1]);
+				vertex_uniform_buffer_1[32] = float4(unity_MatrixPreviousM[0][2], unity_MatrixPreviousM[1][2], unity_MatrixPreviousM[2][2], unity_MatrixPreviousM[3][2]);
+				vertex_uniform_buffer_1[33] = float4(unity_MatrixPreviousM[0][3], unity_MatrixPreviousM[1][3], unity_MatrixPreviousM[2][3], unity_MatrixPreviousM[3][3]);
+
+				vertex_uniform_buffer_1[38] = float4(unity_MotionVectorsParams[0], unity_MotionVectorsParams[1], unity_MotionVectorsParams[2], unity_MotionVectorsParams[3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vertex_input_6 = stage_input.vertex_input_6;
+				vertex_input_7 = stage_input.vertex_input_7;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_0 = vertex_output_0;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				stage_output.vertex_output_5 = vertex_output_5;
+				stage_output.vertex_output_6 = vertex_output_6;
+				stage_output.vertex_output_7 = vertex_output_7;
+				stage_output.vertex_output_8 = vertex_output_8;
+				stage_output.vertex_output_9 = vertex_output_9;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float4 _ScreenSize;
+			float _GlobalMipBias;
+			float4 unity_WorldTransformParams;
+			float4 unity_MotionVectorsParams;
+			float4 _uvBaseST;
+			float _NormalScale;
+			float4 _uvSmoothnessST;
+			float _SmoothnessMin;
+			float _SmoothnessMax;
+
+			static float4 fragment_uniform_buffer_0[87];
+			static float4 fragment_uniform_buffer_1[39];
+			static float4 fragment_uniform_buffer_2[11];
+			Texture2D<float4> _NormalMap;
+			Texture2D<float4> _SmoothnessMask;
+			SamplerState sampler_NormalMap;
+			SamplerState sampler_SmoothnessMask;
+
+			static float3 fragment_input_0;
+			static float3 fragment_input_1;
+			static float4 fragment_input_3;
+			static float4 fragment_input_4;
+			static float4 fragment_input_5;
+			static float4 fragment_input_6;
+			static float4 fragment_input_7;
+			static float3 fragment_input_8;
+			static float3 fragment_input_9;
+			static float4 fragment_output_0;
+			static float4 fragment_output_1;
+
+			struct Fragment_Stage_Input
+			{
+				float3 fragment_input_0 : TEXCOORD8; // TEXCOORD_8
+				float3 fragment_input_1 : TEXCOORD9; // TEXCOORD_9
+				float4 fragment_input_3 : INTERP; // INTERP
+				float4 fragment_input_4 : INTERP1; // INTERP_1
+				float4 fragment_input_5 : INTERP2; // INTERP_2
+				float4 fragment_input_6 : INTERP3; // INTERP_3
+				float4 fragment_input_7 : INTERP4; // INTERP_4
+				float3 fragment_input_8 : INTERP5; // INTERP_5
+				float3 fragment_input_9 : INTERP6; // INTERP_6
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+				float4 fragment_output_1 : SV_Target1;
+			};
+
+			void frag_main()
+			{
+				float fragment_unnamed_74 = ((-0.0f) - (fragment_input_1.x / fragment_input_1.z)) + (fragment_input_0.x / fragment_input_0.z);
+				float fragment_unnamed_75 = ((-0.0f) - (fragment_input_1.y / fragment_input_1.z)) + (fragment_input_0.y / fragment_input_0.z);
+				bool fragment_unnamed_125 = fragment_uniform_buffer_1[38u].y == 0.0f;
+				fragment_output_0.x = fragment_unnamed_125 ? 2.0f : (min(mad((-0.0f) - fragment_uniform_buffer_0[50u].z, 0.00999999977648258209228515625f, 2.0f), max(mad(fragment_uniform_buffer_0[50u].z, 0.00999999977648258209228515625f, -2.0f), asfloat((abs(fragment_unnamed_74) < (fragment_uniform_buffer_0[50u].z * 0.00999999977648258209228515625f)) ? 0u : asuint(fragment_unnamed_74)))) * 0.5f);
+				fragment_output_0.y = fragment_unnamed_125 ? 0.0f : (min(mad((-0.0f) - fragment_uniform_buffer_0[50u].w, 0.00999999977648258209228515625f, 2.0f), max(mad(fragment_uniform_buffer_0[50u].w, 0.00999999977648258209228515625f, -2.0f), asfloat((abs(fragment_unnamed_75) < (fragment_uniform_buffer_0[50u].w * 0.00999999977648258209228515625f)) ? 0u : asuint(fragment_unnamed_75)))) * (-0.5f));
+				fragment_output_0.z = 0.0f;
+				fragment_output_0.w = 0.0f;
+				float fragment_unnamed_149 = asfloat((fragment_uniform_buffer_1[9u].w >= 0.0f) ? 1065353216u : 3212836864u) * asfloat((0.0f < fragment_input_3.w) ? 1065353216u : 3212836864u);
+				float fragment_unnamed_204 = 1.0f / max(sqrt(dot(float3(fragment_input_9.x, fragment_input_9.y, fragment_input_9.z), float3(fragment_input_9.x, fragment_input_9.y, fragment_input_9.z))), 1.1754943508222875079687365372222e-38f);
+				float fragment_unnamed_221 = mad(fragment_input_4.x, fragment_uniform_buffer_2[3u].x, fragment_uniform_buffer_2[3u].z);
+				float fragment_unnamed_222 = mad(fragment_input_4.y, fragment_uniform_buffer_2[3u].y, fragment_uniform_buffer_2[3u].w);
+				float4 fragment_unnamed_229 = _NormalMap.SampleBias(sampler_NormalMap, float2(fragment_unnamed_221, fragment_unnamed_222), fragment_uniform_buffer_0[86u].y);
+				float fragment_unnamed_236 = mad(fragment_unnamed_229.x * fragment_unnamed_229.w, 2.0f, -1.0f);
+				float fragment_unnamed_238 = mad(fragment_unnamed_229.y, 2.0f, -1.0f);
+				float fragment_unnamed_243 = fragment_unnamed_236 * fragment_uniform_buffer_2[5u].x;
+				float fragment_unnamed_244 = fragment_unnamed_238 * fragment_uniform_buffer_2[5u].x;
+				float fragment_unnamed_283 = mad(clamp(fragment_uniform_buffer_2[5u].x, 0.0f, 1.0f), max(sqrt(((-0.0f) - min(dot(float2(fragment_unnamed_236, fragment_unnamed_238), float2(fragment_unnamed_236, fragment_unnamed_238)), 1.0f)) + 1.0f), 1.000000016862383526387164645044e-16f) + (-1.0f), 1.0f);
+				float fragment_unnamed_284 = mad(fragment_unnamed_283, fragment_unnamed_204 * fragment_input_9.x, mad(fragment_unnamed_243, fragment_unnamed_204 * fragment_input_3.x, (fragment_unnamed_204 * (fragment_unnamed_149 * mad(fragment_input_9.y, fragment_input_3.z, (-0.0f) - (fragment_input_3.y * fragment_input_9.z)))) * fragment_unnamed_244));
+				float fragment_unnamed_285 = mad(fragment_unnamed_283, fragment_unnamed_204 * fragment_input_9.y, mad(fragment_unnamed_243, fragment_unnamed_204 * fragment_input_3.y, (fragment_unnamed_204 * (fragment_unnamed_149 * mad(fragment_input_9.z, fragment_input_3.x, (-0.0f) - (fragment_input_3.z * fragment_input_9.x)))) * fragment_unnamed_244));
+				float fragment_unnamed_286 = mad(fragment_unnamed_283, fragment_unnamed_204 * fragment_input_9.z, mad(fragment_unnamed_243, fragment_unnamed_204 * fragment_input_3.z, (fragment_unnamed_204 * (fragment_unnamed_149 * mad(fragment_input_9.x, fragment_input_3.y, (-0.0f) - (fragment_input_3.x * fragment_input_9.y)))) * fragment_unnamed_244));
+				float fragment_unnamed_291 = rsqrt(max(dot(float3(fragment_unnamed_284, fragment_unnamed_285, fragment_unnamed_286), float3(fragment_unnamed_284, fragment_unnamed_285, fragment_unnamed_286)), 1.1754943508222875079687365372222e-38f));
+				float fragment_unnamed_292 = fragment_unnamed_291 * fragment_unnamed_284;
+				float fragment_unnamed_293 = fragment_unnamed_291 * fragment_unnamed_285;
+				float fragment_unnamed_294 = fragment_unnamed_291 * fragment_unnamed_286;
+				float fragment_unnamed_296 = max(abs(fragment_unnamed_294), 0.0009765625f);
+				float fragment_unnamed_300 = (fragment_unnamed_294 >= 0.0f) ? fragment_unnamed_296 : ((-0.0f) - fragment_unnamed_296);
+				float fragment_unnamed_309 = 1.0f / max(dot(float3(abs(fragment_unnamed_292), abs(fragment_unnamed_293), abs(fragment_unnamed_300)), 1.0f.xxx), 9.9999999747524270787835121154785e-07f);
+				float fragment_unnamed_314 = clamp((-0.0f) - (fragment_unnamed_309 * fragment_unnamed_300), 0.0f, 1.0f);
+				float fragment_unnamed_317 = (-0.0f) - fragment_unnamed_314;
+				uint fragment_unnamed_329 = uint(clamp(mad(mad(fragment_unnamed_292, fragment_unnamed_309, ((fragment_unnamed_309 * fragment_unnamed_292) >= 0.0f) ? fragment_unnamed_314 : fragment_unnamed_317), 0.5f, 0.5f), 0.0f, 1.0f) * 4095.5f);
+				uint fragment_unnamed_330 = uint(clamp(mad(mad(fragment_unnamed_293, fragment_unnamed_309, ((fragment_unnamed_309 * fragment_unnamed_293) >= 0.0f) ? fragment_unnamed_314 : fragment_unnamed_317), 0.5f, 0.5f), 0.0f, 1.0f) * 4095.5f);
+				fragment_output_1.x = float(fragment_unnamed_329 & 255u) * 0.0039215688593685626983642578125f;
+				fragment_output_1.y = float(fragment_unnamed_330 & 255u) * 0.0039215688593685626983642578125f;
+				fragment_output_1.z = float(((fragment_unnamed_330 >> 8u) * 16u) + (fragment_unnamed_329 >> 8u)) * 0.0039215688593685626983642578125f;
+				fragment_output_1.w = ((-0.0f) - mad(_SmoothnessMask.SampleBias(sampler_SmoothnessMask, float2(mad(fragment_input_4.x, fragment_uniform_buffer_2[9u].x, fragment_uniform_buffer_2[9u].z) * fragment_unnamed_221, mad(fragment_input_4.y, fragment_uniform_buffer_2[9u].y, fragment_uniform_buffer_2[9u].w) * fragment_unnamed_222), fragment_uniform_buffer_0[86u].y).x, ((-0.0f) - fragment_uniform_buffer_2[10u].x) + fragment_uniform_buffer_2[10u].y, fragment_uniform_buffer_2[10u].x)) + 1.0f;
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[50] = float4(_ScreenSize[0], _ScreenSize[1], _ScreenSize[2], _ScreenSize[3]);
 
+				fragment_uniform_buffer_0[86] = float4(fragment_uniform_buffer_0[86][0], _GlobalMipBias, fragment_uniform_buffer_0[86][2], fragment_uniform_buffer_0[86][3]);
 
+				fragment_uniform_buffer_1[9] = float4(unity_WorldTransformParams[0], unity_WorldTransformParams[1], unity_WorldTransformParams[2], unity_WorldTransformParams[3]);
+
+				fragment_uniform_buffer_1[38] = float4(unity_MotionVectorsParams[0], unity_MotionVectorsParams[1], unity_MotionVectorsParams[2], unity_MotionVectorsParams[3]);
+
+				fragment_uniform_buffer_2[3] = float4(_uvBaseST[0], _uvBaseST[1], _uvBaseST[2], _uvBaseST[3]);
+
+				fragment_uniform_buffer_2[5] = float4(_NormalScale, fragment_uniform_buffer_2[5][1], fragment_uniform_buffer_2[5][2], fragment_uniform_buffer_2[5][3]);
+
+				fragment_uniform_buffer_2[9] = float4(_uvSmoothnessST[0], _uvSmoothnessST[1], _uvSmoothnessST[2], _uvSmoothnessST[3]);
+
+				fragment_uniform_buffer_2[10] = float4(_SmoothnessMin, fragment_uniform_buffer_2[10][1], fragment_uniform_buffer_2[10][2], fragment_uniform_buffer_2[10][3]);
+
+				fragment_uniform_buffer_2[10] = float4(fragment_uniform_buffer_2[10][0], _SmoothnessMax, fragment_uniform_buffer_2[10][2], fragment_uniform_buffer_2[10][3]);
+
+				fragment_input_0 = stage_input.fragment_input_0;
+				fragment_input_1 = stage_input.fragment_input_1;
+				fragment_input_3 = stage_input.fragment_input_3;
+				fragment_input_4 = stage_input.fragment_input_4;
+				fragment_input_5 = stage_input.fragment_input_5;
+				fragment_input_6 = stage_input.fragment_input_6;
+				fragment_input_7 = stage_input.fragment_input_7;
+				fragment_input_8 = stage_input.fragment_input_8;
+				fragment_input_9 = stage_input.fragment_input_9;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				stage_output.fragment_output_1 = fragment_output_1;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -1765,8 +2165,8 @@ Shader "HDRP/HairFadeable"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -1898,6 +2298,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_7 = vertex_output_7;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -2002,11 +2405,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
-
-
-			#if defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -2138,6 +2539,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_7 = vertex_output_7;
 				return stage_output;
 			}
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _ProjectionParams;
@@ -2319,11 +2723,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
-
-
-			#if defined(WRITE_DECAL_BUFFER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float _GlobalMipBias;
 			float4 unity_RenderingLayer;
@@ -2497,11 +2899,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON)
-
-
-			#if defined(WRITE_DECAL_BUFFER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ProjectionParams;
 			float4 _ScreenParams;
@@ -2752,41 +3152,256 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER) && defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 vertex_uniform_buffer_0[49];
+			static float4 vertex_uniform_buffer_1[8];
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_input_5;
+			static float4 vertex_input_6;
+			static float4 vertex_output_1;
+			static float4 vertex_output_2;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
+			static float4 vertex_output_5;
+			static float3 vertex_output_6;
+			static float3 vertex_output_7;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD0; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float4 vertex_input_5 : TEXCOORD2; // TEXCOORD_2
+				float4 vertex_input_6 : TEXCOORD3; // TEXCOORD_3
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 vertex_output_1 : INTERP; // INTERP
+				float4 vertex_output_2 : INTERP1; // INTERP_1
+				float4 vertex_output_3 : INTERP2; // INTERP_2
+				float4 vertex_output_4 : INTERP3; // INTERP_3
+				float4 vertex_output_5 : INTERP4; // INTERP_4
+				float3 vertex_output_6 : INTERP5; // INTERP_5
+				float3 vertex_output_7 : INTERP6; // INTERP_6
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				float vertex_unnamed_84 = asfloat(1065353216u);
+				float vertex_unnamed_86 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				float vertex_unnamed_115 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				float vertex_unnamed_145 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				vertex_output_6.x = vertex_unnamed_115;
+				vertex_output_6.y = vertex_unnamed_86;
+				vertex_output_6.z = vertex_unnamed_145;
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+				float vertex_unnamed_205 = mad(vertex_uniform_buffer_1[2u].x, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].x, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].x));
+				float vertex_unnamed_206 = mad(vertex_uniform_buffer_1[2u].y, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].y, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].y));
+				float vertex_unnamed_207 = mad(vertex_uniform_buffer_1[2u].z, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].z, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].z));
+				float vertex_unnamed_213 = rsqrt(max(dot(float3(vertex_unnamed_205, vertex_unnamed_206, vertex_unnamed_207), float3(vertex_unnamed_205, vertex_unnamed_206, vertex_unnamed_207)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_1.x = vertex_unnamed_213 * vertex_unnamed_205;
+				vertex_output_1.y = vertex_unnamed_213 * vertex_unnamed_206;
+				vertex_output_1.z = vertex_unnamed_213 * vertex_unnamed_207;
+				vertex_output_1.w = vertex_input_2.w;
+				vertex_output_2.x = vertex_input_3.x;
+				vertex_output_2.y = vertex_input_3.y;
+				vertex_output_2.z = vertex_input_3.z;
+				vertex_output_2.w = vertex_input_3.w;
+				vertex_output_3.x = vertex_input_4.x;
+				vertex_output_3.y = vertex_input_4.y;
+				vertex_output_3.z = vertex_input_4.z;
+				vertex_output_3.w = vertex_input_4.w;
+				vertex_output_4.x = vertex_input_5.x;
+				vertex_output_4.y = vertex_input_5.y;
+				vertex_output_4.z = vertex_input_5.z;
+				vertex_output_4.w = vertex_input_5.w;
+				vertex_output_5.x = vertex_input_6.x;
+				vertex_output_5.y = vertex_input_6.y;
+				vertex_output_5.z = vertex_input_6.z;
+				vertex_output_5.w = vertex_input_6.w;
+				float vertex_unnamed_283 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[4u].xyz));
+				float vertex_unnamed_298 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[5u].xyz));
+				float vertex_unnamed_313 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[6u].xyz));
+				float vertex_unnamed_320 = rsqrt(max(dot(float3(vertex_unnamed_283, vertex_unnamed_298, vertex_unnamed_313), float3(vertex_unnamed_283, vertex_unnamed_298, vertex_unnamed_313)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_7.x = vertex_unnamed_320 * vertex_unnamed_283;
+				vertex_output_7.y = vertex_unnamed_320 * vertex_unnamed_298;
+				vertex_output_7.z = vertex_unnamed_320 * vertex_unnamed_313;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vertex_input_6 = stage_input.vertex_input_6;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				stage_output.vertex_output_5 = vertex_output_5;
+				stage_output.vertex_output_6 = vertex_output_6;
+				stage_output.vertex_output_7 = vertex_output_7;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _GlobalMipBias;
+			float4 unity_WorldTransformParams;
+			float4 _uvBaseST;
+			float _NormalScale;
+			float4 _uvSmoothnessST;
+			float _SmoothnessMin;
+			float _SmoothnessMax;
+
+			static float4 fragment_uniform_buffer_0[87];
+			static float4 fragment_uniform_buffer_1[10];
+			static float4 fragment_uniform_buffer_2[11];
+			Texture2D<float4> _NormalMap;
+			Texture2D<float4> _SmoothnessMask;
+			SamplerState sampler_NormalMap;
+			SamplerState sampler_SmoothnessMask;
+
+			static float4 fragment_input_1;
+			static float4 fragment_input_2;
+			static float4 fragment_input_3;
+			static float4 fragment_input_4;
+			static float4 fragment_input_5;
+			static float3 fragment_input_6;
+			static float3 fragment_input_7;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float4 fragment_input_1 : INTERP; // INTERP
+				float4 fragment_input_2 : INTERP1; // INTERP_1
+				float4 fragment_input_3 : INTERP2; // INTERP_2
+				float4 fragment_input_4 : INTERP3; // INTERP_3
+				float4 fragment_input_5 : INTERP4; // INTERP_4
+				float3 fragment_input_6 : INTERP5; // INTERP_5
+				float3 fragment_input_7 : INTERP6; // INTERP_6
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float fragment_unnamed_68 = asfloat((fragment_uniform_buffer_1[9u].w >= 0.0f) ? 1065353216u : 3212836864u) * asfloat((0.0f < fragment_input_1.w) ? 1065353216u : 3212836864u);
+				float fragment_unnamed_127 = 1.0f / max(sqrt(dot(float3(fragment_input_7.x, fragment_input_7.y, fragment_input_7.z), float3(fragment_input_7.x, fragment_input_7.y, fragment_input_7.z))), 1.1754943508222875079687365372222e-38f);
+				float fragment_unnamed_144 = mad(fragment_input_2.x, fragment_uniform_buffer_2[3u].x, fragment_uniform_buffer_2[3u].z);
+				float fragment_unnamed_145 = mad(fragment_input_2.y, fragment_uniform_buffer_2[3u].y, fragment_uniform_buffer_2[3u].w);
+				float4 fragment_unnamed_152 = _NormalMap.SampleBias(sampler_NormalMap, float2(fragment_unnamed_144, fragment_unnamed_145), fragment_uniform_buffer_0[86u].y);
+				float fragment_unnamed_159 = mad(fragment_unnamed_152.x * fragment_unnamed_152.w, 2.0f, -1.0f);
+				float fragment_unnamed_162 = mad(fragment_unnamed_152.y, 2.0f, -1.0f);
+				float fragment_unnamed_167 = fragment_unnamed_159 * fragment_uniform_buffer_2[5u].x;
+				float fragment_unnamed_168 = fragment_unnamed_162 * fragment_uniform_buffer_2[5u].x;
+				float fragment_unnamed_207 = mad(clamp(fragment_uniform_buffer_2[5u].x, 0.0f, 1.0f), max(sqrt(((-0.0f) - min(dot(float2(fragment_unnamed_159, fragment_unnamed_162), float2(fragment_unnamed_159, fragment_unnamed_162)), 1.0f)) + 1.0f), 1.000000016862383526387164645044e-16f) + (-1.0f), 1.0f);
+				float fragment_unnamed_208 = mad(fragment_unnamed_207, fragment_unnamed_127 * fragment_input_7.x, mad(fragment_unnamed_167, fragment_unnamed_127 * fragment_input_1.x, (fragment_unnamed_127 * (fragment_unnamed_68 * mad(fragment_input_7.y, fragment_input_1.z, (-0.0f) - (fragment_input_1.y * fragment_input_7.z)))) * fragment_unnamed_168));
+				float fragment_unnamed_209 = mad(fragment_unnamed_207, fragment_unnamed_127 * fragment_input_7.y, mad(fragment_unnamed_167, fragment_unnamed_127 * fragment_input_1.y, (fragment_unnamed_127 * (fragment_unnamed_68 * mad(fragment_input_7.z, fragment_input_1.x, (-0.0f) - (fragment_input_1.z * fragment_input_7.x)))) * fragment_unnamed_168));
+				float fragment_unnamed_210 = mad(fragment_unnamed_207, fragment_unnamed_127 * fragment_input_7.z, mad(fragment_unnamed_167, fragment_unnamed_127 * fragment_input_1.z, (fragment_unnamed_127 * (fragment_unnamed_68 * mad(fragment_input_7.x, fragment_input_1.y, (-0.0f) - (fragment_input_1.x * fragment_input_7.y)))) * fragment_unnamed_168));
+				float fragment_unnamed_215 = rsqrt(max(dot(float3(fragment_unnamed_208, fragment_unnamed_209, fragment_unnamed_210), float3(fragment_unnamed_208, fragment_unnamed_209, fragment_unnamed_210)), 1.1754943508222875079687365372222e-38f));
+				float fragment_unnamed_216 = fragment_unnamed_215 * fragment_unnamed_208;
+				float fragment_unnamed_217 = fragment_unnamed_215 * fragment_unnamed_209;
+				float fragment_unnamed_218 = fragment_unnamed_215 * fragment_unnamed_210;
+				float fragment_unnamed_220 = max(abs(fragment_unnamed_218), 0.0009765625f);
+				float fragment_unnamed_224 = (fragment_unnamed_218 >= 0.0f) ? fragment_unnamed_220 : ((-0.0f) - fragment_unnamed_220);
+				float fragment_unnamed_233 = 1.0f / max(dot(float3(abs(fragment_unnamed_216), abs(fragment_unnamed_217), abs(fragment_unnamed_224)), 1.0f.xxx), 9.9999999747524270787835121154785e-07f);
+				float fragment_unnamed_238 = clamp((-0.0f) - (fragment_unnamed_233 * fragment_unnamed_224), 0.0f, 1.0f);
+				float fragment_unnamed_241 = (-0.0f) - fragment_unnamed_238;
+				uint fragment_unnamed_254 = uint(clamp(mad(mad(fragment_unnamed_216, fragment_unnamed_233, ((fragment_unnamed_233 * fragment_unnamed_216) >= 0.0f) ? fragment_unnamed_238 : fragment_unnamed_241), 0.5f, 0.5f), 0.0f, 1.0f) * 4095.5f);
+				uint fragment_unnamed_255 = uint(clamp(mad(mad(fragment_unnamed_217, fragment_unnamed_233, ((fragment_unnamed_233 * fragment_unnamed_217) >= 0.0f) ? fragment_unnamed_238 : fragment_unnamed_241), 0.5f, 0.5f), 0.0f, 1.0f) * 4095.5f);
+				fragment_output_0.x = float(fragment_unnamed_254 & 255u) * 0.0039215688593685626983642578125f;
+				fragment_output_0.y = float(fragment_unnamed_255 & 255u) * 0.0039215688593685626983642578125f;
+				fragment_output_0.z = float(((fragment_unnamed_255 >> 8u) * 16u) + (fragment_unnamed_254 >> 8u)) * 0.0039215688593685626983642578125f;
+				fragment_output_0.w = ((-0.0f) - mad(_SmoothnessMask.SampleBias(sampler_SmoothnessMask, float2(mad(fragment_input_2.x, fragment_uniform_buffer_2[9u].x, fragment_uniform_buffer_2[9u].z) * fragment_unnamed_144, mad(fragment_input_2.y, fragment_uniform_buffer_2[9u].y, fragment_uniform_buffer_2[9u].w) * fragment_unnamed_145), fragment_uniform_buffer_0[86u].y).x, ((-0.0f) - fragment_uniform_buffer_2[10u].x) + fragment_uniform_buffer_2[10u].y, fragment_uniform_buffer_2[10u].x)) + 1.0f;
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[86] = float4(fragment_uniform_buffer_0[86][0], _GlobalMipBias, fragment_uniform_buffer_0[86][2], fragment_uniform_buffer_0[86][3]);
 
+				fragment_uniform_buffer_1[9] = float4(unity_WorldTransformParams[0], unity_WorldTransformParams[1], unity_WorldTransformParams[2], unity_WorldTransformParams[3]);
 
+				fragment_uniform_buffer_2[3] = float4(_uvBaseST[0], _uvBaseST[1], _uvBaseST[2], _uvBaseST[3]);
+
+				fragment_uniform_buffer_2[5] = float4(_NormalScale, fragment_uniform_buffer_2[5][1], fragment_uniform_buffer_2[5][2], fragment_uniform_buffer_2[5][3]);
+
+				fragment_uniform_buffer_2[9] = float4(_uvSmoothnessST[0], _uvSmoothnessST[1], _uvSmoothnessST[2], _uvSmoothnessST[3]);
+
+				fragment_uniform_buffer_2[10] = float4(_SmoothnessMin, fragment_uniform_buffer_2[10][1], fragment_uniform_buffer_2[10][2], fragment_uniform_buffer_2[10][3]);
+
+				fragment_uniform_buffer_2[10] = float4(fragment_uniform_buffer_2[10][0], _SmoothnessMax, fragment_uniform_buffer_2[10][2], fragment_uniform_buffer_2[10][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				fragment_input_2 = stage_input.fragment_input_2;
+				fragment_input_3 = stage_input.fragment_input_3;
+				fragment_input_4 = stage_input.fragment_input_4;
+				fragment_input_5 = stage_input.fragment_input_5;
+				fragment_input_6 = stage_input.fragment_input_6;
+				fragment_input_7 = stage_input.fragment_input_7;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -2842,8 +3457,8 @@ Shader "HDRP/HairFadeable"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -2975,12 +3590,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_7 = vertex_output_7;
 				return stage_output;
 			}
-
-			#endif // !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-
-
-			#if defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -3112,12 +3724,9 @@ Shader "HDRP/HairFadeable"
 				stage_output.vertex_output_7 = vertex_output_7;
 				return stage_output;
 			}
-
-			#endif // defined(_ALPHATEST_ON) && defined(_DOUBLESIDED_ON) && !defined(AREA_SHADOW_MEDIUM) && !defined(DECALS_3RT) && !defined(DIRECTIONAL_SHADOW_MEDIUM) && !defined(PUNCTUAL_SHADOW_MEDIUM) && !defined(SCREEN_SPACE_SHADOWS_OFF) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-
-
-			#if defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_FPTL_LIGHTLIST)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_FPTL_LIGHTLIST)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float g_fClustBase;
 			float g_fNearPlane;
@@ -6051,11 +6660,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_FPTL_LIGHTLIST)
-
-
-			#if defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float g_fClustBase;
 			float g_fNearPlane;
@@ -9028,11 +9635,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_CLUSTERED_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(_DISABLE_SSR_TRANSPARENT) && !defined(USE_FPTL_LIGHTLIST)
-
-
-			#if defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			int _NumTileFtplX;
 			int _NumTileFtplY;
@@ -11830,11 +12435,9 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && defined(_ALPHATEST_ON) && defined(_DISABLE_SSR_TRANSPARENT) && defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST)
-
-
-			#if defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			int _NumTileFtplX;
 			int _NumTileFtplY;
@@ -14662,41 +15265,149 @@ Shader "HDRP/HairFadeable"
 				return stage_output;
 			}
 
-			#endif // defined(AREA_SHADOW_MEDIUM) && defined(DECALS_3RT) && defined(DIRECTIONAL_SHADOW_MEDIUM) && defined(PUNCTUAL_SHADOW_MEDIUM) && defined(SCREEN_SPACE_SHADOWS_OFF) && defined(USE_FPTL_LIGHTLIST) && !defined(_ALPHATEST_ON) && !defined(_DOUBLESIDED_ON) && !defined(USE_CLUSTERED_LIGHTLIST) && !defined(_DISABLE_SSR_TRANSPARENT)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 vertex_uniform_buffer_0[49];
+			static float4 vertex_uniform_buffer_1[8];
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_input_5;
+			static float4 vertex_input_6;
+			static float4 vertex_output_1;
+			static float4 vertex_output_2;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
+			static float4 vertex_output_5;
+			static float3 vertex_output_6;
+			static float3 vertex_output_7;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD0; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float4 vertex_input_5 : TEXCOORD2; // TEXCOORD_2
+				float4 vertex_input_6 : TEXCOORD3; // TEXCOORD_3
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 vertex_output_1 : INTERP; // INTERP
+				float4 vertex_output_2 : INTERP1; // INTERP_1
+				float4 vertex_output_3 : INTERP2; // INTERP_2
+				float4 vertex_output_4 : INTERP3; // INTERP_3
+				float4 vertex_output_5 : INTERP4; // INTERP_4
+				float3 vertex_output_6 : INTERP5; // INTERP_5
+				float3 vertex_output_7 : INTERP6; // INTERP_6
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				float vertex_unnamed_84 = asfloat(1065353216u);
+				float vertex_unnamed_86 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				float vertex_unnamed_115 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				float vertex_unnamed_145 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_input_0.x, vertex_input_0.y, vertex_input_0.z, vertex_unnamed_84));
+				vertex_output_6.x = vertex_unnamed_115;
+				vertex_output_6.y = vertex_unnamed_86;
+				vertex_output_6.z = vertex_unnamed_145;
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_145, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_115, vertex_unnamed_86 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+				float vertex_unnamed_205 = mad(vertex_uniform_buffer_1[2u].x, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].x, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].x));
+				float vertex_unnamed_206 = mad(vertex_uniform_buffer_1[2u].y, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].y, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].y));
+				float vertex_unnamed_207 = mad(vertex_uniform_buffer_1[2u].z, vertex_input_2.z, mad(vertex_uniform_buffer_1[0u].z, vertex_input_2.x, vertex_input_2.y * vertex_uniform_buffer_1[1u].z));
+				float vertex_unnamed_213 = rsqrt(max(dot(float3(vertex_unnamed_205, vertex_unnamed_206, vertex_unnamed_207), float3(vertex_unnamed_205, vertex_unnamed_206, vertex_unnamed_207)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_1.x = vertex_unnamed_213 * vertex_unnamed_205;
+				vertex_output_1.y = vertex_unnamed_213 * vertex_unnamed_206;
+				vertex_output_1.z = vertex_unnamed_213 * vertex_unnamed_207;
+				vertex_output_1.w = vertex_input_2.w;
+				vertex_output_2.x = vertex_input_3.x;
+				vertex_output_2.y = vertex_input_3.y;
+				vertex_output_2.z = vertex_input_3.z;
+				vertex_output_2.w = vertex_input_3.w;
+				vertex_output_3.x = vertex_input_4.x;
+				vertex_output_3.y = vertex_input_4.y;
+				vertex_output_3.z = vertex_input_4.z;
+				vertex_output_3.w = vertex_input_4.w;
+				vertex_output_4.x = vertex_input_5.x;
+				vertex_output_4.y = vertex_input_5.y;
+				vertex_output_4.z = vertex_input_5.z;
+				vertex_output_4.w = vertex_input_5.w;
+				vertex_output_5.x = vertex_input_6.x;
+				vertex_output_5.y = vertex_input_6.y;
+				vertex_output_5.z = vertex_input_6.z;
+				vertex_output_5.w = vertex_input_6.w;
+				float vertex_unnamed_283 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[4u].xyz));
+				float vertex_unnamed_298 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[5u].xyz));
+				float vertex_unnamed_313 = dot(float3(vertex_input_1.x, vertex_input_1.y, vertex_input_1.z), float3(vertex_uniform_buffer_1[6u].xyz));
+				float vertex_unnamed_320 = rsqrt(max(dot(float3(vertex_unnamed_283, vertex_unnamed_298, vertex_unnamed_313), float3(vertex_unnamed_283, vertex_unnamed_298, vertex_unnamed_313)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_7.x = vertex_unnamed_320 * vertex_unnamed_283;
+				vertex_output_7.y = vertex_unnamed_320 * vertex_unnamed_298;
+				vertex_output_7.z = vertex_unnamed_320 * vertex_unnamed_313;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vertex_input_6 = stage_input.vertex_input_6;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				stage_output.vertex_output_5 = vertex_output_5;
+				stage_output.vertex_output_6 = vertex_output_6;
+				stage_output.vertex_output_7 = vertex_output_7;
+				return stage_output;
 			}
+			#endif
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
-
-
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 	}

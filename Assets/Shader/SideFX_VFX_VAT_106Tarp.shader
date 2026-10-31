@@ -123,8 +123,8 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -271,22 +271,23 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.gl_Position = gl_Position;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			void frag_main()
 			{
 			}
 
-			void main()
+			void frag()
 			{
 				frag_main();
 			}
 
-			#endif // !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -433,57 +434,191 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.gl_Position = gl_Position;
 				return stage_output;
 			}
-
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			void frag_main()
 			{
 			}
 
-			void main()
+			void frag()
 			{
 				frag_main();
 			}
 
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4 _TimeParameters;
+			float4x4 unity_ObjectToWorld;
+			float _gameTimeAtFirstFrame;
+			float _B_interpolate;
+			float _B_autoPlayback;
+			float _displayFrame;
+			float _playbackSpeed;
+			float _houdiniFPS;
+			float _frameCount;
+			float _boundMaxX;
+			float _boundMaxY;
+			float _boundMaxZ;
+			float _boundMinX;
+			float _boundMinY;
+			float _boundMinZ;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
+			static float4 vertex_uniform_buffer_0[81];
+			static float4 vertex_uniform_buffer_1[4];
+			static float4 vertex_uniform_buffer_2[15];
+			Texture2D<float4> _posTexture;
+			SamplerState sampler_posTexture;
 
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD1; // TEXCOORD_1
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				float vertex_unnamed_73 = frac(((vertex_uniform_buffer_2[12u].y / (vertex_uniform_buffer_2[12u].z + (-0.00999999977648258209228515625f))) * (vertex_uniform_buffer_0[80u].x + ((-0.0f) - vertex_uniform_buffer_2[5u].x))) * vertex_uniform_buffer_2[12u].x) * vertex_uniform_buffer_2[12u].z;
+				bool vertex_unnamed_86 = 0.0f != vertex_uniform_buffer_2[6u].x;
+				float vertex_unnamed_91 = asfloat(vertex_unnamed_86 ? asuint(floor(vertex_unnamed_73) + 1.0f) : asuint(floor(vertex_uniform_buffer_2[6u].y)));
+				float vertex_unnamed_100 = frac(asfloat(vertex_unnamed_86 ? asuint(vertex_unnamed_73) : asuint(vertex_uniform_buffer_2[6u]).y));
+				float vertex_unnamed_104 = vertex_unnamed_91 / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_110 = (vertex_unnamed_91 + (-1.0f)) / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_114 = frac(abs(vertex_unnamed_104));
+				float vertex_unnamed_124 = 1.0f / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_144 = ((-0.0f) - mad(vertex_uniform_buffer_2[12u].w, -10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[12u].w * (-10.0f)))) + 1.0f;
+				float vertex_unnamed_145 = vertex_unnamed_144 * (((-0.0f) - vertex_input_3.y) + 1.0f);
+				float vertex_unnamed_165 = (((-0.0f) - mad((-0.0f) - vertex_uniform_buffer_2[14u].x, 10.0f, ceil(vertex_uniform_buffer_2[14u].x * 10.0f))) + 1.0f) * vertex_input_3.x;
+				float4 vertex_unnamed_168 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_165, ((-0.0f) - mad(vertex_unnamed_124 * (((vertex_unnamed_104 >= ((-0.0f) - vertex_unnamed_104)) ? vertex_unnamed_114 : ((-0.0f) - vertex_unnamed_114)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_144, vertex_unnamed_145)) + 1.0f), 0.0f);
+				float vertex_unnamed_171 = vertex_unnamed_168.x;
+				float vertex_unnamed_172 = vertex_unnamed_168.y;
+				float vertex_unnamed_173 = vertex_unnamed_168.z;
+				float vertex_unnamed_178 = asfloat(asuint(vertex_uniform_buffer_2[14u]).x);
+				uint4 vertex_unnamed_182 = asuint(vertex_uniform_buffer_2[13u]);
+				float vertex_unnamed_184 = asfloat(vertex_unnamed_182.z);
+				float vertex_unnamed_186 = asfloat(vertex_unnamed_182.w);
+				float vertex_unnamed_191 = ((-0.0f) - vertex_unnamed_184) + vertex_uniform_buffer_2[12u].w;
+				float vertex_unnamed_198 = ((-0.0f) - vertex_unnamed_186) + vertex_uniform_buffer_2[13u].x;
+				float vertex_unnamed_199 = ((-0.0f) - vertex_unnamed_178) + vertex_uniform_buffer_2[13u].y;
+				bool vertex_unnamed_213 = mad(vertex_uniform_buffer_2[13u].y, 10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[13u].y * 10.0f)) >= 0.5f;
+				float vertex_unnamed_230 = frac(abs(vertex_unnamed_110));
+				float4 vertex_unnamed_241 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_165, ((-0.0f) - mad(vertex_unnamed_124 * (((vertex_unnamed_110 >= ((-0.0f) - vertex_unnamed_110)) ? vertex_unnamed_230 : ((-0.0f) - vertex_unnamed_230)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_144, vertex_unnamed_145)) + 1.0f), 0.0f);
+				float vertex_unnamed_243 = vertex_unnamed_241.x;
+				float vertex_unnamed_244 = vertex_unnamed_241.y;
+				float vertex_unnamed_245 = vertex_unnamed_241.z;
+				uint vertex_unnamed_255 = vertex_unnamed_213 ? asuint(vertex_unnamed_243) : asuint(mad(vertex_unnamed_243, vertex_unnamed_191, vertex_unnamed_184));
+				float vertex_unnamed_256 = asfloat(vertex_unnamed_255);
+				uint vertex_unnamed_257 = vertex_unnamed_213 ? asuint(vertex_unnamed_244) : asuint(mad(vertex_unnamed_244, vertex_unnamed_198, vertex_unnamed_186));
+				float vertex_unnamed_258 = asfloat(vertex_unnamed_257);
+				uint vertex_unnamed_259 = vertex_unnamed_213 ? asuint(vertex_unnamed_245) : asuint(mad(vertex_unnamed_245, vertex_unnamed_199, vertex_unnamed_178));
+				float vertex_unnamed_260 = asfloat(vertex_unnamed_259);
+				bool vertex_unnamed_273 = 0.0f != vertex_uniform_buffer_2[5u].y;
+				bool vertex_unnamed_295 = 0.100000001490116119384765625f >= vertex_input_3.y;
+				float vertex_unnamed_301 = asfloat(vertex_unnamed_295 ? 0u : asuint(asfloat(vertex_unnamed_273 ? asuint(mad(vertex_unnamed_100, ((-0.0f) - vertex_unnamed_256) + asfloat(vertex_unnamed_213 ? asuint(vertex_unnamed_171) : asuint(mad(vertex_unnamed_171, vertex_unnamed_191, vertex_unnamed_184))), vertex_unnamed_256)) : vertex_unnamed_255) + vertex_input_0.x));
+				float vertex_unnamed_303 = asfloat(vertex_unnamed_295 ? 0u : asuint(asfloat(vertex_unnamed_273 ? asuint(mad(vertex_unnamed_100, ((-0.0f) - vertex_unnamed_258) + asfloat(vertex_unnamed_213 ? asuint(vertex_unnamed_172) : asuint(mad(vertex_unnamed_172, vertex_unnamed_198, vertex_unnamed_186))), vertex_unnamed_258)) : vertex_unnamed_257) + vertex_input_0.y));
+				float vertex_unnamed_305 = asfloat(vertex_unnamed_295 ? 0u : asuint(asfloat(vertex_unnamed_273 ? asuint(mad(vertex_unnamed_100, ((-0.0f) - vertex_unnamed_260) + asfloat(vertex_unnamed_213 ? asuint(vertex_unnamed_173) : asuint(mad(vertex_unnamed_173, vertex_unnamed_199, vertex_unnamed_178))), vertex_unnamed_260)) : vertex_unnamed_259) + vertex_input_0.z));
+				float vertex_unnamed_339 = asfloat(1065353216u);
+				float vertex_unnamed_341 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_unnamed_301, vertex_unnamed_303, vertex_unnamed_305, vertex_unnamed_339));
+				float vertex_unnamed_370 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_unnamed_301, vertex_unnamed_303, vertex_unnamed_305, vertex_unnamed_339));
+				float vertex_unnamed_399 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_unnamed_301, vertex_unnamed_303, vertex_unnamed_305, vertex_unnamed_339));
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_399, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_370, vertex_unnamed_341 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_399, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_370, vertex_unnamed_341 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_399, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_370, vertex_unnamed_341 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_399, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_370, vertex_unnamed_341 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_0[80] = float4(_TimeParameters[0], _TimeParameters[1], _TimeParameters[2], _TimeParameters[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_2[5] = float4(_gameTimeAtFirstFrame, vertex_uniform_buffer_2[5][1], vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[5] = float4(vertex_uniform_buffer_2[5][0], _B_interpolate, vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[6] = float4(_B_autoPlayback, vertex_uniform_buffer_2[6][1], vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], _displayFrame, vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[12] = float4(_playbackSpeed, vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], _houdiniFPS, vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], _frameCount, vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], _boundMaxX);
+
+				vertex_uniform_buffer_2[13] = float4(_boundMaxY, vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], _boundMaxZ, vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], _boundMinX, vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], _boundMinY);
+
+				vertex_uniform_buffer_2[14] = float4(_boundMinZ, vertex_uniform_buffer_2[14][1], vertex_uniform_buffer_2[14][2], vertex_uniform_buffer_2[14][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			void frag_main()
+			{
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			void frag()
+			{
+				frag_main();
+			}
 
+			#endif
 
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -524,8 +659,8 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4x4 _NonJitteredViewProjMatrix;
@@ -860,6 +995,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _ScreenSize;
@@ -919,11 +1057,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4x4 _NonJitteredViewProjMatrix;
@@ -1258,12 +1394,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
-
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ScreenSize;
 			float4 unity_RenderingLayer;
@@ -1401,11 +1534,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-
-
-			#if defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ScreenSize;
 			float4 unity_RenderingLayer;
@@ -1535,11 +1666,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 _ScreenSize;
 			float4 unity_MotionVectorsParams;
@@ -1598,41 +1727,414 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4x4 _NonJitteredViewProjMatrix;
+			float4x4 _PrevViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4 _TimeParameters;
+			float4 _LastTimeParameters;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
+			float4x4 unity_MatrixPreviousM;
+			float4 unity_MotionVectorsParams;
+			float _gameTimeAtFirstFrame;
+			float _B_interpolate;
+			float _B_autoPlayback;
+			float _displayFrame;
+			float _B_surfaceNormals;
+			float _playbackSpeed;
+			float _houdiniFPS;
+			float _frameCount;
+			float _boundMaxX;
+			float _boundMaxY;
+			float _boundMaxZ;
+			float _boundMinX;
+			float _boundMinY;
+			float _boundMinZ;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
+			static float4 vertex_uniform_buffer_0[82];
+			static float4 vertex_uniform_buffer_1[39];
+			static float4 vertex_uniform_buffer_2[15];
+			Texture2D<float4> _posTexture;
+			Texture2D<float4> _rotTexture;
+			SamplerState sampler_posTexture;
+			SamplerState sampler_rotTexture;
 
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float3 vertex_input_5;
+			static float3 vertex_output_0;
+			static float3 vertex_output_1;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
+			static float3 vertex_output_5;
+			static float3 vertex_output_6;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float3 vertex_input_5 : TEXCOORD4; // TEXCOORD_4
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float3 vertex_output_0 : TEXCOORD8; // TEXCOORD_8
+				float3 vertex_output_1 : TEXCOORD9; // TEXCOORD_9
+				float4 vertex_output_3 : INTERP; // INTERP
+				float4 vertex_output_4 : INTERP1; // INTERP_1
+				float3 vertex_output_5 : INTERP2; // INTERP_2
+				float3 vertex_output_6 : INTERP3; // INTERP_3
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				bool vertex_unnamed_58 = 0.100000001490116119384765625f >= vertex_input_4.y;
+				bool vertex_unnamed_76 = mad(vertex_uniform_buffer_2[13u].y, 10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[13u].y * 10.0f)) >= 0.5f;
+				float vertex_unnamed_94 = (((-0.0f) - mad((-0.0f) - vertex_uniform_buffer_2[14u].x, 10.0f, ceil(vertex_uniform_buffer_2[14u].x * 10.0f))) + 1.0f) * vertex_input_4.x;
+				float vertex_unnamed_112 = ((-0.0f) - mad(vertex_uniform_buffer_2[12u].w, -10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[12u].w * (-10.0f)))) + 1.0f;
+				float vertex_unnamed_113 = vertex_unnamed_112 * (((-0.0f) - vertex_input_4.y) + 1.0f);
+				float vertex_unnamed_132 = vertex_uniform_buffer_2[12u].y / (vertex_uniform_buffer_2[12u].z + (-0.00999999977648258209228515625f));
+				float vertex_unnamed_142 = frac((vertex_unnamed_132 * (vertex_uniform_buffer_0[80u].x + ((-0.0f) - vertex_uniform_buffer_2[5u].x))) * vertex_uniform_buffer_2[12u].x) * vertex_uniform_buffer_2[12u].z;
+				uint vertex_unnamed_150 = asuint(floor(vertex_uniform_buffer_2[6u].y));
+				bool vertex_unnamed_155 = 0.0f != vertex_uniform_buffer_2[6u].x;
+				uint vertex_unnamed_159 = (0.0f != vertex_uniform_buffer_2[6u].z) ? 4294967295u : 0u;
+				float vertex_unnamed_162 = asfloat(vertex_unnamed_155 ? asuint(floor(vertex_unnamed_142) + 1.0f) : vertex_unnamed_150);
+				float vertex_unnamed_168 = (vertex_unnamed_162 + (-1.0f)) / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_172 = frac(abs(vertex_unnamed_168));
+				float vertex_unnamed_182 = 1.0f / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_186 = ((-0.0f) - mad(vertex_unnamed_182 * (((vertex_unnamed_168 >= ((-0.0f) - vertex_unnamed_168)) ? vertex_unnamed_172 : ((-0.0f) - vertex_unnamed_172)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_112, vertex_unnamed_113)) + 1.0f;
+				float4 vertex_unnamed_189 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_94, vertex_unnamed_186), 0.0f);
+				float vertex_unnamed_192 = vertex_unnamed_189.x;
+				float vertex_unnamed_193 = vertex_unnamed_189.y;
+				float vertex_unnamed_194 = vertex_unnamed_189.z;
+				uint4 vertex_unnamed_198 = asuint(vertex_uniform_buffer_2[13u]);
+				float vertex_unnamed_200 = asfloat(vertex_unnamed_198.z);
+				float vertex_unnamed_202 = asfloat(vertex_unnamed_198.w);
+				float vertex_unnamed_207 = asfloat(asuint(vertex_uniform_buffer_2[14u]).x);
+				float vertex_unnamed_212 = ((-0.0f) - vertex_unnamed_200) + vertex_uniform_buffer_2[12u].w;
+				float vertex_unnamed_219 = ((-0.0f) - vertex_unnamed_202) + vertex_uniform_buffer_2[13u].x;
+				float vertex_unnamed_220 = ((-0.0f) - vertex_unnamed_207) + vertex_uniform_buffer_2[13u].y;
+				uint vertex_unnamed_230 = vertex_unnamed_76 ? asuint(vertex_unnamed_192) : asuint(mad(vertex_unnamed_192, vertex_unnamed_212, vertex_unnamed_200));
+				float vertex_unnamed_231 = asfloat(vertex_unnamed_230);
+				uint vertex_unnamed_232 = vertex_unnamed_76 ? asuint(vertex_unnamed_193) : asuint(mad(vertex_unnamed_193, vertex_unnamed_219, vertex_unnamed_202));
+				float vertex_unnamed_233 = asfloat(vertex_unnamed_232);
+				uint vertex_unnamed_234 = vertex_unnamed_76 ? asuint(vertex_unnamed_194) : asuint(mad(vertex_unnamed_194, vertex_unnamed_220, vertex_unnamed_207));
+				float vertex_unnamed_235 = asfloat(vertex_unnamed_234);
+				float vertex_unnamed_239 = vertex_unnamed_162 / vertex_uniform_buffer_2[12u].z;
+				float vertex_unnamed_243 = frac(abs(vertex_unnamed_239));
+				float vertex_unnamed_253 = ((-0.0f) - mad(vertex_unnamed_182 * (((vertex_unnamed_239 >= ((-0.0f) - vertex_unnamed_239)) ? vertex_unnamed_243 : ((-0.0f) - vertex_unnamed_243)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_112, vertex_unnamed_113)) + 1.0f;
+				float4 vertex_unnamed_254 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_94, vertex_unnamed_253), 0.0f);
+				float vertex_unnamed_256 = vertex_unnamed_254.x;
+				float vertex_unnamed_257 = vertex_unnamed_254.y;
+				float vertex_unnamed_258 = vertex_unnamed_254.z;
+				float vertex_unnamed_281 = frac(asfloat(vertex_unnamed_155 ? asuint(vertex_unnamed_142) : asuint(vertex_uniform_buffer_2[6u]).y));
+				bool vertex_unnamed_294 = 0.0f != vertex_uniform_buffer_2[5u].y;
+				float vertex_unnamed_318 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_231) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_256) : asuint(mad(vertex_unnamed_256, vertex_unnamed_212, vertex_unnamed_200))), vertex_unnamed_231)) : vertex_unnamed_230) + vertex_input_0.x));
+				float vertex_unnamed_320 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_233) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_257) : asuint(mad(vertex_unnamed_257, vertex_unnamed_219, vertex_unnamed_202))), vertex_unnamed_233)) : vertex_unnamed_232) + vertex_input_0.y));
+				float vertex_unnamed_322 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_235) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_258) : asuint(mad(vertex_unnamed_258, vertex_unnamed_220, vertex_unnamed_207))), vertex_unnamed_235)) : vertex_unnamed_234) + vertex_input_0.z));
+				float4 vertex_unnamed_324 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_94, vertex_unnamed_186), 0.0f);
+				float vertex_unnamed_326 = vertex_unnamed_324.x;
+				float vertex_unnamed_327 = vertex_unnamed_324.y;
+				float vertex_unnamed_328 = vertex_unnamed_324.z;
+				float vertex_unnamed_329 = vertex_unnamed_324.w;
+				float vertex_unnamed_330 = vertex_unnamed_326 + (-0.5f);
+				float vertex_unnamed_332 = vertex_unnamed_327 + (-0.5f);
+				float vertex_unnamed_333 = vertex_unnamed_328 + (-0.5f);
+				float vertex_unnamed_334 = vertex_unnamed_329 + (-0.5f);
+				float vertex_unnamed_348 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_326) : asuint(vertex_unnamed_330 + vertex_unnamed_330));
+				float vertex_unnamed_350 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_327) : asuint(vertex_unnamed_332 + vertex_unnamed_332));
+				float vertex_unnamed_352 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_328) : asuint(vertex_unnamed_333 + vertex_unnamed_333));
+				float vertex_unnamed_354 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_329) : asuint(vertex_unnamed_334 + vertex_unnamed_334));
+				float vertex_unnamed_364 = mad(vertex_unnamed_354, 1.0f, mad(vertex_unnamed_352, 0.0f, (-0.0f) - (vertex_unnamed_348 * 0.0f)));
+				float vertex_unnamed_365 = mad(vertex_unnamed_354, 0.0f, mad(vertex_unnamed_348, 1.0f, (-0.0f) - (vertex_unnamed_350 * 0.0f)));
+				float vertex_unnamed_366 = mad(vertex_unnamed_354, 0.0f, mad(vertex_unnamed_350, 0.0f, (-0.0f) - (vertex_unnamed_352 * 1.0f)));
+				float vertex_unnamed_376 = mad(mad(vertex_unnamed_350, vertex_unnamed_365, (-0.0f) - (vertex_unnamed_352 * vertex_unnamed_364)), 2.0f, 0.0f);
+				float vertex_unnamed_378 = mad(mad(vertex_unnamed_352, vertex_unnamed_366, (-0.0f) - (vertex_unnamed_348 * vertex_unnamed_365)), 2.0f, 1.0f);
+				float vertex_unnamed_379 = mad(mad(vertex_unnamed_348, vertex_unnamed_364, (-0.0f) - (vertex_unnamed_350 * vertex_unnamed_366)), 2.0f, 0.0f);
+				float4 vertex_unnamed_380 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_94, vertex_unnamed_253), 0.0f);
+				float vertex_unnamed_382 = vertex_unnamed_380.x;
+				float vertex_unnamed_383 = vertex_unnamed_380.y;
+				float vertex_unnamed_384 = vertex_unnamed_380.z;
+				float vertex_unnamed_385 = vertex_unnamed_380.w;
+				float vertex_unnamed_386 = vertex_unnamed_382 + (-0.5f);
+				float vertex_unnamed_387 = vertex_unnamed_383 + (-0.5f);
+				float vertex_unnamed_388 = vertex_unnamed_384 + (-0.5f);
+				float vertex_unnamed_389 = vertex_unnamed_385 + (-0.5f);
+				float vertex_unnamed_403 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_382) : asuint(vertex_unnamed_386 + vertex_unnamed_386));
+				float vertex_unnamed_405 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_383) : asuint(vertex_unnamed_387 + vertex_unnamed_387));
+				float vertex_unnamed_407 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_384) : asuint(vertex_unnamed_388 + vertex_unnamed_388));
+				float vertex_unnamed_409 = asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_385) : asuint(vertex_unnamed_389 + vertex_unnamed_389));
+				float vertex_unnamed_419 = mad(vertex_unnamed_409, 1.0f, mad(vertex_unnamed_407, 0.0f, (-0.0f) - (vertex_unnamed_403 * 0.0f)));
+				float vertex_unnamed_420 = mad(vertex_unnamed_409, 0.0f, mad(vertex_unnamed_403, 1.0f, (-0.0f) - (vertex_unnamed_405 * 0.0f)));
+				float vertex_unnamed_421 = mad(vertex_unnamed_409, 0.0f, mad(vertex_unnamed_405, 0.0f, (-0.0f) - (vertex_unnamed_407 * 1.0f)));
+				float vertex_unnamed_450 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_376) + mad(mad(vertex_unnamed_405, vertex_unnamed_420, (-0.0f) - (vertex_unnamed_407 * vertex_unnamed_419)), 2.0f, 0.0f), vertex_unnamed_376)) : asuint(vertex_unnamed_376));
+				float vertex_unnamed_452 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_378) + mad(mad(vertex_unnamed_407, vertex_unnamed_421, (-0.0f) - (vertex_unnamed_403 * vertex_unnamed_420)), 2.0f, 1.0f), vertex_unnamed_378)) : asuint(vertex_unnamed_378));
+				float vertex_unnamed_454 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_379) + mad(mad(vertex_unnamed_403, vertex_unnamed_419, (-0.0f) - (vertex_unnamed_405 * vertex_unnamed_421)), 2.0f, 0.0f), vertex_unnamed_379)) : asuint(vertex_unnamed_379));
+				float vertex_unnamed_458 = rsqrt(dot(float3(vertex_unnamed_450, vertex_unnamed_452, vertex_unnamed_454), float3(vertex_unnamed_450, vertex_unnamed_452, vertex_unnamed_454)));
+				float vertex_unnamed_459 = vertex_unnamed_458 * vertex_unnamed_450;
+				float vertex_unnamed_460 = vertex_unnamed_458 * vertex_unnamed_452;
+				float vertex_unnamed_461 = vertex_unnamed_458 * vertex_unnamed_454;
+				float vertex_unnamed_471 = mad(vertex_unnamed_354, 0.0f, mad(vertex_unnamed_352, -1.0f, (-0.0f) - (vertex_unnamed_348 * 0.0f)));
+				float vertex_unnamed_472 = mad(vertex_unnamed_354, 0.0f, mad(vertex_unnamed_348, 0.0f, (-0.0f) - (vertex_unnamed_350 * (-1.0f))));
+				float vertex_unnamed_473 = mad(vertex_unnamed_354, -1.0f, mad(vertex_unnamed_350, 0.0f, (-0.0f) - (vertex_unnamed_352 * 0.0f)));
+				float vertex_unnamed_483 = mad(mad(vertex_unnamed_350, vertex_unnamed_472, (-0.0f) - (vertex_unnamed_352 * vertex_unnamed_471)), 2.0f, -1.0f);
+				float vertex_unnamed_484 = mad(mad(vertex_unnamed_352, vertex_unnamed_473, (-0.0f) - (vertex_unnamed_348 * vertex_unnamed_472)), 2.0f, 0.0f);
+				float vertex_unnamed_485 = mad(mad(vertex_unnamed_348, vertex_unnamed_471, (-0.0f) - (vertex_unnamed_350 * vertex_unnamed_473)), 2.0f, 0.0f);
+				float vertex_unnamed_495 = mad(vertex_unnamed_409, 0.0f, mad(vertex_unnamed_407, -1.0f, (-0.0f) - (vertex_unnamed_403 * 0.0f)));
+				float vertex_unnamed_496 = mad(vertex_unnamed_409, 0.0f, mad(vertex_unnamed_403, 0.0f, (-0.0f) - (vertex_unnamed_405 * (-1.0f))));
+				float vertex_unnamed_497 = mad(vertex_unnamed_409, -1.0f, mad(vertex_unnamed_405, 0.0f, (-0.0f) - (vertex_unnamed_407 * 0.0f)));
+				float vertex_unnamed_526 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_483) + mad(mad(vertex_unnamed_405, vertex_unnamed_496, (-0.0f) - (vertex_unnamed_407 * vertex_unnamed_495)), 2.0f, -1.0f), vertex_unnamed_483)) : asuint(vertex_unnamed_483));
+				float vertex_unnamed_528 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_484) + mad(mad(vertex_unnamed_407, vertex_unnamed_497, (-0.0f) - (vertex_unnamed_403 * vertex_unnamed_496)), 2.0f, 0.0f), vertex_unnamed_484)) : asuint(vertex_unnamed_484));
+				float vertex_unnamed_530 = asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_281, ((-0.0f) - vertex_unnamed_485) + mad(mad(vertex_unnamed_403, vertex_unnamed_495, (-0.0f) - (vertex_unnamed_405 * vertex_unnamed_497)), 2.0f, 0.0f), vertex_unnamed_485)) : asuint(vertex_unnamed_485));
+				float vertex_unnamed_534 = rsqrt(dot(float3(vertex_unnamed_526, vertex_unnamed_528, vertex_unnamed_530), float3(vertex_unnamed_526, vertex_unnamed_528, vertex_unnamed_530)));
+				float vertex_unnamed_542 = asfloat(vertex_unnamed_159 & asuint(vertex_unnamed_534 * vertex_unnamed_526));
+				float vertex_unnamed_544 = asfloat(vertex_unnamed_159 & asuint(vertex_unnamed_534 * vertex_unnamed_528));
+				float vertex_unnamed_546 = asfloat(vertex_unnamed_159 & asuint(vertex_unnamed_534 * vertex_unnamed_530));
+				float vertex_unnamed_580 = asfloat(1065353216u);
+				float vertex_unnamed_582 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_unnamed_318, vertex_unnamed_320, vertex_unnamed_322, vertex_unnamed_580));
+				float vertex_unnamed_600 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_unnamed_318, vertex_unnamed_320, vertex_unnamed_322, vertex_unnamed_580));
+				float vertex_unnamed_618 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_unnamed_318, vertex_unnamed_320, vertex_unnamed_322, vertex_unnamed_580));
+				float vertex_unnamed_627 = dot(float3(vertex_unnamed_459, vertex_unnamed_460, vertex_unnamed_461), float3(vertex_uniform_buffer_1[4u].xyz));
+				float vertex_unnamed_635 = dot(float3(vertex_unnamed_459, vertex_unnamed_460, vertex_unnamed_461), float3(vertex_uniform_buffer_1[5u].xyz));
+				float vertex_unnamed_643 = dot(float3(vertex_unnamed_459, vertex_unnamed_460, vertex_unnamed_461), float3(vertex_uniform_buffer_1[6u].xyz));
+				float vertex_unnamed_651 = rsqrt(max(dot(float3(vertex_unnamed_627, vertex_unnamed_635, vertex_unnamed_643), float3(vertex_unnamed_627, vertex_unnamed_635, vertex_unnamed_643)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_6.x = vertex_unnamed_651 * vertex_unnamed_627;
+				vertex_output_6.y = vertex_unnamed_651 * vertex_unnamed_635;
+				vertex_output_6.z = vertex_unnamed_651 * vertex_unnamed_643;
+				float vertex_unnamed_680 = mad(vertex_uniform_buffer_1[2u].x, vertex_unnamed_546, mad(vertex_uniform_buffer_1[0u].x, vertex_unnamed_542, vertex_unnamed_544 * vertex_uniform_buffer_1[1u].x));
+				float vertex_unnamed_681 = mad(vertex_uniform_buffer_1[2u].y, vertex_unnamed_546, mad(vertex_uniform_buffer_1[0u].y, vertex_unnamed_542, vertex_unnamed_544 * vertex_uniform_buffer_1[1u].y));
+				float vertex_unnamed_682 = mad(vertex_uniform_buffer_1[2u].z, vertex_unnamed_546, mad(vertex_uniform_buffer_1[0u].z, vertex_unnamed_542, vertex_unnamed_544 * vertex_uniform_buffer_1[1u].z));
+				float vertex_unnamed_687 = rsqrt(max(dot(float3(vertex_unnamed_680, vertex_unnamed_681, vertex_unnamed_682), float3(vertex_unnamed_680, vertex_unnamed_681, vertex_unnamed_682)), 1.1754943508222875079687365372222e-38f));
+				vertex_output_3.x = vertex_unnamed_687 * vertex_unnamed_680;
+				vertex_output_3.y = vertex_unnamed_687 * vertex_unnamed_681;
+				vertex_output_3.z = vertex_unnamed_687 * vertex_unnamed_682;
+				gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_618, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+				gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_618, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+				gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_618, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+				gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_618, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+				vertex_output_0.x = mad(vertex_uniform_buffer_0[34u].x, vertex_unnamed_618, mad(vertex_uniform_buffer_0[32u].x, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[33u].x)) + vertex_uniform_buffer_0[35u].x;
+				vertex_output_0.y = mad(vertex_uniform_buffer_0[34u].y, vertex_unnamed_618, mad(vertex_uniform_buffer_0[32u].y, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[33u].y)) + vertex_uniform_buffer_0[35u].y;
+				vertex_output_0.z = mad(vertex_uniform_buffer_0[34u].w, vertex_unnamed_618, mad(vertex_uniform_buffer_0[32u].w, vertex_unnamed_582, vertex_unnamed_600 * vertex_uniform_buffer_0[33u].w)) + vertex_uniform_buffer_0[35u].w;
+				if (vertex_uniform_buffer_1[38u].y == 0.0f)
+				{
+					vertex_output_1.x = 0.0f;
+					vertex_output_1.y = 0.0f;
+					vertex_output_1.z = 1.0f;
+				}
+				else
+				{
+					bool vertex_unnamed_792 = 0.0f < vertex_uniform_buffer_1[38u].x;
+					float vertex_unnamed_826 = frac((vertex_unnamed_132 * (vertex_uniform_buffer_0[81u].x + ((-0.0f) - vertex_uniform_buffer_2[5u].x))) * vertex_uniform_buffer_2[12u].x) * vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_831 = asfloat(vertex_unnamed_155 ? asuint(floor(vertex_unnamed_826) + 1.0f) : vertex_unnamed_150);
+					float vertex_unnamed_836 = (vertex_unnamed_831 + (-1.0f)) / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_840 = frac(abs(vertex_unnamed_836));
+					float4 vertex_unnamed_852 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_94, ((-0.0f) - mad(vertex_unnamed_182 * (((vertex_unnamed_836 >= ((-0.0f) - vertex_unnamed_836)) ? vertex_unnamed_840 : ((-0.0f) - vertex_unnamed_840)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_112, vertex_unnamed_113)) + 1.0f), 0.0f);
+					float vertex_unnamed_854 = vertex_unnamed_852.x;
+					float vertex_unnamed_855 = vertex_unnamed_852.y;
+					float vertex_unnamed_856 = vertex_unnamed_852.z;
+					uint vertex_unnamed_866 = vertex_unnamed_76 ? asuint(vertex_unnamed_854) : asuint(mad(vertex_unnamed_854, vertex_unnamed_212, vertex_unnamed_200));
+					float vertex_unnamed_867 = asfloat(vertex_unnamed_866);
+					uint vertex_unnamed_868 = vertex_unnamed_76 ? asuint(vertex_unnamed_855) : asuint(mad(vertex_unnamed_855, vertex_unnamed_219, vertex_unnamed_202));
+					float vertex_unnamed_869 = asfloat(vertex_unnamed_868);
+					uint vertex_unnamed_870 = vertex_unnamed_76 ? asuint(vertex_unnamed_856) : asuint(mad(vertex_unnamed_856, vertex_unnamed_220, vertex_unnamed_207));
+					float vertex_unnamed_871 = asfloat(vertex_unnamed_870);
+					float vertex_unnamed_875 = vertex_unnamed_831 / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_879 = frac(abs(vertex_unnamed_875));
+					float4 vertex_unnamed_890 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_94, ((-0.0f) - mad(vertex_unnamed_182 * (((vertex_unnamed_875 >= ((-0.0f) - vertex_unnamed_875)) ? vertex_unnamed_879 : ((-0.0f) - vertex_unnamed_879)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_112, vertex_unnamed_113)) + 1.0f), 0.0f);
+					float vertex_unnamed_892 = vertex_unnamed_890.x;
+					float vertex_unnamed_893 = vertex_unnamed_890.y;
+					float vertex_unnamed_894 = vertex_unnamed_890.z;
+					float vertex_unnamed_917 = frac(asfloat(vertex_unnamed_155 ? asuint(vertex_unnamed_826) : asuint(vertex_uniform_buffer_2[6u]).y));
+					float vertex_unnamed_943 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_917, ((-0.0f) - vertex_unnamed_867) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_892) : asuint(mad(vertex_unnamed_892, vertex_unnamed_212, vertex_unnamed_200))), vertex_unnamed_867)) : vertex_unnamed_866) + (vertex_unnamed_792 ? vertex_input_5.x : vertex_input_0.x)));
+					float vertex_unnamed_945 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_917, ((-0.0f) - vertex_unnamed_869) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_893) : asuint(mad(vertex_unnamed_893, vertex_unnamed_219, vertex_unnamed_202))), vertex_unnamed_869)) : vertex_unnamed_868) + (vertex_unnamed_792 ? vertex_input_5.y : vertex_input_0.y)));
+					float vertex_unnamed_947 = asfloat(vertex_unnamed_58 ? 0u : asuint(asfloat(vertex_unnamed_294 ? asuint(mad(vertex_unnamed_917, ((-0.0f) - vertex_unnamed_871) + asfloat(vertex_unnamed_76 ? asuint(vertex_unnamed_894) : asuint(mad(vertex_unnamed_894, vertex_unnamed_220, vertex_unnamed_207))), vertex_unnamed_871)) : vertex_unnamed_870) + (vertex_unnamed_792 ? vertex_input_5.z : vertex_input_0.z)));
+					float vertex_unnamed_981 = asfloat(1065353216u);
+					float vertex_unnamed_982 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).x), asfloat(asuint(vertex_uniform_buffer_1[31u]).x), asfloat(asuint(vertex_uniform_buffer_1[32u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[33u].x), float4(vertex_unnamed_943, vertex_unnamed_945, vertex_unnamed_947, vertex_unnamed_981));
+					float vertex_unnamed_1000 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).y), asfloat(asuint(vertex_uniform_buffer_1[31u]).y), asfloat(asuint(vertex_uniform_buffer_1[32u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[33u].y), float4(vertex_unnamed_943, vertex_unnamed_945, vertex_unnamed_947, vertex_unnamed_981));
+					float vertex_unnamed_1018 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[30u]).z), asfloat(asuint(vertex_uniform_buffer_1[31u]).z), asfloat(asuint(vertex_uniform_buffer_1[32u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[33u].z), float4(vertex_unnamed_943, vertex_unnamed_945, vertex_unnamed_947, vertex_unnamed_981));
+					vertex_output_1.x = mad(vertex_uniform_buffer_0[42u].x, vertex_unnamed_1018, mad(vertex_uniform_buffer_0[40u].x, vertex_unnamed_982, vertex_unnamed_1000 * vertex_uniform_buffer_0[41u].x)) + vertex_uniform_buffer_0[43u].x;
+					vertex_output_1.y = mad(vertex_uniform_buffer_0[42u].y, vertex_unnamed_1018, mad(vertex_uniform_buffer_0[40u].y, vertex_unnamed_982, vertex_unnamed_1000 * vertex_uniform_buffer_0[41u].y)) + vertex_uniform_buffer_0[43u].y;
+					vertex_output_1.z = mad(vertex_uniform_buffer_0[42u].w, vertex_unnamed_1018, mad(vertex_uniform_buffer_0[40u].w, vertex_unnamed_982, vertex_unnamed_1000 * vertex_uniform_buffer_0[41u].w)) + vertex_uniform_buffer_0[43u].w;
+				}
+				vertex_output_3.w = vertex_input_2.w;
+				vertex_output_4.x = vertex_input_3.x;
+				vertex_output_4.y = vertex_input_3.y;
+				vertex_output_4.z = vertex_input_3.z;
+				vertex_output_4.w = vertex_input_3.w;
+				vertex_output_5.x = vertex_unnamed_582;
+				vertex_output_5.y = vertex_unnamed_600;
+				vertex_output_5.z = vertex_unnamed_618;
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[32] = float4(_NonJitteredViewProjMatrix[0][0], _NonJitteredViewProjMatrix[1][0], _NonJitteredViewProjMatrix[2][0], _NonJitteredViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[33] = float4(_NonJitteredViewProjMatrix[0][1], _NonJitteredViewProjMatrix[1][1], _NonJitteredViewProjMatrix[2][1], _NonJitteredViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[34] = float4(_NonJitteredViewProjMatrix[0][2], _NonJitteredViewProjMatrix[1][2], _NonJitteredViewProjMatrix[2][2], _NonJitteredViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[35] = float4(_NonJitteredViewProjMatrix[0][3], _NonJitteredViewProjMatrix[1][3], _NonJitteredViewProjMatrix[2][3], _NonJitteredViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[40] = float4(_PrevViewProjMatrix[0][0], _PrevViewProjMatrix[1][0], _PrevViewProjMatrix[2][0], _PrevViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[41] = float4(_PrevViewProjMatrix[0][1], _PrevViewProjMatrix[1][1], _PrevViewProjMatrix[2][1], _PrevViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[42] = float4(_PrevViewProjMatrix[0][2], _PrevViewProjMatrix[1][2], _PrevViewProjMatrix[2][2], _PrevViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[43] = float4(_PrevViewProjMatrix[0][3], _PrevViewProjMatrix[1][3], _PrevViewProjMatrix[2][3], _PrevViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_0[80] = float4(_TimeParameters[0], _TimeParameters[1], _TimeParameters[2], _TimeParameters[3]);
+
+				vertex_uniform_buffer_0[81] = float4(_LastTimeParameters[0], _LastTimeParameters[1], _LastTimeParameters[2], _LastTimeParameters[3]);
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_uniform_buffer_1[30] = float4(unity_MatrixPreviousM[0][0], unity_MatrixPreviousM[1][0], unity_MatrixPreviousM[2][0], unity_MatrixPreviousM[3][0]);
+				vertex_uniform_buffer_1[31] = float4(unity_MatrixPreviousM[0][1], unity_MatrixPreviousM[1][1], unity_MatrixPreviousM[2][1], unity_MatrixPreviousM[3][1]);
+				vertex_uniform_buffer_1[32] = float4(unity_MatrixPreviousM[0][2], unity_MatrixPreviousM[1][2], unity_MatrixPreviousM[2][2], unity_MatrixPreviousM[3][2]);
+				vertex_uniform_buffer_1[33] = float4(unity_MatrixPreviousM[0][3], unity_MatrixPreviousM[1][3], unity_MatrixPreviousM[2][3], unity_MatrixPreviousM[3][3]);
+
+				vertex_uniform_buffer_1[38] = float4(unity_MotionVectorsParams[0], unity_MotionVectorsParams[1], unity_MotionVectorsParams[2], unity_MotionVectorsParams[3]);
+
+				vertex_uniform_buffer_2[5] = float4(_gameTimeAtFirstFrame, vertex_uniform_buffer_2[5][1], vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[5] = float4(vertex_uniform_buffer_2[5][0], _B_interpolate, vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[6] = float4(_B_autoPlayback, vertex_uniform_buffer_2[6][1], vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], _displayFrame, vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], vertex_uniform_buffer_2[6][1], _B_surfaceNormals, vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[12] = float4(_playbackSpeed, vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], _houdiniFPS, vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], _frameCount, vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], _boundMaxX);
+
+				vertex_uniform_buffer_2[13] = float4(_boundMaxY, vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], _boundMaxZ, vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], _boundMinX, vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], _boundMinY);
+
+				vertex_uniform_buffer_2[14] = float4(_boundMinZ, vertex_uniform_buffer_2[14][1], vertex_uniform_buffer_2[14][2], vertex_uniform_buffer_2[14][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_0 = vertex_output_0;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				stage_output.vertex_output_5 = vertex_output_5;
+				stage_output.vertex_output_6 = vertex_output_6;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float4 _ScreenSize;
+			float4 unity_MotionVectorsParams;
+
+			static float4 fragment_uniform_buffer_0[51];
+			static float4 fragment_uniform_buffer_1[39];
+			static float3 fragment_input_0;
+			static float3 fragment_input_1;
+			static float4 fragment_input_3;
+			static float4 fragment_input_4;
+			static float3 fragment_input_5;
+			static float3 fragment_input_6;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float3 fragment_input_0 : TEXCOORD8; // TEXCOORD_8
+				float3 fragment_input_1 : TEXCOORD9; // TEXCOORD_9
+				float4 fragment_input_3 : INTERP; // INTERP
+				float4 fragment_input_4 : INTERP1; // INTERP_1
+				float3 fragment_input_5 : INTERP2; // INTERP_2
+				float3 fragment_input_6 : INTERP3; // INTERP_3
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float fragment_unnamed_53 = ((-0.0f) - (fragment_input_1.x / fragment_input_1.z)) + (fragment_input_0.x / fragment_input_0.z);
+				float fragment_unnamed_54 = ((-0.0f) - (fragment_input_1.y / fragment_input_1.z)) + (fragment_input_0.y / fragment_input_0.z);
+				bool fragment_unnamed_104 = fragment_uniform_buffer_1[38u].y == 0.0f;
+				fragment_output_0.x = fragment_unnamed_104 ? 2.0f : (min(mad((-0.0f) - fragment_uniform_buffer_0[50u].z, 0.00999999977648258209228515625f, 2.0f), max(mad(fragment_uniform_buffer_0[50u].z, 0.00999999977648258209228515625f, -2.0f), asfloat((abs(fragment_unnamed_53) < (fragment_uniform_buffer_0[50u].z * 0.00999999977648258209228515625f)) ? 0u : asuint(fragment_unnamed_53)))) * 0.5f);
+				fragment_output_0.y = fragment_unnamed_104 ? 0.0f : (min(mad((-0.0f) - fragment_uniform_buffer_0[50u].w, 0.00999999977648258209228515625f, 2.0f), max(mad(fragment_uniform_buffer_0[50u].w, 0.00999999977648258209228515625f, -2.0f), asfloat((abs(fragment_unnamed_54) < (fragment_uniform_buffer_0[50u].w * 0.00999999977648258209228515625f)) ? 0u : asuint(fragment_unnamed_54)))) * (-0.5f));
+				fragment_output_0.z = 0.0f;
+				fragment_output_0.w = 0.0f;
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[50] = float4(_ScreenSize[0], _ScreenSize[1], _ScreenSize[2], _ScreenSize[3]);
 
+				fragment_uniform_buffer_1[38] = float4(unity_MotionVectorsParams[0], unity_MotionVectorsParams[1], unity_MotionVectorsParams[2], unity_MotionVectorsParams[3]);
 
+				fragment_input_0 = stage_input.fragment_input_0;
+				fragment_input_1 = stage_input.fragment_input_1;
+				fragment_input_3 = stage_input.fragment_input_3;
+				fragment_input_4 = stage_input.fragment_input_4;
+				fragment_input_5 = stage_input.fragment_input_5;
+				fragment_input_6 = stage_input.fragment_input_6;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -1673,8 +2175,8 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -1951,6 +2453,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_3 = vertex_output_3;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			static float4 fragment_input_1;
@@ -1968,7 +2473,7 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			{
 			}
 
-			void main(Fragment_Stage_Input stage_input)
+			void frag(Fragment_Stage_Input stage_input)
 			{
 				fragment_input_1 = stage_input.fragment_input_1;
 				fragment_input_2 = stage_input.fragment_input_2;
@@ -1976,11 +2481,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				frag_main();
 			}
 
-			#endif // !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -2257,12 +2760,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_3 = vertex_output_3;
 				return stage_output;
 			}
-
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(WRITE_DECAL_BUFFER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 unity_RenderingLayer;
 			float4 _DoubleSidedConstants;
@@ -2377,11 +2877,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-
-
-			#if defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4 unity_RenderingLayer;
 
@@ -2488,11 +2986,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(WRITE_DECAL_BUFFER) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			static float4 fragment_input_1;
 			static float4 fragment_input_2;
@@ -2509,7 +3005,7 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			{
 			}
 
-			void main(Fragment_Stage_Input stage_input)
+			void frag(Fragment_Stage_Input stage_input)
 			{
 				fragment_input_1 = stage_input.fragment_input_1;
 				fragment_input_2 = stage_input.fragment_input_2;
@@ -2517,41 +3013,322 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				frag_main();
 			}
 
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON) && !defined(WRITE_DECAL_BUFFER)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4 _TimeParameters;
+			int _EnableRecursiveRayTracing;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
+			float _gameTimeAtFirstFrame;
+			float _B_interpolate;
+			float _B_autoPlayback;
+			float _displayFrame;
+			float _B_surfaceNormals;
+			float _playbackSpeed;
+			float _houdiniFPS;
+			float _frameCount;
+			float _boundMaxX;
+			float _boundMaxY;
+			float _boundMaxZ;
+			float _boundMinX;
+			float _boundMinY;
+			float _boundMinZ;
+			float _RayTracing;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
+			static float4 vertex_uniform_buffer_0[214];
+			static float4 vertex_uniform_buffer_1[8];
+			static float4 vertex_uniform_buffer_2[24];
+			Texture2D<float4> _posTexture;
+			Texture2D<float4> _rotTexture;
+			SamplerState sampler_posTexture;
+			SamplerState sampler_rotTexture;
 
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_output_1;
+			static float4 vertex_output_2;
+			static float3 vertex_output_3;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 vertex_output_1 : INTERP; // INTERP
+				float4 vertex_output_2 : INTERP1; // INTERP_1
+				float3 vertex_output_3 : INTERP2; // INTERP_2
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				if ((((0.0f < vertex_uniform_buffer_2[23u].z) ? 4294967295u : 0u) & ((asuint(vertex_uniform_buffer_0[213u]).w != 0u) ? 4294967295u : 0u)) != 0u)
+				{
+					gl_Position.x = 0.0f;
+					gl_Position.y = 0.0f;
+					gl_Position.z = 0.0f;
+					gl_Position.w = 0.0f;
+					vertex_output_1.x = 0.0f;
+					vertex_output_1.y = 0.0f;
+					vertex_output_1.z = 0.0f;
+					vertex_output_1.w = 0.0f;
+					vertex_output_2.x = 0.0f;
+					vertex_output_2.y = 0.0f;
+					vertex_output_2.z = 0.0f;
+					vertex_output_2.w = 0.0f;
+					vertex_output_3.x = 0.0f;
+					vertex_output_3.y = 0.0f;
+					vertex_output_3.z = 0.0f;
+				}
+				else
+				{
+					bool vertex_unnamed_92 = 0.100000001490116119384765625f >= vertex_input_4.y;
+					bool vertex_unnamed_108 = mad(vertex_uniform_buffer_2[13u].y, 10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[13u].y * 10.0f)) >= 0.5f;
+					float vertex_unnamed_126 = (((-0.0f) - mad((-0.0f) - vertex_uniform_buffer_2[14u].x, 10.0f, ceil(vertex_uniform_buffer_2[14u].x * 10.0f))) + 1.0f) * vertex_input_4.x;
+					float vertex_unnamed_144 = ((-0.0f) - mad(vertex_uniform_buffer_2[12u].w, -10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[12u].w * (-10.0f)))) + 1.0f;
+					float vertex_unnamed_145 = vertex_unnamed_144 * (((-0.0f) - vertex_input_4.y) + 1.0f);
+					float vertex_unnamed_174 = frac(((vertex_uniform_buffer_0[80u].x + ((-0.0f) - vertex_uniform_buffer_2[5u].x)) * (vertex_uniform_buffer_2[12u].y / (vertex_uniform_buffer_2[12u].z + (-0.00999999977648258209228515625f)))) * vertex_uniform_buffer_2[12u].x) * vertex_uniform_buffer_2[12u].z;
+					bool vertex_unnamed_186 = 0.0f != vertex_uniform_buffer_2[6u].x;
+					uint vertex_unnamed_188 = (0.0f != vertex_uniform_buffer_2[6u].z) ? 4294967295u : 0u;
+					float vertex_unnamed_192 = asfloat(vertex_unnamed_186 ? asuint(floor(vertex_unnamed_174) + 1.0f) : asuint(floor(vertex_uniform_buffer_2[6u].y)));
+					float vertex_unnamed_198 = vertex_unnamed_192 / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_199 = (vertex_unnamed_192 + (-1.0f)) / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_203 = frac(abs(vertex_unnamed_199));
+					float vertex_unnamed_213 = 1.0f / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_217 = ((-0.0f) - mad((((vertex_unnamed_199 >= ((-0.0f) - vertex_unnamed_199)) ? vertex_unnamed_203 : ((-0.0f) - vertex_unnamed_203)) * vertex_uniform_buffer_2[12u].z) * vertex_unnamed_213, vertex_unnamed_144, vertex_unnamed_145)) + 1.0f;
+					float4 vertex_unnamed_220 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_126, vertex_unnamed_217), 0.0f);
+					float vertex_unnamed_223 = vertex_unnamed_220.x;
+					float vertex_unnamed_224 = vertex_unnamed_220.y;
+					float vertex_unnamed_225 = vertex_unnamed_220.z;
+					uint4 vertex_unnamed_228 = asuint(vertex_uniform_buffer_2[13u]);
+					float vertex_unnamed_230 = asfloat(vertex_unnamed_228.z);
+					float vertex_unnamed_232 = asfloat(vertex_unnamed_228.w);
+					float vertex_unnamed_237 = asfloat(asuint(vertex_uniform_buffer_2[14u]).x);
+					float vertex_unnamed_242 = ((-0.0f) - vertex_unnamed_230) + vertex_uniform_buffer_2[12u].w;
+					float vertex_unnamed_249 = ((-0.0f) - vertex_unnamed_232) + vertex_uniform_buffer_2[13u].x;
+					float vertex_unnamed_250 = ((-0.0f) - vertex_unnamed_237) + vertex_uniform_buffer_2[13u].y;
+					uint vertex_unnamed_260 = vertex_unnamed_108 ? asuint(vertex_unnamed_223) : asuint(mad(vertex_unnamed_223, vertex_unnamed_242, vertex_unnamed_230));
+					float vertex_unnamed_261 = asfloat(vertex_unnamed_260);
+					uint vertex_unnamed_262 = vertex_unnamed_108 ? asuint(vertex_unnamed_224) : asuint(mad(vertex_unnamed_224, vertex_unnamed_249, vertex_unnamed_232));
+					float vertex_unnamed_263 = asfloat(vertex_unnamed_262);
+					uint vertex_unnamed_264 = vertex_unnamed_108 ? asuint(vertex_unnamed_225) : asuint(mad(vertex_unnamed_225, vertex_unnamed_250, vertex_unnamed_237));
+					float vertex_unnamed_265 = asfloat(vertex_unnamed_264);
+					float vertex_unnamed_269 = frac(abs(vertex_unnamed_198));
+					float vertex_unnamed_279 = ((-0.0f) - mad(vertex_unnamed_213 * (((vertex_unnamed_198 >= ((-0.0f) - vertex_unnamed_198)) ? vertex_unnamed_269 : ((-0.0f) - vertex_unnamed_269)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_144, vertex_unnamed_145)) + 1.0f;
+					float4 vertex_unnamed_280 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_126, vertex_unnamed_279), 0.0f);
+					float vertex_unnamed_282 = vertex_unnamed_280.x;
+					float vertex_unnamed_283 = vertex_unnamed_280.y;
+					float vertex_unnamed_284 = vertex_unnamed_280.z;
+					float vertex_unnamed_307 = frac(asfloat(vertex_unnamed_186 ? asuint(vertex_unnamed_174) : asuint(vertex_uniform_buffer_2[6u]).y));
+					bool vertex_unnamed_320 = 0.0f != vertex_uniform_buffer_2[5u].y;
+					float vertex_unnamed_343 = asfloat(vertex_unnamed_92 ? 0u : asuint(asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_261) + asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_282) : asuint(mad(vertex_unnamed_282, vertex_unnamed_242, vertex_unnamed_230))), vertex_unnamed_261)) : vertex_unnamed_260) + vertex_input_0.x));
+					float vertex_unnamed_345 = asfloat(vertex_unnamed_92 ? 0u : asuint(asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_263) + asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_283) : asuint(mad(vertex_unnamed_283, vertex_unnamed_249, vertex_unnamed_232))), vertex_unnamed_263)) : vertex_unnamed_262) + vertex_input_0.y));
+					float vertex_unnamed_347 = asfloat(vertex_unnamed_92 ? 0u : asuint(asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_265) + asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_284) : asuint(mad(vertex_unnamed_284, vertex_unnamed_250, vertex_unnamed_237))), vertex_unnamed_265)) : vertex_unnamed_264) + vertex_input_0.z));
+					float4 vertex_unnamed_349 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_126, vertex_unnamed_217), 0.0f);
+					float vertex_unnamed_351 = vertex_unnamed_349.x;
+					float vertex_unnamed_352 = vertex_unnamed_349.y;
+					float vertex_unnamed_353 = vertex_unnamed_349.z;
+					float vertex_unnamed_354 = vertex_unnamed_349.w;
+					float vertex_unnamed_355 = vertex_unnamed_351 + (-0.5f);
+					float vertex_unnamed_357 = vertex_unnamed_352 + (-0.5f);
+					float vertex_unnamed_358 = vertex_unnamed_353 + (-0.5f);
+					float vertex_unnamed_359 = vertex_unnamed_354 + (-0.5f);
+					float vertex_unnamed_373 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_351) : asuint(vertex_unnamed_355 + vertex_unnamed_355));
+					float vertex_unnamed_375 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_352) : asuint(vertex_unnamed_357 + vertex_unnamed_357));
+					float vertex_unnamed_377 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_353) : asuint(vertex_unnamed_358 + vertex_unnamed_358));
+					float vertex_unnamed_379 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_354) : asuint(vertex_unnamed_359 + vertex_unnamed_359));
+					float vertex_unnamed_389 = mad(vertex_unnamed_379, 1.0f, mad(vertex_unnamed_377, 0.0f, (-0.0f) - (vertex_unnamed_373 * 0.0f)));
+					float vertex_unnamed_390 = mad(vertex_unnamed_379, 0.0f, mad(vertex_unnamed_373, 1.0f, (-0.0f) - (vertex_unnamed_375 * 0.0f)));
+					float vertex_unnamed_391 = mad(vertex_unnamed_379, 0.0f, mad(vertex_unnamed_375, 0.0f, (-0.0f) - (vertex_unnamed_377 * 1.0f)));
+					float vertex_unnamed_401 = mad(mad(vertex_unnamed_375, vertex_unnamed_390, (-0.0f) - (vertex_unnamed_389 * vertex_unnamed_377)), 2.0f, 0.0f);
+					float vertex_unnamed_403 = mad(mad(vertex_unnamed_377, vertex_unnamed_391, (-0.0f) - (vertex_unnamed_390 * vertex_unnamed_373)), 2.0f, 1.0f);
+					float vertex_unnamed_404 = mad(mad(vertex_unnamed_373, vertex_unnamed_389, (-0.0f) - (vertex_unnamed_391 * vertex_unnamed_375)), 2.0f, 0.0f);
+					float4 vertex_unnamed_405 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_126, vertex_unnamed_279), 0.0f);
+					float vertex_unnamed_407 = vertex_unnamed_405.x;
+					float vertex_unnamed_408 = vertex_unnamed_405.y;
+					float vertex_unnamed_409 = vertex_unnamed_405.z;
+					float vertex_unnamed_410 = vertex_unnamed_405.w;
+					float vertex_unnamed_411 = vertex_unnamed_407 + (-0.5f);
+					float vertex_unnamed_412 = vertex_unnamed_408 + (-0.5f);
+					float vertex_unnamed_413 = vertex_unnamed_409 + (-0.5f);
+					float vertex_unnamed_414 = vertex_unnamed_410 + (-0.5f);
+					float vertex_unnamed_428 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_407) : asuint(vertex_unnamed_411 + vertex_unnamed_411));
+					float vertex_unnamed_430 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_408) : asuint(vertex_unnamed_412 + vertex_unnamed_412));
+					float vertex_unnamed_432 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_409) : asuint(vertex_unnamed_413 + vertex_unnamed_413));
+					float vertex_unnamed_434 = asfloat(vertex_unnamed_108 ? asuint(vertex_unnamed_410) : asuint(vertex_unnamed_414 + vertex_unnamed_414));
+					float vertex_unnamed_444 = mad(vertex_unnamed_434, 1.0f, mad(vertex_unnamed_432, 0.0f, (-0.0f) - (vertex_unnamed_428 * 0.0f)));
+					float vertex_unnamed_445 = mad(vertex_unnamed_434, 0.0f, mad(vertex_unnamed_428, 1.0f, (-0.0f) - (vertex_unnamed_430 * 0.0f)));
+					float vertex_unnamed_446 = mad(vertex_unnamed_434, 0.0f, mad(vertex_unnamed_430, 0.0f, (-0.0f) - (vertex_unnamed_432 * 1.0f)));
+					float vertex_unnamed_475 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_401) + mad(mad(vertex_unnamed_430, vertex_unnamed_445, (-0.0f) - (vertex_unnamed_432 * vertex_unnamed_444)), 2.0f, 0.0f), vertex_unnamed_401)) : asuint(vertex_unnamed_401));
+					float vertex_unnamed_477 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_403) + mad(mad(vertex_unnamed_432, vertex_unnamed_446, (-0.0f) - (vertex_unnamed_428 * vertex_unnamed_445)), 2.0f, 1.0f), vertex_unnamed_403)) : asuint(vertex_unnamed_403));
+					float vertex_unnamed_479 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_404) + mad(mad(vertex_unnamed_428, vertex_unnamed_444, (-0.0f) - (vertex_unnamed_430 * vertex_unnamed_446)), 2.0f, 0.0f), vertex_unnamed_404)) : asuint(vertex_unnamed_404));
+					float vertex_unnamed_483 = rsqrt(dot(float3(vertex_unnamed_475, vertex_unnamed_477, vertex_unnamed_479), float3(vertex_unnamed_475, vertex_unnamed_477, vertex_unnamed_479)));
+					float vertex_unnamed_484 = vertex_unnamed_483 * vertex_unnamed_475;
+					float vertex_unnamed_485 = vertex_unnamed_483 * vertex_unnamed_477;
+					float vertex_unnamed_486 = vertex_unnamed_483 * vertex_unnamed_479;
+					float vertex_unnamed_496 = mad(vertex_unnamed_379, 0.0f, mad(vertex_unnamed_377, -1.0f, (-0.0f) - (vertex_unnamed_373 * 0.0f)));
+					float vertex_unnamed_497 = mad(vertex_unnamed_379, 0.0f, mad(vertex_unnamed_373, 0.0f, (-0.0f) - (vertex_unnamed_375 * (-1.0f))));
+					float vertex_unnamed_498 = mad(vertex_unnamed_379, -1.0f, mad(vertex_unnamed_375, 0.0f, (-0.0f) - (vertex_unnamed_377 * 0.0f)));
+					float vertex_unnamed_508 = mad(mad(vertex_unnamed_375, vertex_unnamed_497, (-0.0f) - (vertex_unnamed_377 * vertex_unnamed_496)), 2.0f, -1.0f);
+					float vertex_unnamed_509 = mad(mad(vertex_unnamed_377, vertex_unnamed_498, (-0.0f) - (vertex_unnamed_373 * vertex_unnamed_497)), 2.0f, 0.0f);
+					float vertex_unnamed_510 = mad(mad(vertex_unnamed_373, vertex_unnamed_496, (-0.0f) - (vertex_unnamed_375 * vertex_unnamed_498)), 2.0f, 0.0f);
+					float vertex_unnamed_520 = mad(vertex_unnamed_434, 0.0f, mad(vertex_unnamed_432, -1.0f, (-0.0f) - (vertex_unnamed_428 * 0.0f)));
+					float vertex_unnamed_521 = mad(vertex_unnamed_434, 0.0f, mad(vertex_unnamed_428, 0.0f, (-0.0f) - (vertex_unnamed_430 * (-1.0f))));
+					float vertex_unnamed_522 = mad(vertex_unnamed_434, -1.0f, mad(vertex_unnamed_430, 0.0f, (-0.0f) - (vertex_unnamed_432 * 0.0f)));
+					float vertex_unnamed_551 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_508) + mad(mad(vertex_unnamed_430, vertex_unnamed_521, (-0.0f) - (vertex_unnamed_432 * vertex_unnamed_520)), 2.0f, -1.0f), vertex_unnamed_508)) : asuint(vertex_unnamed_508));
+					float vertex_unnamed_553 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_509) + mad(mad(vertex_unnamed_432, vertex_unnamed_522, (-0.0f) - (vertex_unnamed_428 * vertex_unnamed_521)), 2.0f, 0.0f), vertex_unnamed_509)) : asuint(vertex_unnamed_509));
+					float vertex_unnamed_555 = asfloat(vertex_unnamed_320 ? asuint(mad(vertex_unnamed_307, ((-0.0f) - vertex_unnamed_510) + mad(mad(vertex_unnamed_428, vertex_unnamed_520, (-0.0f) - (vertex_unnamed_430 * vertex_unnamed_522)), 2.0f, 0.0f), vertex_unnamed_510)) : asuint(vertex_unnamed_510));
+					float vertex_unnamed_559 = rsqrt(dot(float3(vertex_unnamed_551, vertex_unnamed_553, vertex_unnamed_555), float3(vertex_unnamed_551, vertex_unnamed_553, vertex_unnamed_555)));
+					float vertex_unnamed_567 = asfloat(asuint(vertex_unnamed_559 * vertex_unnamed_551) & vertex_unnamed_188);
+					float vertex_unnamed_569 = asfloat(asuint(vertex_unnamed_559 * vertex_unnamed_553) & vertex_unnamed_188);
+					float vertex_unnamed_571 = asfloat(asuint(vertex_unnamed_559 * vertex_unnamed_555) & vertex_unnamed_188);
+					float vertex_unnamed_604 = asfloat(1065353216u);
+					float vertex_unnamed_606 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_unnamed_343, vertex_unnamed_345, vertex_unnamed_347, vertex_unnamed_604));
+					float vertex_unnamed_624 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_unnamed_343, vertex_unnamed_345, vertex_unnamed_347, vertex_unnamed_604));
+					float vertex_unnamed_642 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_unnamed_343, vertex_unnamed_345, vertex_unnamed_347, vertex_unnamed_604));
+					float vertex_unnamed_651 = dot(float3(vertex_unnamed_484, vertex_unnamed_485, vertex_unnamed_486), float3(vertex_uniform_buffer_1[4u].xyz));
+					float vertex_unnamed_659 = dot(float3(vertex_unnamed_484, vertex_unnamed_485, vertex_unnamed_486), float3(vertex_uniform_buffer_1[5u].xyz));
+					float vertex_unnamed_667 = dot(float3(vertex_unnamed_484, vertex_unnamed_485, vertex_unnamed_486), float3(vertex_uniform_buffer_1[6u].xyz));
+					float vertex_unnamed_675 = rsqrt(max(dot(float3(vertex_unnamed_651, vertex_unnamed_659, vertex_unnamed_667), float3(vertex_unnamed_651, vertex_unnamed_659, vertex_unnamed_667)), 1.1754943508222875079687365372222e-38f));
+					vertex_output_3.x = vertex_unnamed_675 * vertex_unnamed_651;
+					vertex_output_3.y = vertex_unnamed_675 * vertex_unnamed_659;
+					vertex_output_3.z = vertex_unnamed_675 * vertex_unnamed_667;
+					float vertex_unnamed_703 = mad(vertex_uniform_buffer_1[2u].x, vertex_unnamed_571, mad(vertex_uniform_buffer_1[0u].x, vertex_unnamed_567, vertex_unnamed_569 * vertex_uniform_buffer_1[1u].x));
+					float vertex_unnamed_704 = mad(vertex_uniform_buffer_1[2u].y, vertex_unnamed_571, mad(vertex_uniform_buffer_1[0u].y, vertex_unnamed_567, vertex_unnamed_569 * vertex_uniform_buffer_1[1u].y));
+					float vertex_unnamed_705 = mad(vertex_uniform_buffer_1[2u].z, vertex_unnamed_571, mad(vertex_uniform_buffer_1[0u].z, vertex_unnamed_567, vertex_unnamed_569 * vertex_uniform_buffer_1[1u].z));
+					float vertex_unnamed_710 = rsqrt(max(dot(float3(vertex_unnamed_703, vertex_unnamed_704, vertex_unnamed_705), float3(vertex_unnamed_703, vertex_unnamed_704, vertex_unnamed_705)), 1.1754943508222875079687365372222e-38f));
+					vertex_output_1.x = vertex_unnamed_703 * vertex_unnamed_710;
+					vertex_output_1.y = vertex_unnamed_704 * vertex_unnamed_710;
+					vertex_output_1.z = vertex_unnamed_705 * vertex_unnamed_710;
+					gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_642, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_606, vertex_unnamed_624 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+					gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_642, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_606, vertex_unnamed_624 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+					gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_642, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_606, vertex_unnamed_624 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+					gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_642, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_606, vertex_unnamed_624 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+					vertex_output_1.w = vertex_input_2.w;
+					vertex_output_2.x = vertex_input_3.x;
+					vertex_output_2.y = vertex_input_3.y;
+					vertex_output_2.z = vertex_input_3.z;
+					vertex_output_2.w = vertex_input_3.w;
+				}
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_0[80] = float4(_TimeParameters[0], _TimeParameters[1], _TimeParameters[2], _TimeParameters[3]);
+
+				vertex_uniform_buffer_0[213] = float4(vertex_uniform_buffer_0[213][0], vertex_uniform_buffer_0[213][1], vertex_uniform_buffer_0[213][2], asfloat(_EnableRecursiveRayTracing));
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_uniform_buffer_2[5] = float4(_gameTimeAtFirstFrame, vertex_uniform_buffer_2[5][1], vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[5] = float4(vertex_uniform_buffer_2[5][0], _B_interpolate, vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[6] = float4(_B_autoPlayback, vertex_uniform_buffer_2[6][1], vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], _displayFrame, vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], vertex_uniform_buffer_2[6][1], _B_surfaceNormals, vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[12] = float4(_playbackSpeed, vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], _houdiniFPS, vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], _frameCount, vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], _boundMaxX);
+
+				vertex_uniform_buffer_2[13] = float4(_boundMaxY, vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], _boundMaxZ, vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], _boundMinX, vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], _boundMinY);
+
+				vertex_uniform_buffer_2[14] = float4(_boundMinZ, vertex_uniform_buffer_2[14][1], vertex_uniform_buffer_2[14][2], vertex_uniform_buffer_2[14][3]);
+
+				vertex_uniform_buffer_2[23] = float4(vertex_uniform_buffer_2[23][0], vertex_uniform_buffer_2[23][1], _RayTracing, vertex_uniform_buffer_2[23][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_3 = vertex_output_3;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			static float4 fragment_input_1;
+			static float4 fragment_input_2;
+			static float3 fragment_input_3;
+
+			struct Fragment_Stage_Input
+			{
+				float4 fragment_input_1 : INTERP; // INTERP
+				float4 fragment_input_2 : INTERP1; // INTERP_1
+				float3 fragment_input_3 : INTERP2; // INTERP_2
+			};
+
+			void frag_main()
+			{
 			}
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
+			void frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_input_1 = stage_input.fragment_input_1;
+				fragment_input_2 = stage_input.fragment_input_2;
+				fragment_input_3 = stage_input.fragment_input_3;
+				frag_main();
+			}
 
+			#endif
 
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -2593,8 +3370,8 @@ Shader "SideFX/VFX_VAT_106Tarp"
 			#pragma shader_feature _DOUBLESIDED_ON
 
 
-			#if !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (!defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -2905,12 +3682,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
-
-			#endif // !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -3221,12 +3995,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
-
-			#endif // defined(_B_LOAD_COL_TEX) && defined(_DOUBLESIDED_ON) && !defined(DECALS_3RT) && !defined(_B_LOAD_NORM_TEX)
-
-
-			#if defined(DECALS_3RT) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4x4 _ViewMatrix;
 			float4x4 _InvViewMatrix;
@@ -3552,11 +4323,9 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(_B_LOAD_COL_TEX) && defined(_B_LOAD_NORM_TEX) && defined(_DOUBLESIDED_ON)
-
-
-			#if defined(DECALS_3RT) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 			float4x4 _ViewMatrix;
 			float4x4 _InvViewMatrix;
@@ -3878,41 +4647,328 @@ Shader "SideFX/VFX_VAT_106Tarp"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && !defined(_B_LOAD_COL_TEX) && !defined(_DOUBLESIDED_ON) && !defined(_B_LOAD_NORM_TEX)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
+			float4x4 _ViewProjMatrix;
+			float4 _WorldSpaceCameraPos_Internal;
+			float4 _TimeParameters;
+			int _EnableRecursiveRayTracing;
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_WorldToObject;
+			float _gameTimeAtFirstFrame;
+			float _B_interpolate;
+			float _B_autoPlayback;
+			float _displayFrame;
+			float _B_surfaceNormals;
+			float _playbackSpeed;
+			float _houdiniFPS;
+			float _frameCount;
+			float _boundMaxX;
+			float _boundMaxY;
+			float _boundMaxZ;
+			float _boundMinX;
+			float _boundMinY;
+			float _boundMinZ;
+			float _RayTracing;
 
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
+			static float4 vertex_uniform_buffer_0[214];
+			static float4 vertex_uniform_buffer_1[8];
+			static float4 vertex_uniform_buffer_2[24];
+			Texture2D<float4> _posTexture;
+			Texture2D<float4> _rotTexture;
+			SamplerState sampler_posTexture;
+			SamplerState sampler_rotTexture;
 
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
+			static float4 gl_Position;
+			static float3 vertex_input_0;
+			static float3 vertex_input_1;
+			static float4 vertex_input_2;
+			static float4 vertex_input_3;
+			static float4 vertex_input_4;
+			static float4 vertex_input_5;
+			static float4 vertex_output_1;
+			static float4 vertex_output_2;
+			static float4 vertex_output_3;
+			static float4 vertex_output_4;
+			static float3 vertex_output_5;
+			static float3 vertex_output_6;
 
 			struct Vertex_Stage_Input
 			{
-				float3 pos : POSITION;
+				float3 vertex_input_0 : POSITION; // POSITION
+				float3 vertex_input_1 : NORMAL; // NORMAL
+				float4 vertex_input_2 : TANGENT; // TANGENT
+				float4 vertex_input_3 : TEXCOORD; // TEXCOORD
+				float4 vertex_input_4 : TEXCOORD1; // TEXCOORD_1
+				float4 vertex_input_5 : TEXCOORD2; // TEXCOORD_2
 			};
 
 			struct Vertex_Stage_Output
 			{
-				float4 pos : SV_POSITION;
+				float4 vertex_output_1 : INTERP; // INTERP
+				float4 vertex_output_2 : INTERP1; // INTERP_1
+				float4 vertex_output_3 : INTERP2; // INTERP_2
+				float4 vertex_output_4 : INTERP3; // INTERP_3
+				float3 vertex_output_5 : INTERP4; // INTERP_4
+				float3 vertex_output_6 : INTERP5; // INTERP_5
+				float4 gl_Position : SV_Position;
 			};
 
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
+			void vert_main()
 			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
+				if ((((0.0f < vertex_uniform_buffer_2[23u].z) ? 4294967295u : 0u) & ((asuint(vertex_uniform_buffer_0[213u]).w != 0u) ? 4294967295u : 0u)) != 0u)
+				{
+					gl_Position.x = 0.0f;
+					gl_Position.y = 0.0f;
+					gl_Position.z = 0.0f;
+					gl_Position.w = 0.0f;
+					vertex_output_1.x = 0.0f;
+					vertex_output_1.y = 0.0f;
+					vertex_output_1.z = 0.0f;
+					vertex_output_1.w = 0.0f;
+					vertex_output_2.x = 0.0f;
+					vertex_output_2.y = 0.0f;
+					vertex_output_2.z = 0.0f;
+					vertex_output_2.w = 0.0f;
+					vertex_output_3.x = 0.0f;
+					vertex_output_3.y = 0.0f;
+					vertex_output_3.z = 0.0f;
+					vertex_output_3.w = 0.0f;
+					vertex_output_4.x = 0.0f;
+					vertex_output_4.y = 0.0f;
+					vertex_output_4.z = 0.0f;
+					vertex_output_4.w = 0.0f;
+					vertex_output_5.x = 0.0f;
+					vertex_output_5.y = 0.0f;
+					vertex_output_5.z = 0.0f;
+					vertex_output_6.x = 0.0f;
+					vertex_output_6.y = 0.0f;
+					vertex_output_6.z = 0.0f;
+				}
+				else
+				{
+					bool vertex_unnamed_107 = 0.100000001490116119384765625f >= vertex_input_4.y;
+					bool vertex_unnamed_123 = mad(vertex_uniform_buffer_2[13u].y, 10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[13u].y * 10.0f)) >= 0.5f;
+					float vertex_unnamed_141 = (((-0.0f) - mad((-0.0f) - vertex_uniform_buffer_2[14u].x, 10.0f, ceil(vertex_uniform_buffer_2[14u].x * 10.0f))) + 1.0f) * vertex_input_4.x;
+					float vertex_unnamed_159 = ((-0.0f) - mad(vertex_uniform_buffer_2[12u].w, -10.0f, (-0.0f) - floor(vertex_uniform_buffer_2[12u].w * (-10.0f)))) + 1.0f;
+					float vertex_unnamed_160 = vertex_unnamed_159 * (((-0.0f) - vertex_input_4.y) + 1.0f);
+					float vertex_unnamed_189 = frac(((vertex_uniform_buffer_0[80u].x + ((-0.0f) - vertex_uniform_buffer_2[5u].x)) * (vertex_uniform_buffer_2[12u].y / (vertex_uniform_buffer_2[12u].z + (-0.00999999977648258209228515625f)))) * vertex_uniform_buffer_2[12u].x) * vertex_uniform_buffer_2[12u].z;
+					bool vertex_unnamed_201 = 0.0f != vertex_uniform_buffer_2[6u].x;
+					uint vertex_unnamed_203 = (0.0f != vertex_uniform_buffer_2[6u].z) ? 4294967295u : 0u;
+					float vertex_unnamed_207 = asfloat(vertex_unnamed_201 ? asuint(floor(vertex_unnamed_189) + 1.0f) : asuint(floor(vertex_uniform_buffer_2[6u].y)));
+					float vertex_unnamed_213 = vertex_unnamed_207 / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_214 = (vertex_unnamed_207 + (-1.0f)) / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_218 = frac(abs(vertex_unnamed_214));
+					float vertex_unnamed_228 = 1.0f / vertex_uniform_buffer_2[12u].z;
+					float vertex_unnamed_232 = ((-0.0f) - mad((((vertex_unnamed_214 >= ((-0.0f) - vertex_unnamed_214)) ? vertex_unnamed_218 : ((-0.0f) - vertex_unnamed_218)) * vertex_uniform_buffer_2[12u].z) * vertex_unnamed_228, vertex_unnamed_159, vertex_unnamed_160)) + 1.0f;
+					float4 vertex_unnamed_235 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_141, vertex_unnamed_232), 0.0f);
+					float vertex_unnamed_238 = vertex_unnamed_235.x;
+					float vertex_unnamed_239 = vertex_unnamed_235.y;
+					float vertex_unnamed_240 = vertex_unnamed_235.z;
+					uint4 vertex_unnamed_243 = asuint(vertex_uniform_buffer_2[13u]);
+					float vertex_unnamed_245 = asfloat(vertex_unnamed_243.z);
+					float vertex_unnamed_247 = asfloat(vertex_unnamed_243.w);
+					float vertex_unnamed_252 = asfloat(asuint(vertex_uniform_buffer_2[14u]).x);
+					float vertex_unnamed_257 = ((-0.0f) - vertex_unnamed_245) + vertex_uniform_buffer_2[12u].w;
+					float vertex_unnamed_264 = ((-0.0f) - vertex_unnamed_247) + vertex_uniform_buffer_2[13u].x;
+					float vertex_unnamed_265 = ((-0.0f) - vertex_unnamed_252) + vertex_uniform_buffer_2[13u].y;
+					uint vertex_unnamed_275 = vertex_unnamed_123 ? asuint(vertex_unnamed_238) : asuint(mad(vertex_unnamed_238, vertex_unnamed_257, vertex_unnamed_245));
+					float vertex_unnamed_276 = asfloat(vertex_unnamed_275);
+					uint vertex_unnamed_277 = vertex_unnamed_123 ? asuint(vertex_unnamed_239) : asuint(mad(vertex_unnamed_239, vertex_unnamed_264, vertex_unnamed_247));
+					float vertex_unnamed_278 = asfloat(vertex_unnamed_277);
+					uint vertex_unnamed_279 = vertex_unnamed_123 ? asuint(vertex_unnamed_240) : asuint(mad(vertex_unnamed_240, vertex_unnamed_265, vertex_unnamed_252));
+					float vertex_unnamed_280 = asfloat(vertex_unnamed_279);
+					float vertex_unnamed_284 = frac(abs(vertex_unnamed_213));
+					float vertex_unnamed_294 = ((-0.0f) - mad(vertex_unnamed_228 * (((vertex_unnamed_213 >= ((-0.0f) - vertex_unnamed_213)) ? vertex_unnamed_284 : ((-0.0f) - vertex_unnamed_284)) * vertex_uniform_buffer_2[12u].z), vertex_unnamed_159, vertex_unnamed_160)) + 1.0f;
+					float4 vertex_unnamed_295 = _posTexture.SampleLevel(sampler_posTexture, float2(vertex_unnamed_141, vertex_unnamed_294), 0.0f);
+					float vertex_unnamed_297 = vertex_unnamed_295.x;
+					float vertex_unnamed_298 = vertex_unnamed_295.y;
+					float vertex_unnamed_299 = vertex_unnamed_295.z;
+					float vertex_unnamed_322 = frac(asfloat(vertex_unnamed_201 ? asuint(vertex_unnamed_189) : asuint(vertex_uniform_buffer_2[6u]).y));
+					bool vertex_unnamed_335 = 0.0f != vertex_uniform_buffer_2[5u].y;
+					float vertex_unnamed_358 = asfloat(vertex_unnamed_107 ? 0u : asuint(asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_276) + asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_297) : asuint(mad(vertex_unnamed_297, vertex_unnamed_257, vertex_unnamed_245))), vertex_unnamed_276)) : vertex_unnamed_275) + vertex_input_0.x));
+					float vertex_unnamed_360 = asfloat(vertex_unnamed_107 ? 0u : asuint(asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_278) + asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_298) : asuint(mad(vertex_unnamed_298, vertex_unnamed_264, vertex_unnamed_247))), vertex_unnamed_278)) : vertex_unnamed_277) + vertex_input_0.y));
+					float vertex_unnamed_362 = asfloat(vertex_unnamed_107 ? 0u : asuint(asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_280) + asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_299) : asuint(mad(vertex_unnamed_299, vertex_unnamed_265, vertex_unnamed_252))), vertex_unnamed_280)) : vertex_unnamed_279) + vertex_input_0.z));
+					float4 vertex_unnamed_364 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_141, vertex_unnamed_232), 0.0f);
+					float vertex_unnamed_366 = vertex_unnamed_364.x;
+					float vertex_unnamed_367 = vertex_unnamed_364.y;
+					float vertex_unnamed_368 = vertex_unnamed_364.z;
+					float vertex_unnamed_369 = vertex_unnamed_364.w;
+					float vertex_unnamed_370 = vertex_unnamed_366 + (-0.5f);
+					float vertex_unnamed_372 = vertex_unnamed_367 + (-0.5f);
+					float vertex_unnamed_373 = vertex_unnamed_368 + (-0.5f);
+					float vertex_unnamed_374 = vertex_unnamed_369 + (-0.5f);
+					float vertex_unnamed_388 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_366) : asuint(vertex_unnamed_370 + vertex_unnamed_370));
+					float vertex_unnamed_390 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_367) : asuint(vertex_unnamed_372 + vertex_unnamed_372));
+					float vertex_unnamed_392 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_368) : asuint(vertex_unnamed_373 + vertex_unnamed_373));
+					float vertex_unnamed_394 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_369) : asuint(vertex_unnamed_374 + vertex_unnamed_374));
+					float vertex_unnamed_404 = mad(vertex_unnamed_394, 1.0f, mad(vertex_unnamed_392, 0.0f, (-0.0f) - (vertex_unnamed_388 * 0.0f)));
+					float vertex_unnamed_405 = mad(vertex_unnamed_394, 0.0f, mad(vertex_unnamed_388, 1.0f, (-0.0f) - (vertex_unnamed_390 * 0.0f)));
+					float vertex_unnamed_406 = mad(vertex_unnamed_394, 0.0f, mad(vertex_unnamed_390, 0.0f, (-0.0f) - (vertex_unnamed_392 * 1.0f)));
+					float vertex_unnamed_416 = mad(mad(vertex_unnamed_390, vertex_unnamed_405, (-0.0f) - (vertex_unnamed_404 * vertex_unnamed_392)), 2.0f, 0.0f);
+					float vertex_unnamed_418 = mad(mad(vertex_unnamed_392, vertex_unnamed_406, (-0.0f) - (vertex_unnamed_405 * vertex_unnamed_388)), 2.0f, 1.0f);
+					float vertex_unnamed_419 = mad(mad(vertex_unnamed_388, vertex_unnamed_404, (-0.0f) - (vertex_unnamed_406 * vertex_unnamed_390)), 2.0f, 0.0f);
+					float4 vertex_unnamed_420 = _rotTexture.SampleLevel(sampler_rotTexture, float2(vertex_unnamed_141, vertex_unnamed_294), 0.0f);
+					float vertex_unnamed_422 = vertex_unnamed_420.x;
+					float vertex_unnamed_423 = vertex_unnamed_420.y;
+					float vertex_unnamed_424 = vertex_unnamed_420.z;
+					float vertex_unnamed_425 = vertex_unnamed_420.w;
+					float vertex_unnamed_426 = vertex_unnamed_422 + (-0.5f);
+					float vertex_unnamed_427 = vertex_unnamed_423 + (-0.5f);
+					float vertex_unnamed_428 = vertex_unnamed_424 + (-0.5f);
+					float vertex_unnamed_429 = vertex_unnamed_425 + (-0.5f);
+					float vertex_unnamed_443 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_422) : asuint(vertex_unnamed_426 + vertex_unnamed_426));
+					float vertex_unnamed_445 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_423) : asuint(vertex_unnamed_427 + vertex_unnamed_427));
+					float vertex_unnamed_447 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_424) : asuint(vertex_unnamed_428 + vertex_unnamed_428));
+					float vertex_unnamed_449 = asfloat(vertex_unnamed_123 ? asuint(vertex_unnamed_425) : asuint(vertex_unnamed_429 + vertex_unnamed_429));
+					float vertex_unnamed_459 = mad(vertex_unnamed_449, 1.0f, mad(vertex_unnamed_447, 0.0f, (-0.0f) - (vertex_unnamed_443 * 0.0f)));
+					float vertex_unnamed_460 = mad(vertex_unnamed_449, 0.0f, mad(vertex_unnamed_443, 1.0f, (-0.0f) - (vertex_unnamed_445 * 0.0f)));
+					float vertex_unnamed_461 = mad(vertex_unnamed_449, 0.0f, mad(vertex_unnamed_445, 0.0f, (-0.0f) - (vertex_unnamed_447 * 1.0f)));
+					float vertex_unnamed_490 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_416) + mad(mad(vertex_unnamed_445, vertex_unnamed_460, (-0.0f) - (vertex_unnamed_447 * vertex_unnamed_459)), 2.0f, 0.0f), vertex_unnamed_416)) : asuint(vertex_unnamed_416));
+					float vertex_unnamed_492 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_418) + mad(mad(vertex_unnamed_447, vertex_unnamed_461, (-0.0f) - (vertex_unnamed_443 * vertex_unnamed_460)), 2.0f, 1.0f), vertex_unnamed_418)) : asuint(vertex_unnamed_418));
+					float vertex_unnamed_494 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_419) + mad(mad(vertex_unnamed_443, vertex_unnamed_459, (-0.0f) - (vertex_unnamed_445 * vertex_unnamed_461)), 2.0f, 0.0f), vertex_unnamed_419)) : asuint(vertex_unnamed_419));
+					float vertex_unnamed_498 = rsqrt(dot(float3(vertex_unnamed_490, vertex_unnamed_492, vertex_unnamed_494), float3(vertex_unnamed_490, vertex_unnamed_492, vertex_unnamed_494)));
+					float vertex_unnamed_499 = vertex_unnamed_498 * vertex_unnamed_490;
+					float vertex_unnamed_500 = vertex_unnamed_498 * vertex_unnamed_492;
+					float vertex_unnamed_501 = vertex_unnamed_498 * vertex_unnamed_494;
+					float vertex_unnamed_511 = mad(vertex_unnamed_394, 0.0f, mad(vertex_unnamed_392, -1.0f, (-0.0f) - (vertex_unnamed_388 * 0.0f)));
+					float vertex_unnamed_512 = mad(vertex_unnamed_394, 0.0f, mad(vertex_unnamed_388, 0.0f, (-0.0f) - (vertex_unnamed_390 * (-1.0f))));
+					float vertex_unnamed_513 = mad(vertex_unnamed_394, -1.0f, mad(vertex_unnamed_390, 0.0f, (-0.0f) - (vertex_unnamed_392 * 0.0f)));
+					float vertex_unnamed_523 = mad(mad(vertex_unnamed_390, vertex_unnamed_512, (-0.0f) - (vertex_unnamed_392 * vertex_unnamed_511)), 2.0f, -1.0f);
+					float vertex_unnamed_524 = mad(mad(vertex_unnamed_392, vertex_unnamed_513, (-0.0f) - (vertex_unnamed_388 * vertex_unnamed_512)), 2.0f, 0.0f);
+					float vertex_unnamed_525 = mad(mad(vertex_unnamed_388, vertex_unnamed_511, (-0.0f) - (vertex_unnamed_390 * vertex_unnamed_513)), 2.0f, 0.0f);
+					float vertex_unnamed_535 = mad(vertex_unnamed_449, 0.0f, mad(vertex_unnamed_447, -1.0f, (-0.0f) - (vertex_unnamed_443 * 0.0f)));
+					float vertex_unnamed_536 = mad(vertex_unnamed_449, 0.0f, mad(vertex_unnamed_443, 0.0f, (-0.0f) - (vertex_unnamed_445 * (-1.0f))));
+					float vertex_unnamed_537 = mad(vertex_unnamed_449, -1.0f, mad(vertex_unnamed_445, 0.0f, (-0.0f) - (vertex_unnamed_447 * 0.0f)));
+					float vertex_unnamed_566 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_523) + mad(mad(vertex_unnamed_445, vertex_unnamed_536, (-0.0f) - (vertex_unnamed_447 * vertex_unnamed_535)), 2.0f, -1.0f), vertex_unnamed_523)) : asuint(vertex_unnamed_523));
+					float vertex_unnamed_568 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_524) + mad(mad(vertex_unnamed_447, vertex_unnamed_537, (-0.0f) - (vertex_unnamed_443 * vertex_unnamed_536)), 2.0f, 0.0f), vertex_unnamed_524)) : asuint(vertex_unnamed_524));
+					float vertex_unnamed_570 = asfloat(vertex_unnamed_335 ? asuint(mad(vertex_unnamed_322, ((-0.0f) - vertex_unnamed_525) + mad(mad(vertex_unnamed_443, vertex_unnamed_535, (-0.0f) - (vertex_unnamed_445 * vertex_unnamed_537)), 2.0f, 0.0f), vertex_unnamed_525)) : asuint(vertex_unnamed_525));
+					float vertex_unnamed_574 = rsqrt(dot(float3(vertex_unnamed_566, vertex_unnamed_568, vertex_unnamed_570), float3(vertex_unnamed_566, vertex_unnamed_568, vertex_unnamed_570)));
+					float vertex_unnamed_582 = asfloat(asuint(vertex_unnamed_574 * vertex_unnamed_566) & vertex_unnamed_203);
+					float vertex_unnamed_584 = asfloat(asuint(vertex_unnamed_574 * vertex_unnamed_568) & vertex_unnamed_203);
+					float vertex_unnamed_586 = asfloat(asuint(vertex_unnamed_574 * vertex_unnamed_570) & vertex_unnamed_203);
+					float vertex_unnamed_619 = asfloat(1065353216u);
+					float vertex_unnamed_621 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).x), asfloat(asuint(vertex_uniform_buffer_1[1u]).x), asfloat(asuint(vertex_uniform_buffer_1[2u]).x), ((-0.0f) - vertex_uniform_buffer_0[48u].x) + vertex_uniform_buffer_1[3u].x), float4(vertex_unnamed_358, vertex_unnamed_360, vertex_unnamed_362, vertex_unnamed_619));
+					float vertex_unnamed_639 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).y), asfloat(asuint(vertex_uniform_buffer_1[1u]).y), asfloat(asuint(vertex_uniform_buffer_1[2u]).y), ((-0.0f) - vertex_uniform_buffer_0[48u].y) + vertex_uniform_buffer_1[3u].y), float4(vertex_unnamed_358, vertex_unnamed_360, vertex_unnamed_362, vertex_unnamed_619));
+					float vertex_unnamed_657 = dot(float4(asfloat(asuint(vertex_uniform_buffer_1[0u]).z), asfloat(asuint(vertex_uniform_buffer_1[1u]).z), asfloat(asuint(vertex_uniform_buffer_1[2u]).z), ((-0.0f) - vertex_uniform_buffer_0[48u].z) + vertex_uniform_buffer_1[3u].z), float4(vertex_unnamed_358, vertex_unnamed_360, vertex_unnamed_362, vertex_unnamed_619));
+					float vertex_unnamed_666 = dot(float3(vertex_unnamed_499, vertex_unnamed_500, vertex_unnamed_501), float3(vertex_uniform_buffer_1[4u].xyz));
+					float vertex_unnamed_674 = dot(float3(vertex_unnamed_499, vertex_unnamed_500, vertex_unnamed_501), float3(vertex_uniform_buffer_1[5u].xyz));
+					float vertex_unnamed_682 = dot(float3(vertex_unnamed_499, vertex_unnamed_500, vertex_unnamed_501), float3(vertex_uniform_buffer_1[6u].xyz));
+					float vertex_unnamed_690 = rsqrt(max(dot(float3(vertex_unnamed_666, vertex_unnamed_674, vertex_unnamed_682), float3(vertex_unnamed_666, vertex_unnamed_674, vertex_unnamed_682)), 1.1754943508222875079687365372222e-38f));
+					vertex_output_6.x = vertex_unnamed_690 * vertex_unnamed_666;
+					vertex_output_6.y = vertex_unnamed_690 * vertex_unnamed_674;
+					vertex_output_6.z = vertex_unnamed_690 * vertex_unnamed_682;
+					float vertex_unnamed_718 = mad(vertex_uniform_buffer_1[2u].x, vertex_unnamed_586, mad(vertex_uniform_buffer_1[0u].x, vertex_unnamed_582, vertex_unnamed_584 * vertex_uniform_buffer_1[1u].x));
+					float vertex_unnamed_719 = mad(vertex_uniform_buffer_1[2u].y, vertex_unnamed_586, mad(vertex_uniform_buffer_1[0u].y, vertex_unnamed_582, vertex_unnamed_584 * vertex_uniform_buffer_1[1u].y));
+					float vertex_unnamed_720 = mad(vertex_uniform_buffer_1[2u].z, vertex_unnamed_586, mad(vertex_uniform_buffer_1[0u].z, vertex_unnamed_582, vertex_unnamed_584 * vertex_uniform_buffer_1[1u].z));
+					float vertex_unnamed_725 = rsqrt(max(dot(float3(vertex_unnamed_718, vertex_unnamed_719, vertex_unnamed_720), float3(vertex_unnamed_718, vertex_unnamed_719, vertex_unnamed_720)), 1.1754943508222875079687365372222e-38f));
+					vertex_output_1.x = vertex_unnamed_725 * vertex_unnamed_718;
+					vertex_output_1.y = vertex_unnamed_725 * vertex_unnamed_719;
+					vertex_output_1.z = vertex_unnamed_725 * vertex_unnamed_720;
+					gl_Position.x = mad(vertex_uniform_buffer_0[22u].x, vertex_unnamed_657, mad(vertex_uniform_buffer_0[20u].x, vertex_unnamed_621, vertex_unnamed_639 * vertex_uniform_buffer_0[21u].x)) + vertex_uniform_buffer_0[23u].x;
+					gl_Position.y = mad(vertex_uniform_buffer_0[22u].y, vertex_unnamed_657, mad(vertex_uniform_buffer_0[20u].y, vertex_unnamed_621, vertex_unnamed_639 * vertex_uniform_buffer_0[21u].y)) + vertex_uniform_buffer_0[23u].y;
+					gl_Position.z = mad(vertex_uniform_buffer_0[22u].z, vertex_unnamed_657, mad(vertex_uniform_buffer_0[20u].z, vertex_unnamed_621, vertex_unnamed_639 * vertex_uniform_buffer_0[21u].z)) + vertex_uniform_buffer_0[23u].z;
+					gl_Position.w = mad(vertex_uniform_buffer_0[22u].w, vertex_unnamed_657, mad(vertex_uniform_buffer_0[20u].w, vertex_unnamed_621, vertex_unnamed_639 * vertex_uniform_buffer_0[21u].w)) + vertex_uniform_buffer_0[23u].w;
+					vertex_output_1.w = vertex_input_2.w;
+					vertex_output_2.x = vertex_input_3.x;
+					vertex_output_2.y = vertex_input_3.y;
+					vertex_output_2.z = vertex_input_3.z;
+					vertex_output_2.w = vertex_input_3.w;
+					vertex_output_3.x = vertex_input_4.x;
+					vertex_output_3.y = vertex_input_4.y;
+					vertex_output_3.z = vertex_input_4.z;
+					vertex_output_3.w = vertex_input_4.w;
+					vertex_output_4.x = vertex_input_5.x;
+					vertex_output_4.y = vertex_input_5.y;
+					vertex_output_4.z = vertex_input_5.z;
+					vertex_output_4.w = vertex_input_5.w;
+					vertex_output_5.x = vertex_unnamed_621;
+					vertex_output_5.y = vertex_unnamed_639;
+					vertex_output_5.z = vertex_unnamed_657;
+				}
 			}
 
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
 			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
+				vertex_uniform_buffer_0[20] = float4(_ViewProjMatrix[0][0], _ViewProjMatrix[1][0], _ViewProjMatrix[2][0], _ViewProjMatrix[3][0]);
+				vertex_uniform_buffer_0[21] = float4(_ViewProjMatrix[0][1], _ViewProjMatrix[1][1], _ViewProjMatrix[2][1], _ViewProjMatrix[3][1]);
+				vertex_uniform_buffer_0[22] = float4(_ViewProjMatrix[0][2], _ViewProjMatrix[1][2], _ViewProjMatrix[2][2], _ViewProjMatrix[3][2]);
+				vertex_uniform_buffer_0[23] = float4(_ViewProjMatrix[0][3], _ViewProjMatrix[1][3], _ViewProjMatrix[2][3], _ViewProjMatrix[3][3]);
+
+				vertex_uniform_buffer_0[48] = float4(_WorldSpaceCameraPos_Internal[0], _WorldSpaceCameraPos_Internal[1], _WorldSpaceCameraPos_Internal[2], _WorldSpaceCameraPos_Internal[3]);
+
+				vertex_uniform_buffer_0[80] = float4(_TimeParameters[0], _TimeParameters[1], _TimeParameters[2], _TimeParameters[3]);
+
+				vertex_uniform_buffer_0[213] = float4(vertex_uniform_buffer_0[213][0], vertex_uniform_buffer_0[213][1], vertex_uniform_buffer_0[213][2], asfloat(_EnableRecursiveRayTracing));
+
+				vertex_uniform_buffer_1[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_1[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_1[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_1[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[4] = float4(unity_WorldToObject[0][0], unity_WorldToObject[1][0], unity_WorldToObject[2][0], unity_WorldToObject[3][0]);
+				vertex_uniform_buffer_1[5] = float4(unity_WorldToObject[0][1], unity_WorldToObject[1][1], unity_WorldToObject[2][1], unity_WorldToObject[3][1]);
+				vertex_uniform_buffer_1[6] = float4(unity_WorldToObject[0][2], unity_WorldToObject[1][2], unity_WorldToObject[2][2], unity_WorldToObject[3][2]);
+				vertex_uniform_buffer_1[7] = float4(unity_WorldToObject[0][3], unity_WorldToObject[1][3], unity_WorldToObject[2][3], unity_WorldToObject[3][3]);
+
+				vertex_uniform_buffer_2[5] = float4(_gameTimeAtFirstFrame, vertex_uniform_buffer_2[5][1], vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[5] = float4(vertex_uniform_buffer_2[5][0], _B_interpolate, vertex_uniform_buffer_2[5][2], vertex_uniform_buffer_2[5][3]);
+
+				vertex_uniform_buffer_2[6] = float4(_B_autoPlayback, vertex_uniform_buffer_2[6][1], vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], _displayFrame, vertex_uniform_buffer_2[6][2], vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[6] = float4(vertex_uniform_buffer_2[6][0], vertex_uniform_buffer_2[6][1], _B_surfaceNormals, vertex_uniform_buffer_2[6][3]);
+
+				vertex_uniform_buffer_2[12] = float4(_playbackSpeed, vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], _houdiniFPS, vertex_uniform_buffer_2[12][2], vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], _frameCount, vertex_uniform_buffer_2[12][3]);
+
+				vertex_uniform_buffer_2[12] = float4(vertex_uniform_buffer_2[12][0], vertex_uniform_buffer_2[12][1], vertex_uniform_buffer_2[12][2], _boundMaxX);
+
+				vertex_uniform_buffer_2[13] = float4(_boundMaxY, vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], _boundMaxZ, vertex_uniform_buffer_2[13][2], vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], _boundMinX, vertex_uniform_buffer_2[13][3]);
+
+				vertex_uniform_buffer_2[13] = float4(vertex_uniform_buffer_2[13][0], vertex_uniform_buffer_2[13][1], vertex_uniform_buffer_2[13][2], _boundMinY);
+
+				vertex_uniform_buffer_2[14] = float4(_boundMinZ, vertex_uniform_buffer_2[14][1], vertex_uniform_buffer_2[14][2], vertex_uniform_buffer_2[14][3]);
+
+				vertex_uniform_buffer_2[23] = float4(vertex_uniform_buffer_2[23][0], vertex_uniform_buffer_2[23][1], _RayTracing, vertex_uniform_buffer_2[23][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vertex_input_2 = stage_input.vertex_input_2;
+				vertex_input_3 = stage_input.vertex_input_3;
+				vertex_input_4 = stage_input.vertex_input_4;
+				vertex_input_5 = stage_input.vertex_input_5;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				stage_output.vertex_output_2 = vertex_output_2;
+				stage_output.vertex_output_3 = vertex_output_3;
+				stage_output.vertex_output_4 = vertex_output_4;
+				stage_output.vertex_output_5 = vertex_output_5;
+				stage_output.vertex_output_6 = vertex_output_6;
+				return stage_output;
 			}
+			#endif
 
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
-
-
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 	}

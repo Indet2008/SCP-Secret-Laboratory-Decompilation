@@ -9,11 +9,15 @@ public class PlatformInfo : MonoBehaviour
 {
 	public static PlatformInfo singleton;
 
-	public bool IsHeadless { get; } = true;
+	public bool IsHeadless { get; private set; }
 
+#if ENABLE_IL2CPP
+	public bool IsIl2Cpp { get; } = true;
+#else
 	public bool IsIl2Cpp { get; }
+#endif
 
-	public bool IsEditor { get; }
+	public bool IsEditor { get; private set; }
 
 	public bool UsesCustomLauncher { get; }
 
@@ -31,6 +35,8 @@ public class PlatformInfo : MonoBehaviour
 	{
 		MainThreadId = Thread.CurrentThread.ManagedThreadId;
 		BuildGuid = Application.buildGUID;
+		IsHeadless = Headless.IsHeadless();
+		IsEditor = Application.isEditor;
 		singleton = this;
 		Console.AddLog("Loaded NorthwoodLib " + PlatformSettings.Version, Color.green);
 		PlatformSettings.Logged += OnLogged;

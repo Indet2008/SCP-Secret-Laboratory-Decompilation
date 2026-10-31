@@ -54,8 +54,8 @@ Shader "SCPSL/Liquid"
 			[Enum(Auto, 0, On, 1, Off, 2)] [HideInInspector] _DoubleSidedGIMode ("Double sided GI mode", Float) = 0
 		}
 	// Hand-written replacement for the original Amplify "SCPSL/Liquid" shader (wobbling fill-level liquid).
-	// Pixels above the fill plane (world height relative to the object's pivot, tilted by WobbleX/Z) are clipped;
-	// back faces show the liquid surface. LiquidWobble drives _WobbleX/_WobbleZ at runtime.
+	// Pixels above the fill plane (world height above the pivot, tilted by WobbleX/Z) are clipped, as in the original.
+	// LiquidWobble drives _WobbleX/_WobbleZ at runtime.
 	SubShader
 	{
 		Tags { "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Transparent" "Queue" = "Transparent" }
@@ -67,7 +67,7 @@ Shader "SCPSL/Liquid"
 			// The liquid is opaque (alpha 1) even on transparent-queue materials (first-person 207 etc.); without depth
 			// its back faces and the bottle glass sort wrongly and the bottle looks see-through.
 			ZWrite On
-			Cull Off
+			Cull [_CullModeForward]
 
 			HLSLPROGRAM
 			#pragma vertex vert
@@ -87,7 +87,7 @@ Shader "SCPSL/Liquid"
 			float _BlendMode;
 
 			struct Attributes { float4 vertex : POSITION; float3 normal : NORMAL; UNITY_VERTEX_INPUT_INSTANCE_ID };
-			struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 normalWS : TEXCOORD1; float fillHeight : TEXCOORD2; UNITY_VERTEX_OUTPUT_STEREO };
+			struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; float3 positionOS : TEXCOORD1; UNITY_VERTEX_OUTPUT_STEREO };
 
 			Varyings vert(Attributes v)
 			{
@@ -95,28 +95,23 @@ Shader "SCPSL/Liquid"
 				UNITY_SETUP_INSTANCE_ID(v);
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 				float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
-				float3 pivotWS = TransformObjectToWorld(float3(0, 0, 0));
-				float3 rel = positionWS - pivotWS;
-				o.fillHeight = rel.y + rel.x * _WobbleX + rel.z * _WobbleZ;
 				o.positionWS = positionWS;
-				o.normalWS = TransformObjectToWorldNormal(v.normal);
+				o.positionOS = v.vertex.xyz;
 				o.positionCS = TransformWorldToHClip(positionWS);
 				return o;
 			}
 
-			float4 frag(Varyings i, bool isFrontFace : SV_IsFrontFace) : SV_Target
+			// Same math as the original (SCPSL14 export, "Forward Unlit" alpha-test variant): the fill height is the
+			// world-space height above the pivot, tilted by the object-space position rotated about the Amplify axes.
+			float4 frag(Varyings i) : SV_Target
 			{
-				clip(_Fill - i.fillHeight);
-				float3 viewDir = normalize(-i.positionWS);   // camera-relative rendering: camera at origin
-				float3 n = normalize(isFrontFace ? i.normalWS : -i.normalWS);
-				float rim = pow(1 - saturate(dot(n, viewDir)), 3);
-				float3 col = _Color.rgb;
-				if (!isFrontFace)
-					col *= 1.6;                            // liquid surface seen through the top
-				col += rim * 0.15 + _EmissiveColor.rgb * GetCurrentExposureMultiplier();
-				float a = _Color.a;
-				if (_SurfaceType > 0.5 && abs(_BlendMode - 4) > 0.5) col *= a;
-				return float4(col, a);
+				float3 os = i.positionOS;
+				// Both camera-relative, so the camera offset cancels like the original's +camPos -pivot.
+				float pivotHeight = i.positionWS.y - GetObjectToWorldMatrix()._m13;
+				float tilt = _WobbleX * dot(float2(-0.4480736, -0.8939967), os.yz) + _WobbleZ * dot(float2(0.8939967, -0.4480736), os.xy);
+				clip(_Fill - (pivotHeight + tilt));
+				float3 col = _Color.rgb + _EmissiveColor.rgb * GetCurrentExposureMultiplier();
+				return float4(col, 1);
 			}
 			ENDHLSL
 		}

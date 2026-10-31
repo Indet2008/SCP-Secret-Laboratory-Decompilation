@@ -21,6 +21,86 @@ namespace MapGeneration.RoomConnectors.Spawners
 
 		public abstract SpawnableRoomConnectorType FallbackType { get; }
 
+#if UNITY_EDITOR
+		private static readonly Color PreviewColor = new Color(1f, 1f, 1f, 0.35f);
+
+		private static RoomConnectorDistributorSettings[] _previewSettings;
+
+		private static readonly Dictionary<SpawnableRoomConnector, List<(Mesh, Matrix4x4)>> PreviewMeshes = new Dictionary<SpawnableRoomConnector, List<(Mesh, Matrix4x4)>>();
+
+		// The connector type drawn in the Scene view.
+		protected virtual SpawnableRoomConnectorType PreviewType => FallbackType;
+
+		// Scene-view preview: the connector this spawnpoint creates, drawn as a translucent solid mesh.
+		private void OnDrawGizmos()
+		{
+			if (!TryGetPreviewTemplate(PreviewType, out var template) && !TryGetPreviewTemplate(FallbackType, out template))
+			{
+				return;
+			}
+			Matrix4x4 spawnpointMatrix = Matrix4x4.TRS(base.transform.position, base.transform.rotation, Vector3.one);
+			Gizmos.color = PreviewColor;
+			foreach ((Mesh mesh, Matrix4x4 local) in GetPreviewMeshes(template))
+			{
+				Gizmos.matrix = spawnpointMatrix * local;
+				for (int i = 0; i < mesh.subMeshCount; i++)
+				{
+					Gizmos.DrawMesh(mesh, i);
+				}
+			}
+			Gizmos.matrix = Matrix4x4.identity;
+		}
+
+		private static List<(Mesh, Matrix4x4)> GetPreviewMeshes(SpawnableRoomConnector template)
+		{
+			if (PreviewMeshes.TryGetValue(template, out var meshes))
+			{
+				return meshes;
+			}
+			meshes = new List<(Mesh, Matrix4x4)>();
+			Matrix4x4 templateRoot = template.transform.worldToLocalMatrix;
+			foreach (MeshFilter meshFilter in template.GetComponentsInChildren<MeshFilter>(includeInactive: false))
+			{
+				if (meshFilter.sharedMesh != null)
+				{
+					meshes.Add((meshFilter.sharedMesh, templateRoot * meshFilter.transform.localToWorldMatrix));
+				}
+			}
+			PreviewMeshes[template] = meshes;
+			return meshes;
+		}
+
+		private static bool TryGetPreviewTemplate(SpawnableRoomConnectorType type, out SpawnableRoomConnector template)
+		{
+			if (RoomConnectorDistributorSettings.TryGetTemplate(type, out template))
+			{
+				return true;
+			}
+			// Outside play mode nothing has registered the templates yet; look them up directly. Loaded once, because
+			// Resources.LoadAll scans the whole Resources folder and gizmos are drawn every repaint.
+			if (_previewSettings == null)
+			{
+				_previewSettings = Resources.LoadAll<RoomConnectorDistributorSettings>(string.Empty);
+			}
+			foreach (RoomConnectorDistributorSettings settings in _previewSettings)
+			{
+				if (settings == null)
+				{
+					continue;
+				}
+				foreach (SpawnableRoomConnector connector in settings.SpawnableConnectors)
+				{
+					if (connector != null && connector.SpawnData.ConnectorType == type)
+					{
+						template = connector;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+#endif
+
 		protected virtual void Awake()
 		{
 			_parentRoom = GetComponentInParent<RoomIdentifier>();

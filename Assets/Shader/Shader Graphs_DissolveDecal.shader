@@ -83,8 +83,8 @@ Shader "Shader Graphs/DissolveDecal"
 			#pragma shader_feature _MATERIAL_AFFECTS_NORMAL
 
 
-			#if defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -189,6 +189,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_5 = vertex_output_5;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4x4 _InvViewProjMatrix;
@@ -326,11 +329,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -435,6 +436,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_5 = vertex_output_5;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -610,11 +614,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -746,6 +748,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4x4 _InvViewProjMatrix;
@@ -920,11 +925,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewProjMatrix;
 			float4 _WorldSpaceCameraPos_Internal;
@@ -1056,6 +1059,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_6 = vertex_output_6;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -1284,41 +1290,15 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
+			#endif
 
-
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
-
-			struct Vertex_Stage_Input
-			{
-				float3 pos : POSITION;
-			};
-
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
-
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
-			}
-
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
-			}
-
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
-
-
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -1368,8 +1348,8 @@ Shader "Shader Graphs/DissolveDecal"
 			#pragma shader_feature _MATERIAL_AFFECTS_NORMAL
 
 
-			#if defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewMatrix;
 			float4x4 _ViewProjMatrix;
@@ -1539,6 +1519,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_8 = vertex_output_8;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			static float4 fragment_input_1;
@@ -1606,11 +1589,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewMatrix;
 			float4x4 _ViewProjMatrix;
@@ -1780,6 +1761,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_8 = vertex_output_8;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -1887,11 +1871,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewMatrix;
 			float4x4 _ViewProjMatrix;
@@ -2090,6 +2072,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_8 = vertex_output_8;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			static float4 fragment_input_1;
@@ -2157,11 +2142,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 _ViewMatrix;
 			float4x4 _ViewProjMatrix;
@@ -2360,6 +2343,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_8 = vertex_output_8;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -2467,41 +2453,15 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
+			#endif
 
-
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
-
-			struct Vertex_Stage_Input
-			{
-				float3 pos : POSITION;
-			};
-
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
-
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
-			}
-
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
-			}
-
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
-
-
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -2532,8 +2492,8 @@ Shader "Shader Graphs/DissolveDecal"
 			#pragma shader_feature _MATERIAL_AFFECTS_NORMAL
 
 
-			#if defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4 _DiffuseScaleBias;
 			float4 _NormalScaleBias;
@@ -2695,6 +2655,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_2 = vertex_output_2;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -2798,11 +2761,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4 _DiffuseScaleBias;
 			float4 _NormalScaleBias;
@@ -2964,6 +2925,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_2 = vertex_output_2;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -3067,11 +3031,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL) && !defined(INSTANCING_ON)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4 _DiffuseScaleBias;
 			float4 _NormalScaleBias;
@@ -3233,6 +3195,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_2 = vertex_output_2;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -3336,11 +3301,9 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && !defined(_MATERIAL_AFFECTS_ALBEDO) && !defined(_MATERIAL_AFFECTS_MASKMAP) && !defined(_MATERIAL_AFFECTS_NORMAL)
-
-
-			#if defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
-			#define ANY_SHADER_VARIANT_ACTIVE
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4 _DiffuseScaleBias;
 			float4 _NormalScaleBias;
@@ -3502,6 +3465,9 @@ Shader "Shader Graphs/DissolveDecal"
 				stage_output.vertex_output_2 = vertex_output_2;
 				return stage_output;
 			}
+			#endif
+			#if (defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _GlobalMipBias;
@@ -3605,41 +3571,15 @@ Shader "Shader Graphs/DissolveDecal"
 				return stage_output;
 			}
 
-			#endif // defined(DECALS_3RT) && defined(INSTANCING_ON) && defined(_MATERIAL_AFFECTS_ALBEDO) && defined(_MATERIAL_AFFECTS_MASKMAP) && defined(_MATERIAL_AFFECTS_NORMAL)
+			#endif
 
-
-			// Fallback Shader Code
-			#ifndef ANY_SHADER_VARIANT_ACTIVE
-
-			// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-			float4x4 unity_MatrixMVP;
-
-			struct Vertex_Stage_Input
-			{
-				float3 pos : POSITION;
-			};
-
-			struct Vertex_Stage_Output
-			{
-				float4 pos : SV_POSITION;
-			};
-
-			Vertex_Stage_Output vert(Vertex_Stage_Input input)
-			{
-				Vertex_Stage_Output output;
-				output.pos = mul(unity_MatrixMVP, float4(input.pos, 1.0));
-				return output;
-			}
-
-			float4 frag(Vertex_Stage_Output input) : SV_TARGET
-			{
-				// Output solid grey color (e.g., 50% grey)
-				return float4(0.5, 0.5, 0.5, 1.0); // RGBA
-			}
-
-			#endif // !ANY_SHADER_VARIANT_ACTIVE
-
-
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 	}

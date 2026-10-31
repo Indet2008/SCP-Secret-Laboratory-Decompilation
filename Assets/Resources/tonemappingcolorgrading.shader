@@ -28,6 +28,8 @@ Shader "Hidden/TonemappingColorGrading"
 			#pragma target 4.0
 
 
+			#if defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
 
@@ -92,6 +94,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _WhiteBalance;
@@ -273,30 +278,10 @@ Shader "Hidden/TonemappingColorGrading"
 			}
 
 
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 68183
 
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-
-
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
 
@@ -361,6 +346,293 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float3 _WhiteBalance;
+			float3 _Lift;
+			float3 _Gamma;
+			float3 _Gain;
+			float3 _ContrastGainGamma;
+			float _Vibrance;
+			float3 _HSV;
+			float3 _ChannelMixerRed;
+			float3 _ChannelMixerGreen;
+			float3 _ChannelMixerBlue;
+
+			static float4 fragment_uniform_buffer_0[18];
+			Texture2D<float4> _MainTex;
+			Texture2D<float4> _CurveTex;
+			SamplerState sampler_MainTex;
+			SamplerState sampler_CurveTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_42 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				float fragment_unnamed_44 = fragment_unnamed_42.x;
+				precise float fragment_unnamed_73 = dot(float3(0.390404999256134033203125f, 0.549941003322601318359375f, 0.008926319889724254608154296875f), float3(fragment_unnamed_44, fragment_unnamed_42.yz)) * fragment_uniform_buffer_0[9u].x;
+				precise float fragment_unnamed_74 = dot(float3(0.070841602981090545654296875f, 0.963172018527984619140625f, 0.001357750035822391510009765625f), float3(fragment_unnamed_44, fragment_unnamed_42.yz)) * fragment_uniform_buffer_0[9u].y;
+				precise float fragment_unnamed_75 = dot(float3(0.02310819923877716064453125f, 0.1280210018157958984375f, 0.936245024204254150390625f), float3(fragment_unnamed_44, fragment_unnamed_42.yz)) * fragment_uniform_buffer_0[9u].z;
+				float fragment_unnamed_76 = dot(float3(2.85846996307373046875f, -1.62879002094268798828125f, -0.0248910002410411834716796875f), float3(fragment_unnamed_73, fragment_unnamed_74, fragment_unnamed_75));
+				float fragment_unnamed_82 = dot(float3(-0.21018199622631072998046875f, 1.1582000255584716796875f, 0.0003242809907533228397369384765625f), float3(fragment_unnamed_73, fragment_unnamed_74, fragment_unnamed_75));
+				float fragment_unnamed_88 = dot(float3(-0.0418119989335536956787109375f, -0.118169002234935760498046875f, 1.0686700344085693359375f), float3(fragment_unnamed_73, fragment_unnamed_74, fragment_unnamed_75));
+				precise float fragment_unnamed_98 = (-0.0f) - fragment_unnamed_76;
+				precise float fragment_unnamed_100 = (-0.0f) - fragment_unnamed_82;
+				precise float fragment_unnamed_101 = (-0.0f) - fragment_unnamed_88;
+				precise float fragment_unnamed_102 = fragment_unnamed_98 + 1.0f;
+				precise float fragment_unnamed_104 = fragment_unnamed_100 + 1.0f;
+				precise float fragment_unnamed_105 = fragment_unnamed_101 + 1.0f;
+				precise float fragment_unnamed_112 = log2(fragment_unnamed_76) * fragment_uniform_buffer_0[11u].x;
+				precise float fragment_unnamed_113 = log2(fragment_unnamed_82) * fragment_uniform_buffer_0[11u].y;
+				precise float fragment_unnamed_114 = log2(fragment_unnamed_88) * fragment_uniform_buffer_0[11u].z;
+				precise float fragment_unnamed_133 = mad(fragment_uniform_buffer_0[10u].x, fragment_unnamed_102, exp2(fragment_unnamed_112)) * fragment_uniform_buffer_0[12u].x;
+				precise float fragment_unnamed_134 = mad(fragment_uniform_buffer_0[10u].y, fragment_unnamed_104, exp2(fragment_unnamed_113)) * fragment_uniform_buffer_0[12u].y;
+				precise float fragment_unnamed_135 = mad(fragment_uniform_buffer_0[10u].z, fragment_unnamed_105, exp2(fragment_unnamed_114)) * fragment_uniform_buffer_0[12u].z;
+				float fragment_unnamed_136 = max(fragment_unnamed_134, 0.0f);
+				float fragment_unnamed_137 = max(fragment_unnamed_135, 0.0f);
+				float fragment_unnamed_138 = max(fragment_unnamed_133, 0.0f);
+				float fragment_unnamed_145 = asfloat(((fragment_unnamed_136 >= fragment_unnamed_137) ? 4294967295u : 0u) & 1065353216u);
+				precise float fragment_unnamed_146 = (-0.0f) - fragment_unnamed_137;
+				precise float fragment_unnamed_147 = (-0.0f) - fragment_unnamed_136;
+				precise float fragment_unnamed_148 = fragment_unnamed_136 + fragment_unnamed_146;
+				precise float fragment_unnamed_149 = fragment_unnamed_137 + fragment_unnamed_147;
+				float fragment_unnamed_156 = mad(fragment_unnamed_145, fragment_unnamed_148, fragment_unnamed_137);
+				float fragment_unnamed_157 = mad(fragment_unnamed_145, fragment_unnamed_149, fragment_unnamed_136);
+				float fragment_unnamed_159 = mad(fragment_unnamed_145, asfloat(3212836864u), asfloat(1059760811u));
+				float fragment_unnamed_163 = asfloat(((fragment_unnamed_138 >= fragment_unnamed_156) ? 4294967295u : 0u) & 1065353216u);
+				precise float fragment_unnamed_164 = (-0.0f) - fragment_unnamed_156;
+				precise float fragment_unnamed_165 = (-0.0f) - fragment_unnamed_157;
+				precise float fragment_unnamed_166 = (-0.0f) - fragment_unnamed_159;
+				precise float fragment_unnamed_167 = (-0.0f) - fragment_unnamed_138;
+				precise float fragment_unnamed_168 = fragment_unnamed_164 + fragment_unnamed_138;
+				precise float fragment_unnamed_169 = fragment_unnamed_165 + fragment_unnamed_157;
+				precise float fragment_unnamed_170 = fragment_unnamed_166 + mad(fragment_unnamed_145, asfloat(1065353216u), asfloat(3212836864u));
+				precise float fragment_unnamed_171 = fragment_unnamed_167 + fragment_unnamed_156;
+				float fragment_unnamed_172 = mad(fragment_unnamed_163, fragment_unnamed_169, fragment_unnamed_157);
+				float fragment_unnamed_173 = mad(fragment_unnamed_163, fragment_unnamed_168, fragment_unnamed_156);
+				float fragment_unnamed_175 = mad(fragment_unnamed_163, fragment_unnamed_171, fragment_unnamed_138);
+				precise float fragment_unnamed_177 = (-0.0f) - min(fragment_unnamed_172, fragment_unnamed_175);
+				precise float fragment_unnamed_178 = fragment_unnamed_173 + fragment_unnamed_177;
+				precise float fragment_unnamed_182 = (-0.0f) - fragment_unnamed_172;
+				precise float fragment_unnamed_183 = fragment_unnamed_182 + fragment_unnamed_175;
+				precise float fragment_unnamed_184 = fragment_unnamed_183 / mad(fragment_unnamed_178, 6.0f, 9.9999997473787516355514526367188e-05f);
+				precise float fragment_unnamed_185 = fragment_unnamed_184 + mad(fragment_unnamed_163, fragment_unnamed_170, fragment_unnamed_159);
+				precise float fragment_unnamed_191 = abs(fragment_unnamed_185) + fragment_uniform_buffer_0[14u].x;
+				precise float fragment_unnamed_193 = (-0.0f) - floor(fragment_unnamed_191);
+				precise float fragment_unnamed_194 = fragment_unnamed_193 + fragment_unnamed_191;
+				precise float fragment_unnamed_195 = fragment_unnamed_194 + 1.0f;
+				precise float fragment_unnamed_196 = fragment_unnamed_194 + 0.666666686534881591796875f;
+				precise float fragment_unnamed_198 = fragment_unnamed_194 + 0.3333333432674407958984375f;
+				precise float fragment_unnamed_210 = abs(mad(frac(fragment_unnamed_195), 6.0f, -3.0f)) + (-1.0f);
+				precise float fragment_unnamed_212 = abs(mad(frac(fragment_unnamed_196), 6.0f, -3.0f)) + (-1.0f);
+				precise float fragment_unnamed_213 = abs(mad(frac(fragment_unnamed_198), 6.0f, -3.0f)) + (-1.0f);
+				precise float fragment_unnamed_217 = clamp(fragment_unnamed_210, 0.0f, 1.0f) + (-1.0f);
+				precise float fragment_unnamed_218 = clamp(fragment_unnamed_212, 0.0f, 1.0f) + (-1.0f);
+				precise float fragment_unnamed_219 = clamp(fragment_unnamed_213, 0.0f, 1.0f) + (-1.0f);
+				precise float fragment_unnamed_220 = fragment_unnamed_173 + 9.9999997473787516355514526367188e-05f;
+				precise float fragment_unnamed_221 = fragment_unnamed_178 / fragment_unnamed_220;
+				precise float fragment_unnamed_226 = fragment_unnamed_221 * fragment_uniform_buffer_0[14u].y;
+				precise float fragment_unnamed_227 = fragment_unnamed_173 * fragment_uniform_buffer_0[14u].z;
+				precise float fragment_unnamed_231 = mad(fragment_unnamed_226, fragment_unnamed_217, 1.0f) * fragment_unnamed_227;
+				precise float fragment_unnamed_232 = mad(fragment_unnamed_226, fragment_unnamed_218, 1.0f) * fragment_unnamed_227;
+				precise float fragment_unnamed_233 = mad(fragment_unnamed_226, fragment_unnamed_219, 1.0f) * fragment_unnamed_227;
+				float fragment_unnamed_234 = clamp(fragment_unnamed_231, 0.0f, 1.0f);
+				float fragment_unnamed_235 = clamp(fragment_unnamed_232, 0.0f, 1.0f);
+				float fragment_unnamed_236 = clamp(fragment_unnamed_233, 0.0f, 1.0f);
+				precise float fragment_unnamed_241 = (-0.0f) - min(fragment_unnamed_234, min(fragment_unnamed_236, fragment_unnamed_235));
+				precise float fragment_unnamed_242 = max(max(fragment_unnamed_236, fragment_unnamed_235), fragment_unnamed_234) + fragment_unnamed_241;
+				precise float fragment_unnamed_257 = (-0.0f) - float(int((-((0.0f < fragment_uniform_buffer_0[13u].w) ? 4294967295u : 0u)) + ((fragment_uniform_buffer_0[13u].w < 0.0f) ? 4294967295u : 0u)));
+				float fragment_unnamed_262 = mad(fragment_uniform_buffer_0[13u].w, mad(fragment_unnamed_257, fragment_unnamed_242, 1.0f), 1.0f);
+				float fragment_unnamed_263 = dot(float3(fragment_unnamed_234, fragment_unnamed_235, fragment_unnamed_236), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f));
+				precise float fragment_unnamed_269 = (-0.0f) - fragment_unnamed_263;
+				precise float fragment_unnamed_270 = fragment_unnamed_234 + fragment_unnamed_269;
+				precise float fragment_unnamed_271 = fragment_unnamed_235 + fragment_unnamed_269;
+				precise float fragment_unnamed_272 = fragment_unnamed_236 + fragment_unnamed_269;
+				precise float fragment_unnamed_276 = mad(fragment_unnamed_262, fragment_unnamed_270, fragment_unnamed_263) + (-0.5f);
+				precise float fragment_unnamed_278 = mad(fragment_unnamed_262, fragment_unnamed_271, fragment_unnamed_263) + (-0.5f);
+				precise float fragment_unnamed_279 = mad(fragment_unnamed_262, fragment_unnamed_272, fragment_unnamed_263) + (-0.5f);
+				float fragment_unnamed_287 = clamp(mad(fragment_unnamed_276, fragment_uniform_buffer_0[13u].x, 0.5f), 0.0f, 1.0f);
+				float fragment_unnamed_288 = clamp(mad(fragment_unnamed_278, fragment_uniform_buffer_0[13u].x, 0.5f), 0.0f, 1.0f);
+				float fragment_unnamed_289 = clamp(mad(fragment_unnamed_279, fragment_uniform_buffer_0[13u].x, 0.5f), 0.0f, 1.0f);
+				precise float fragment_unnamed_293 = (-0.0f) - fragment_unnamed_287;
+				precise float fragment_unnamed_294 = (-0.0f) - fragment_unnamed_288;
+				precise float fragment_unnamed_295 = (-0.0f) - fragment_unnamed_289;
+				precise float fragment_unnamed_296 = fragment_unnamed_293 + 1.0f;
+				precise float fragment_unnamed_297 = fragment_unnamed_294 + 1.0f;
+				precise float fragment_unnamed_298 = fragment_unnamed_295 + 1.0f;
+				precise float fragment_unnamed_305 = log2(fragment_unnamed_287) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_306 = log2(fragment_unnamed_288) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_307 = log2(fragment_unnamed_289) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_317 = log2(fragment_unnamed_296) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_318 = log2(fragment_unnamed_297) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_319 = log2(fragment_unnamed_298) * fragment_uniform_buffer_0[13u].y;
+				precise float fragment_unnamed_327 = exp2(fragment_uniform_buffer_0[13u].y) * 0.5f;
+				precise float fragment_unnamed_328 = (-0.0f) - exp2(fragment_unnamed_317);
+				precise float fragment_unnamed_329 = (-0.0f) - exp2(fragment_unnamed_318);
+				precise float fragment_unnamed_330 = (-0.0f) - exp2(fragment_unnamed_319);
+				precise float fragment_unnamed_334 = fragment_unnamed_327 * exp2(fragment_unnamed_305);
+				precise float fragment_unnamed_335 = fragment_unnamed_327 * exp2(fragment_unnamed_306);
+				precise float fragment_unnamed_336 = fragment_unnamed_327 * exp2(fragment_unnamed_307);
+				precise float fragment_unnamed_355 = log2(asfloat((fragment_unnamed_287 < 0.5f) ? asuint(fragment_unnamed_334) : asuint(mad(fragment_unnamed_328, fragment_unnamed_327, 1.0f)))) * fragment_uniform_buffer_0[13u].z;
+				precise float fragment_unnamed_356 = log2(asfloat((fragment_unnamed_288 < 0.5f) ? asuint(fragment_unnamed_335) : asuint(mad(fragment_unnamed_329, fragment_unnamed_327, 1.0f)))) * fragment_uniform_buffer_0[13u].z;
+				precise float fragment_unnamed_357 = log2(asfloat((fragment_unnamed_289 < 0.5f) ? asuint(fragment_unnamed_336) : asuint(mad(fragment_unnamed_330, fragment_unnamed_327, 1.0f)))) * fragment_uniform_buffer_0[13u].z;
+				float fragment_unnamed_358 = exp2(fragment_unnamed_355);
+				float fragment_unnamed_359 = exp2(fragment_unnamed_356);
+				float fragment_unnamed_360 = exp2(fragment_unnamed_357);
+				fragment_output_0.x = _CurveTex.Sample(sampler_CurveTex, float2(_CurveTex.Sample(sampler_CurveTex, float2(dot(float3(fragment_unnamed_358, fragment_unnamed_359, fragment_unnamed_360), float3(fragment_uniform_buffer_0[15u].xyz)), asfloat(1056964608u))).w, asfloat(1056964608u))).x;
+				fragment_output_0.z = _CurveTex.Sample(sampler_CurveTex, float2(_CurveTex.Sample(sampler_CurveTex, float2(dot(float3(fragment_unnamed_358, fragment_unnamed_359, fragment_unnamed_360), float3(fragment_uniform_buffer_0[17u].xyz)), asfloat(1056964608u))).w, asfloat(1056964608u))).z;
+				fragment_output_0.y = _CurveTex.Sample(sampler_CurveTex, float2(_CurveTex.Sample(sampler_CurveTex, float2(dot(float3(fragment_unnamed_358, fragment_unnamed_359, fragment_unnamed_360), float3(fragment_uniform_buffer_0[16u].xyz)), asfloat(1056964608u))).w, asfloat(1056964608u))).y;
+				fragment_output_0.w = 1.0f;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[9] = float4(_WhiteBalance[0], _WhiteBalance[1], _WhiteBalance[2], fragment_uniform_buffer_0[9][3]);
+
+				fragment_uniform_buffer_0[10] = float4(_Lift[0], _Lift[1], _Lift[2], fragment_uniform_buffer_0[10][3]);
+
+				fragment_uniform_buffer_0[11] = float4(_Gamma[0], _Gamma[1], _Gamma[2], fragment_uniform_buffer_0[11][3]);
+
+				fragment_uniform_buffer_0[12] = float4(_Gain[0], _Gain[1], _Gain[2], fragment_uniform_buffer_0[12][3]);
+
+				fragment_uniform_buffer_0[13] = float4(_ContrastGainGamma[0], _ContrastGainGamma[1], _ContrastGainGamma[2], fragment_uniform_buffer_0[13][3]);
+
+				fragment_uniform_buffer_0[13] = float4(fragment_uniform_buffer_0[13][0], fragment_uniform_buffer_0[13][1], fragment_uniform_buffer_0[13][2], _Vibrance);
+
+				fragment_uniform_buffer_0[14] = float4(_HSV[0], _HSV[1], _HSV[2], fragment_uniform_buffer_0[14][3]);
+
+				fragment_uniform_buffer_0[15] = float4(_ChannelMixerRed[0], _ChannelMixerRed[1], _ChannelMixerRed[2], fragment_uniform_buffer_0[15][3]);
+
+				fragment_uniform_buffer_0[16] = float4(_ChannelMixerGreen[0], _ChannelMixerGreen[1], _ChannelMixerGreen[2], fragment_uniform_buffer_0[16][3]);
+
+				fragment_uniform_buffer_0[17] = float4(_ChannelMixerBlue[0], _ChannelMixerBlue[1], _ChannelMixerBlue[2], fragment_uniform_buffer_0[17][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 68183
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+
+
+			#if defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -414,6 +686,140 @@ Shader "Hidden/TonemappingColorGrading"
 			}
 
 
+
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float4 _MainTex_TexelSize;
+
+			static float4 fragment_uniform_buffer_0[3];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_41 = fragment_input_1.x + fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_42 = fragment_input_1.y + fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_62 = log2(max(dot(float3(_MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_41, fragment_unnamed_42)).xyz), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f)), 0.001000000047497451305389404296875f)) * 0.693147182464599609375f;
+				precise float fragment_unnamed_71 = (-0.0f) - fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_74 = (-0.0f) - fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_75 = fragment_input_1.x + fragment_unnamed_71;
+				precise float fragment_unnamed_76 = fragment_input_1.y + fragment_unnamed_74;
+				float fragment_unnamed_123 = mad(log2(max(dot(float3(_MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, 1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, -1.0f, fragment_input_1.y))).xyz), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f)), 0.001000000047497451305389404296875f)), 0.693147182464599609375f, mad(log2(max(dot(float3(_MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, -1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, 1.0f, fragment_input_1.y))).xyz), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f)), 0.001000000047497451305389404296875f)), 0.693147182464599609375f, mad(log2(max(dot(float3(_MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_75, fragment_unnamed_76)).xyz), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f)), 0.001000000047497451305389404296875f)), 0.693147182464599609375f, fragment_unnamed_62)));
+				precise float fragment_unnamed_124 = fragment_unnamed_123 * 0.25f;
+				precise float fragment_unnamed_126 = fragment_unnamed_123 * 0.25f;
+				precise float fragment_unnamed_127 = fragment_unnamed_123 * 0.25f;
+				precise float fragment_unnamed_128 = fragment_unnamed_123 * 0.25f;
+				fragment_output_0.x = fragment_unnamed_124;
+				fragment_output_0.y = fragment_unnamed_126;
+				fragment_output_0.z = fragment_unnamed_127;
+				fragment_output_0.w = fragment_unnamed_128;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[2] = float4(_MainTex_TexelSize[0], _MainTex_TexelSize[1], _MainTex_TexelSize[2], _MainTex_TexelSize[3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -439,6 +845,8 @@ Shader "Hidden/TonemappingColorGrading"
 			#pragma target 4.0
 
 
+			#if defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
 
@@ -503,6 +911,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -558,6 +969,142 @@ Shader "Hidden/TonemappingColorGrading"
 			}
 
 
+
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float4 _MainTex_TexelSize;
+			float _AdaptationSpeed;
+
+			static float4 fragment_uniform_buffer_0[9];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_40 = (-0.0f) - fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_43 = (-0.0f) - fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_44 = fragment_input_1.x + fragment_unnamed_40;
+				precise float fragment_unnamed_45 = fragment_input_1.y + fragment_unnamed_43;
+				precise float fragment_unnamed_60 = fragment_input_1.x + fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_61 = fragment_input_1.y + fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_65 = _MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_44, fragment_unnamed_45)).x + _MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_60, fragment_unnamed_61)).x;
+				precise float fragment_unnamed_87 = fragment_unnamed_65 + _MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, 1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, -1.0f, fragment_input_1.y))).x;
+				precise float fragment_unnamed_88 = _MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, -1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, 1.0f, fragment_input_1.y))).x + fragment_unnamed_87;
+				precise float fragment_unnamed_89 = fragment_unnamed_88 * 0.3606737554073333740234375f;
+				fragment_output_0.x = exp2(fragment_unnamed_89);
+				fragment_output_0.y = exp2(fragment_unnamed_89);
+				fragment_output_0.z = exp2(fragment_unnamed_89);
+				precise float fragment_unnamed_102 = fragment_uniform_buffer_0[8u].x * 0.012500000186264514923095703125f;
+				fragment_output_0.w = clamp(fragment_unnamed_102, 0.0f, 1.0f);
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[2] = float4(_MainTex_TexelSize[0], _MainTex_TexelSize[1], _MainTex_TexelSize[2], _MainTex_TexelSize[3]);
+
+				fragment_uniform_buffer_0[8] = float4(_AdaptationSpeed, fragment_uniform_buffer_0[8][1], fragment_uniform_buffer_0[8][2], fragment_uniform_buffer_0[8][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -582,6 +1129,8 @@ Shader "Hidden/TonemappingColorGrading"
 			#pragma target 4.0
 
 
+			#if defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
 
@@ -646,6 +1195,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -701,6 +1253,142 @@ Shader "Hidden/TonemappingColorGrading"
 			}
 
 
+
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float4 _MainTex_TexelSize;
+			float _AdaptationSpeed;
+
+			static float4 fragment_uniform_buffer_0[9];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_40 = (-0.0f) - fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_43 = (-0.0f) - fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_44 = fragment_input_1.x + fragment_unnamed_40;
+				precise float fragment_unnamed_45 = fragment_input_1.y + fragment_unnamed_43;
+				precise float fragment_unnamed_60 = fragment_input_1.x + fragment_uniform_buffer_0[2u].x;
+				precise float fragment_unnamed_61 = fragment_input_1.y + fragment_uniform_buffer_0[2u].y;
+				precise float fragment_unnamed_65 = _MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_44, fragment_unnamed_45)).x + _MainTex.Sample(sampler_MainTex, float2(fragment_unnamed_60, fragment_unnamed_61)).x;
+				precise float fragment_unnamed_87 = fragment_unnamed_65 + _MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, 1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, -1.0f, fragment_input_1.y))).x;
+				precise float fragment_unnamed_88 = _MainTex.Sample(sampler_MainTex, float2(mad(fragment_uniform_buffer_0[2u].x, -1.0f, fragment_input_1.x), mad(fragment_uniform_buffer_0[2u].y, 1.0f, fragment_input_1.y))).x + fragment_unnamed_87;
+				precise float fragment_unnamed_89 = fragment_unnamed_88 * 0.3606737554073333740234375f;
+				fragment_output_0.x = exp2(fragment_unnamed_89);
+				fragment_output_0.y = exp2(fragment_unnamed_89);
+				fragment_output_0.z = exp2(fragment_unnamed_89);
+				precise float fragment_unnamed_102 = fragment_uniform_buffer_0[8u].x * 0.012500000186264514923095703125f;
+				fragment_output_0.w = clamp(fragment_unnamed_102, 0.0f, 1.0f);
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[2] = float4(_MainTex_TexelSize[0], _MainTex_TexelSize[1], _MainTex_TexelSize[2], _MainTex_TexelSize[3]);
+
+				fragment_uniform_buffer_0[8] = float4(_AdaptationSpeed, fragment_uniform_buffer_0[8][1], fragment_uniform_buffer_0[8][2], fragment_uniform_buffer_0[8][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 		Pass
@@ -729,7 +1417,8 @@ Shader "Hidden/TonemappingColorGrading"
 			#pragma multi_compile _ ENABLE_USER_LUT
 
 
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -795,6 +1484,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			Texture2D<float4> _MainTex;
@@ -831,10 +1523,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -900,6 +1591,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -979,10 +1673,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1048,6 +1741,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -1093,10 +1789,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1162,6 +1857,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -1248,10 +1946,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1317,6 +2014,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -1371,10 +2071,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1440,6 +2139,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -1532,10 +2234,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1601,6 +2302,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -1660,10 +2364,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1729,6 +2432,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -1829,10 +2535,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -1898,6 +2603,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -1965,10 +2673,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2034,6 +2741,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -2142,10 +2852,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2211,6 +2920,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -2285,10 +2997,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2354,6 +3065,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -2469,10 +3183,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2538,6 +3251,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -2621,10 +3337,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2690,6 +3405,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -2814,10 +3532,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -2883,6 +3600,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -2973,10 +3693,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3042,6 +3761,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -3173,38 +3895,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 358915
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3270,6 +3963,152 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_33 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				fragment_output_0.x = fragment_unnamed_33.x;
+				fragment_output_0.y = fragment_unnamed_33.y;
+				fragment_output_0.z = fragment_unnamed_33.z;
+				fragment_output_0.w = fragment_unnamed_33.w;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 358915
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -3320,10 +4159,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3389,6 +4227,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -3477,10 +4318,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3546,6 +4386,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -3600,10 +4443,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3669,6 +4511,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -3764,10 +4609,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3833,6 +4677,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -3896,10 +4743,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -3965,6 +4811,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -4069,10 +4918,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4138,6 +4986,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -4208,10 +5059,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4277,6 +5127,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -4388,10 +5241,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4457,6 +5309,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -4533,10 +5388,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4602,6 +5456,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -4719,10 +5576,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4788,6 +5644,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -4871,10 +5730,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -4940,6 +5798,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -5064,10 +5925,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -5133,6 +5993,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -5225,10 +6088,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -5294,6 +6156,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -5427,10 +6292,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -5496,6 +6360,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -5595,10 +6462,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -5664,6 +6530,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -5804,38 +6673,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 421795
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -5901,6 +6741,166 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_38 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				precise float fragment_unnamed_49 = fragment_unnamed_38.x * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_50 = fragment_unnamed_38.y * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_51 = fragment_unnamed_38.z * fragment_uniform_buffer_0[3u].x;
+				fragment_output_0.w = fragment_unnamed_38.w;
+				precise float fragment_unnamed_60 = fragment_unnamed_49 * mad(fragment_unnamed_49, 2.5099999904632568359375f, 0.02999999932944774627685546875f);
+				precise float fragment_unnamed_61 = fragment_unnamed_50 * mad(fragment_unnamed_50, 2.5099999904632568359375f, 0.02999999932944774627685546875f);
+				precise float fragment_unnamed_62 = fragment_unnamed_51 * mad(fragment_unnamed_51, 2.5099999904632568359375f, 0.02999999932944774627685546875f);
+				precise float fragment_unnamed_72 = fragment_unnamed_60 / mad(fragment_unnamed_49, mad(fragment_unnamed_49, 2.4300000667572021484375f, 0.589999973773956298828125f), 0.14000000059604644775390625f);
+				precise float fragment_unnamed_73 = fragment_unnamed_61 / mad(fragment_unnamed_50, mad(fragment_unnamed_50, 2.4300000667572021484375f, 0.589999973773956298828125f), 0.14000000059604644775390625f);
+				precise float fragment_unnamed_74 = fragment_unnamed_62 / mad(fragment_unnamed_51, mad(fragment_unnamed_51, 2.4300000667572021484375f, 0.589999973773956298828125f), 0.14000000059604644775390625f);
+				fragment_output_0.x = clamp(fragment_unnamed_72, 0.0f, 1.0f);
+				fragment_output_0.y = clamp(fragment_unnamed_73, 0.0f, 1.0f);
+				fragment_output_0.z = clamp(fragment_unnamed_74, 0.0f, 1.0f);
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 421795
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -5966,10 +6966,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6035,6 +7034,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -6135,10 +7137,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6204,6 +7205,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -6270,10 +7274,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6339,6 +7342,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -6446,10 +7452,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6515,6 +7520,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -6590,10 +7598,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6659,6 +7666,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -6775,10 +7785,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6844,6 +7853,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -6926,10 +7938,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -6995,6 +8006,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -7118,10 +8132,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -7187,6 +8200,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -7275,10 +8291,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -7344,6 +8359,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -7473,10 +8491,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -7542,6 +8559,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -7637,10 +8657,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -7706,6 +8725,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -7842,10 +8864,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -7911,6 +8932,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -8015,10 +9039,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -8084,6 +9107,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -8229,10 +9255,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -8298,6 +9323,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -8409,10 +9437,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -8478,6 +9505,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -8630,38 +9660,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 510917
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -8727,6 +9728,181 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+			float _ToneCurveRange;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			Texture2D<float4> _ToneCurve;
+			SamplerState sampler_MainTex;
+			SamplerState sampler_ToneCurve;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_42 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				precise float fragment_unnamed_53 = fragment_unnamed_42.x * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_54 = fragment_unnamed_42.y * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_55 = fragment_unnamed_42.z * fragment_uniform_buffer_0[3u].x;
+				fragment_output_0.w = fragment_unnamed_42.w;
+				float fragment_unnamed_65 = dot(float3(0.514136373996734619140625f, 0.323878586292266845703125f, 0.1603637635707855224609375f), float3(fragment_unnamed_53, fragment_unnamed_54, fragment_unnamed_55));
+				float fragment_unnamed_71 = dot(float3(0.265067994594573974609375f, 0.670234262943267822265625f, 0.064091570675373077392578125f), float3(fragment_unnamed_53, fragment_unnamed_54, fragment_unnamed_55));
+				float fragment_unnamed_77 = dot(1.0f.xxx, float3(fragment_unnamed_65, fragment_unnamed_71, dot(float3(0.0241187997162342071533203125f, 0.12281779944896697998046875f, 0.844426631927490234375f), float3(fragment_unnamed_53, fragment_unnamed_54, fragment_unnamed_55))));
+				precise float fragment_unnamed_81 = fragment_unnamed_65 / fragment_unnamed_77;
+				precise float fragment_unnamed_82 = fragment_unnamed_71 / fragment_unnamed_77;
+				precise float fragment_unnamed_86 = fragment_unnamed_71 * fragment_uniform_buffer_0[3u].y;
+				precise float fragment_unnamed_87 = (-0.0f) - fragment_unnamed_81;
+				precise float fragment_unnamed_89 = fragment_unnamed_87 + 1.0f;
+				precise float fragment_unnamed_90 = (-0.0f) - fragment_unnamed_82;
+				precise float fragment_unnamed_91 = fragment_unnamed_90 + fragment_unnamed_89;
+				float4 fragment_unnamed_95 = _ToneCurve.Sample(sampler_ToneCurve, float2(fragment_unnamed_86, asfloat(1056964608u)));
+				float fragment_unnamed_97 = fragment_unnamed_95.x;
+				precise float fragment_unnamed_98 = fragment_unnamed_81 * fragment_unnamed_97;
+				precise float fragment_unnamed_99 = fragment_unnamed_91 * fragment_unnamed_97;
+				precise float fragment_unnamed_100 = fragment_unnamed_98 / fragment_unnamed_82;
+				precise float fragment_unnamed_101 = fragment_unnamed_99 / fragment_unnamed_82;
+				fragment_output_0.x = dot(float3(2.5650999546051025390625f, -1.16649997234344482421875f, -0.3986000120639801025390625f), float3(fragment_unnamed_100, fragment_unnamed_97, fragment_unnamed_101));
+				fragment_output_0.y = dot(float3(-1.02170002460479736328125f, 1.9776999950408935546875f, 0.0439000017940998077392578125f), float3(fragment_unnamed_100, fragment_unnamed_97, fragment_unnamed_101));
+				fragment_output_0.z = dot(float3(0.075300000607967376708984375f, -0.25429999828338623046875f, 1.18920004367828369140625f), float3(fragment_unnamed_100, fragment_unnamed_97, fragment_unnamed_101));
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_uniform_buffer_0[3] = float4(fragment_uniform_buffer_0[3][0], _ToneCurveRange, fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 510917
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -8781,10 +9957,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -8850,6 +10025,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -8939,10 +10117,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9008,6 +10185,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -9064,10 +10244,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9133,6 +10312,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -9230,10 +10412,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9299,6 +10480,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -9366,10 +10550,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9435,6 +10618,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -9540,10 +10726,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9609,6 +10794,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -9681,10 +10869,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9750,6 +10937,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -9863,10 +11053,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -9932,6 +11121,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -10012,10 +11204,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10081,6 +11272,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -10202,10 +11396,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10271,6 +11464,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -10358,10 +11554,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10427,6 +11622,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -10555,10 +11753,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10624,6 +11821,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -10720,10 +11920,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10789,6 +11988,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -10926,10 +12128,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -10995,6 +12196,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -11098,10 +12302,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11167,6 +12370,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -11311,38 +12517,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 545297
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11408,6 +12585,170 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_37 = fragment_uniform_buffer_0[3u].x + fragment_uniform_buffer_0[3u].x;
+				float4 fragment_unnamed_47 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				precise float fragment_unnamed_53 = fragment_unnamed_37 * fragment_unnamed_47.x;
+				precise float fragment_unnamed_54 = fragment_unnamed_37 * fragment_unnamed_47.y;
+				precise float fragment_unnamed_55 = fragment_unnamed_37 * fragment_unnamed_47.z;
+				fragment_output_0.w = fragment_unnamed_47.w;
+				precise float fragment_unnamed_76 = mad(fragment_unnamed_53, mad(fragment_unnamed_53, 0.1500000059604644775390625f, 0.0500000007450580596923828125f), 0.0040000001899898052215576171875f) / mad(fragment_unnamed_53, mad(fragment_unnamed_53, 0.1500000059604644775390625f, 0.5f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_77 = mad(fragment_unnamed_54, mad(fragment_unnamed_54, 0.1500000059604644775390625f, 0.0500000007450580596923828125f), 0.0040000001899898052215576171875f) / mad(fragment_unnamed_54, mad(fragment_unnamed_54, 0.1500000059604644775390625f, 0.5f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_78 = mad(fragment_unnamed_55, mad(fragment_unnamed_55, 0.1500000059604644775390625f, 0.0500000007450580596923828125f), 0.0040000001899898052215576171875f) / mad(fragment_unnamed_55, mad(fragment_unnamed_55, 0.1500000059604644775390625f, 0.5f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_79 = fragment_unnamed_76 + (-0.066666670143604278564453125f);
+				precise float fragment_unnamed_81 = fragment_unnamed_77 + (-0.066666670143604278564453125f);
+				precise float fragment_unnamed_82 = fragment_unnamed_78 + (-0.066666670143604278564453125f);
+				precise float fragment_unnamed_83 = fragment_unnamed_79 * 1.3790643215179443359375f;
+				precise float fragment_unnamed_85 = fragment_unnamed_81 * 1.3790643215179443359375f;
+				precise float fragment_unnamed_86 = fragment_unnamed_82 * 1.3790643215179443359375f;
+				fragment_output_0.x = fragment_unnamed_83;
+				fragment_output_0.y = fragment_unnamed_85;
+				fragment_output_0.z = fragment_unnamed_86;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 545297
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -11461,10 +12802,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11530,6 +12870,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -11618,10 +12961,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11687,6 +13029,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -11742,10 +13087,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11811,6 +13155,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -11907,10 +13254,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -11976,6 +13322,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -12042,10 +13391,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12111,6 +13459,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -12215,10 +13566,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12284,6 +13634,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -12355,10 +13708,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12424,6 +13776,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -12536,10 +13891,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12605,6 +13959,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -12684,10 +14041,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12753,6 +14109,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -12873,10 +14232,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -12942,6 +14300,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -13028,10 +14389,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -13097,6 +14457,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -13224,10 +14587,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -13293,6 +14655,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -13388,10 +14753,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -13457,6 +14821,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -13593,10 +14960,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -13662,6 +15028,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -13764,10 +15133,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -13833,6 +15201,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -13976,38 +15347,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 616846
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14073,6 +15415,169 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_38 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				fragment_output_0.w = fragment_unnamed_38.w;
+				float fragment_unnamed_56 = max(mad(fragment_unnamed_38.x, fragment_uniform_buffer_0[3u].x, -0.0040000001899898052215576171875f), 0.0f);
+				float fragment_unnamed_57 = max(mad(fragment_unnamed_38.y, fragment_uniform_buffer_0[3u].x, -0.0040000001899898052215576171875f), 0.0f);
+				float fragment_unnamed_58 = max(mad(fragment_unnamed_38.z, fragment_uniform_buffer_0[3u].x, -0.0040000001899898052215576171875f), 0.0f);
+				precise float fragment_unnamed_64 = fragment_unnamed_56 * mad(fragment_unnamed_56, 6.19999980926513671875f, 0.5f);
+				precise float fragment_unnamed_65 = fragment_unnamed_57 * mad(fragment_unnamed_57, 6.19999980926513671875f, 0.5f);
+				precise float fragment_unnamed_66 = fragment_unnamed_58 * mad(fragment_unnamed_58, 6.19999980926513671875f, 0.5f);
+				precise float fragment_unnamed_75 = fragment_unnamed_64 / mad(fragment_unnamed_56, mad(fragment_unnamed_56, 6.19999980926513671875f, 1.7000000476837158203125f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_76 = fragment_unnamed_65 / mad(fragment_unnamed_57, mad(fragment_unnamed_57, 6.19999980926513671875f, 1.7000000476837158203125f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_77 = fragment_unnamed_66 / mad(fragment_unnamed_58, mad(fragment_unnamed_58, 6.19999980926513671875f, 1.7000000476837158203125f), 0.0599999986588954925537109375f);
+				precise float fragment_unnamed_78 = fragment_unnamed_75 * fragment_unnamed_75;
+				precise float fragment_unnamed_79 = fragment_unnamed_76 * fragment_unnamed_76;
+				precise float fragment_unnamed_80 = fragment_unnamed_77 * fragment_unnamed_77;
+				fragment_output_0.x = fragment_unnamed_78;
+				fragment_output_0.y = fragment_unnamed_79;
+				fragment_output_0.z = fragment_unnamed_80;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 616846
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -14126,10 +15631,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14195,6 +15699,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -14283,10 +15790,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14352,6 +15858,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -14409,10 +15918,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14478,6 +15986,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -14576,10 +16087,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14645,6 +16155,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -14711,10 +16224,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14780,6 +16292,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -14884,10 +16399,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -14953,6 +16467,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -15026,10 +16543,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15095,6 +16611,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -15209,10 +16728,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15278,6 +16796,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -15357,10 +16878,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15426,6 +16946,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -15546,10 +17069,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15615,6 +17137,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -15701,10 +17226,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15770,6 +17294,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -15897,10 +17424,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -15966,6 +17492,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -16061,10 +17590,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -16130,6 +17658,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -16266,10 +17797,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -16335,6 +17865,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -16437,10 +17970,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -16506,6 +18038,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -16649,38 +18184,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 669103
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -16746,6 +18252,169 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_38 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				precise float fragment_unnamed_49 = fragment_unnamed_38.x * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_50 = fragment_unnamed_38.y * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_51 = fragment_unnamed_38.z * fragment_uniform_buffer_0[3u].x;
+				fragment_output_0.w = fragment_unnamed_38.w;
+				precise float fragment_unnamed_54 = (-0.0f) - fragment_unnamed_49;
+				precise float fragment_unnamed_56 = (-0.0f) - fragment_unnamed_50;
+				precise float fragment_unnamed_57 = (-0.0f) - fragment_unnamed_51;
+				precise float fragment_unnamed_62 = (-0.0f) - exp2(fragment_unnamed_54);
+				precise float fragment_unnamed_63 = (-0.0f) - exp2(fragment_unnamed_56);
+				precise float fragment_unnamed_64 = (-0.0f) - exp2(fragment_unnamed_57);
+				precise float fragment_unnamed_65 = fragment_unnamed_62 + 1.0f;
+				precise float fragment_unnamed_67 = fragment_unnamed_63 + 1.0f;
+				precise float fragment_unnamed_68 = fragment_unnamed_64 + 1.0f;
+				fragment_output_0.x = fragment_unnamed_65;
+				fragment_output_0.y = fragment_unnamed_67;
+				fragment_output_0.z = fragment_unnamed_68;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 669103
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -16797,10 +18466,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -16866,6 +18534,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -16952,10 +18623,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17021,6 +18691,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -17076,10 +18749,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17145,6 +18817,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -17241,10 +18916,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17310,6 +18984,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -17373,10 +19050,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17442,6 +19118,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -17543,10 +19222,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17612,6 +19290,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -17682,10 +19363,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17751,6 +19431,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -17862,10 +19545,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -17931,6 +19613,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -18008,10 +19693,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18077,6 +19761,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -18195,10 +19882,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18264,6 +19950,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -18348,10 +20037,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18417,6 +20105,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -18542,10 +20233,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18611,6 +20301,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -18703,10 +20396,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18772,6 +20464,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -18905,10 +20600,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -18974,6 +20668,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -19073,10 +20770,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -19142,6 +20838,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -19282,38 +20981,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 729692
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-			#pragma multi_compile _ ENABLE_COLOR_GRADING
-			#pragma multi_compile _ ENABLE_DITHERING
-			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
-			#pragma multi_compile _ ENABLE_USER_LUT
-
-
-			#if !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -19379,6 +21049,167 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+
+			static float4 fragment_uniform_buffer_0[4];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				float4 fragment_unnamed_38 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				float fragment_unnamed_40 = fragment_unnamed_38.x;
+				float fragment_unnamed_44 = dot(float3(fragment_unnamed_40, fragment_unnamed_38.yz), float3(0.0396819151937961578369140625f, 0.4580217897891998291015625f, 0.0060965395532548427581787109375f));
+				precise float fragment_unnamed_56 = fragment_unnamed_44 * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_63 = fragment_unnamed_56 / mad(fragment_unnamed_44, fragment_uniform_buffer_0[3u].x, 1.0f);
+				precise float fragment_unnamed_64 = fragment_unnamed_40 * fragment_unnamed_63;
+				precise float fragment_unnamed_65 = fragment_unnamed_38.y * fragment_unnamed_63;
+				precise float fragment_unnamed_66 = fragment_unnamed_38.z * fragment_unnamed_63;
+				fragment_output_0.w = fragment_unnamed_38.w;
+				precise float fragment_unnamed_69 = fragment_unnamed_64 / fragment_unnamed_44;
+				precise float fragment_unnamed_70 = fragment_unnamed_65 / fragment_unnamed_44;
+				precise float fragment_unnamed_71 = fragment_unnamed_66 / fragment_unnamed_44;
+				fragment_output_0.x = fragment_unnamed_69;
+				fragment_output_0.y = fragment_unnamed_70;
+				fragment_output_0.z = fragment_unnamed_71;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 729692
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+			#pragma multi_compile _ ENABLE_COLOR_GRADING
+			#pragma multi_compile _ ENABLE_DITHERING
+			#pragma multi_compile _ ENABLE_EYE_ADAPTATION
+			#pragma multi_compile _ ENABLE_USER_LUT
+
+
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if (!defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _Exposure;
@@ -19453,10 +21284,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -19522,6 +21352,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -19625,10 +21458,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -19694,6 +21526,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -19766,10 +21601,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -19835,6 +21669,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -19948,10 +21785,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20017,6 +21853,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float _MiddleGrey;
@@ -20098,10 +21937,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20167,6 +22005,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _UserLutParams;
@@ -20286,10 +22127,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20355,6 +22195,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -20443,10 +22286,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20512,6 +22354,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -20641,10 +22486,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_COLOR_GRADING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20710,6 +22554,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -20804,10 +22651,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -20873,6 +22719,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -21008,10 +22857,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -21077,6 +22925,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -21178,10 +23029,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -21247,6 +23097,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -21389,10 +23242,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_USER_LUT) && !defined(ENABLE_EYE_ADAPTATION)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -21458,6 +23310,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -21568,10 +23423,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -21637,6 +23491,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float3 _InternalLutParams;
@@ -21788,10 +23645,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT) && !defined(ENABLE_DITHERING)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -21857,6 +23713,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -21974,10 +23833,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && !defined(ENABLE_USER_LUT)
-
-
-			#if defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -22043,6 +23901,9 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if (defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)) && defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			float4 _MainTex_TexelSize;
@@ -22201,32 +24062,9 @@ Shader "Hidden/TonemappingColorGrading"
 				return stage_output;
 			}
 
-			#endif // defined(ENABLE_COLOR_GRADING) && defined(ENABLE_DITHERING) && defined(ENABLE_EYE_ADAPTATION) && defined(ENABLE_USER_LUT)
-
-
-			ENDHLSL
-		}
-		Pass
-		{
-			ZTest Always
-			ZWrite Off
-			Cull Off
-			Fog
-			{
-				Mode Off
-				Color [unity_FogColor]
-				Density [unity_FogDensity]
-				Range [unity_FogStart], [unity_FogEnd]
-			}
-			GpuProgramID 802376
-
-			HLSLPROGRAM
-
-			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
-			#pragma vertex vert
-			#pragma fragment frag
-			#pragma target 4.0
-
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
 
 			float4x4 unity_ObjectToWorld;
 			float4x4 unity_MatrixVP;
@@ -22292,6 +24130,185 @@ Shader "Hidden/TonemappingColorGrading"
 				stage_output.vertex_output_1 = vertex_output_1;
 				return stage_output;
 			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			float _Exposure;
+			float4 _NeutralTonemapperParams1;
+			float4 _NeutralTonemapperParams2;
+
+			static float4 fragment_uniform_buffer_0[6];
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_37 = fragment_uniform_buffer_0[4u].y * fragment_uniform_buffer_0[4u].z;
+				precise float fragment_unnamed_54 = fragment_uniform_buffer_0[4u].w * fragment_uniform_buffer_0[5u].x;
+				precise float fragment_unnamed_55 = fragment_uniform_buffer_0[4u].w * fragment_uniform_buffer_0[5u].y;
+				precise float fragment_unnamed_74 = mad(fragment_uniform_buffer_0[5u].z, mad(fragment_uniform_buffer_0[4u].x, fragment_uniform_buffer_0[5u].z, fragment_unnamed_37), fragment_unnamed_54) / mad(fragment_uniform_buffer_0[5u].z, mad(fragment_uniform_buffer_0[4u].x, fragment_uniform_buffer_0[5u].z, fragment_uniform_buffer_0[4u].y), fragment_unnamed_55);
+				precise float fragment_unnamed_81 = fragment_uniform_buffer_0[5u].x / fragment_uniform_buffer_0[5u].y;
+				precise float fragment_unnamed_82 = (-0.0f) - fragment_unnamed_81;
+				precise float fragment_unnamed_84 = fragment_unnamed_74 + fragment_unnamed_82;
+				precise float fragment_unnamed_85 = 1.0f / fragment_unnamed_84;
+				float4 fragment_unnamed_96 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y));
+				precise float fragment_unnamed_106 = fragment_unnamed_96.x * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_107 = fragment_unnamed_96.y * fragment_uniform_buffer_0[3u].x;
+				precise float fragment_unnamed_108 = fragment_unnamed_96.z * fragment_uniform_buffer_0[3u].x;
+				fragment_output_0.w = fragment_unnamed_96.w;
+				precise float fragment_unnamed_111 = fragment_unnamed_85 * fragment_unnamed_106;
+				precise float fragment_unnamed_112 = fragment_unnamed_85 * fragment_unnamed_107;
+				precise float fragment_unnamed_113 = fragment_unnamed_85 * fragment_unnamed_108;
+				precise float fragment_unnamed_135 = mad(fragment_unnamed_111, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_111, fragment_unnamed_37), fragment_unnamed_54) / mad(fragment_unnamed_111, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_111, fragment_uniform_buffer_0[4u].y), fragment_unnamed_55);
+				precise float fragment_unnamed_136 = mad(fragment_unnamed_112, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_112, fragment_unnamed_37), fragment_unnamed_54) / mad(fragment_unnamed_112, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_112, fragment_uniform_buffer_0[4u].y), fragment_unnamed_55);
+				precise float fragment_unnamed_137 = mad(fragment_unnamed_113, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_113, fragment_unnamed_37), fragment_unnamed_54) / mad(fragment_unnamed_113, mad(fragment_uniform_buffer_0[4u].x, fragment_unnamed_113, fragment_uniform_buffer_0[4u].y), fragment_unnamed_55);
+				precise float fragment_unnamed_138 = (-0.0f) - fragment_unnamed_81;
+				precise float fragment_unnamed_139 = fragment_unnamed_138 + fragment_unnamed_135;
+				precise float fragment_unnamed_140 = fragment_unnamed_138 + fragment_unnamed_136;
+				precise float fragment_unnamed_141 = fragment_unnamed_138 + fragment_unnamed_137;
+				precise float fragment_unnamed_142 = fragment_unnamed_85 * fragment_unnamed_139;
+				precise float fragment_unnamed_143 = fragment_unnamed_85 * fragment_unnamed_140;
+				precise float fragment_unnamed_144 = fragment_unnamed_85 * fragment_unnamed_141;
+				precise float fragment_unnamed_148 = fragment_unnamed_142 / fragment_uniform_buffer_0[5u].w;
+				precise float fragment_unnamed_149 = fragment_unnamed_143 / fragment_uniform_buffer_0[5u].w;
+				precise float fragment_unnamed_150 = fragment_unnamed_144 / fragment_uniform_buffer_0[5u].w;
+				fragment_output_0.x = fragment_unnamed_148;
+				fragment_output_0.y = fragment_unnamed_149;
+				fragment_output_0.z = fragment_unnamed_150;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_uniform_buffer_0[3] = float4(_Exposure, fragment_uniform_buffer_0[3][1], fragment_uniform_buffer_0[3][2], fragment_uniform_buffer_0[3][3]);
+
+				fragment_uniform_buffer_0[4] = float4(_NeutralTonemapperParams1[0], _NeutralTonemapperParams1[1], _NeutralTonemapperParams1[2], _NeutralTonemapperParams1[3]);
+
+				fragment_uniform_buffer_0[5] = float4(_NeutralTonemapperParams2[0], _NeutralTonemapperParams2[1], _NeutralTonemapperParams2[2], _NeutralTonemapperParams2[3]);
+
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
+			ENDHLSL
+		}
+		Pass
+		{
+			ZTest Always
+			ZWrite Off
+			Cull Off
+			Fog
+			{
+				Mode Off
+				Color [unity_FogColor]
+				Density [unity_FogDensity]
+				Range [unity_FogStart], [unity_FogEnd]
+			}
+			GpuProgramID 802376
+
+			HLSLPROGRAM
+
+			// https://docs.unity3d.com/Manual/SL-PragmaDirectives.html
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma target 4.0
+
+
+			#if defined(SHADER_STAGE_VERTEX)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT)
+			#define RIP_HAS_FRAG
 
 
 			Texture2D<float4> _MainTex;
@@ -22335,6 +24352,130 @@ Shader "Hidden/TonemappingColorGrading"
 			}
 
 
+
+			#endif
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			#define RIP_HAS_VERT
+			float4x4 unity_ObjectToWorld;
+			float4x4 unity_MatrixVP;
+
+			static float4 vertex_uniform_buffer_0[4];
+			static float4 vertex_uniform_buffer_1[21];
+			static float4 gl_Position;
+			static float4 vertex_input_0;
+			static float2 vertex_input_1;
+			static float2 vertex_output_1;
+
+			struct Vertex_Stage_Input
+			{
+				float4 vertex_input_0 : POSITION; // POSITION
+				float2 vertex_input_1 : TEXCOORD0; // TEXCOORD
+			};
+
+			struct Vertex_Stage_Output
+			{
+				float2 vertex_output_1 : TEXCOORD; // TEXCOORD
+				float4 gl_Position : SV_Position;
+			};
+
+			void vert_main()
+			{
+				precise float vertex_unnamed_39 = vertex_input_0.y * vertex_uniform_buffer_0[1u].x;
+				precise float vertex_unnamed_40 = vertex_input_0.y * vertex_uniform_buffer_0[1u].y;
+				precise float vertex_unnamed_41 = vertex_input_0.y * vertex_uniform_buffer_0[1u].z;
+				precise float vertex_unnamed_42 = vertex_input_0.y * vertex_uniform_buffer_0[1u].w;
+				precise float vertex_unnamed_76 = mad(vertex_uniform_buffer_0[2u].x, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].x, vertex_input_0.x, vertex_unnamed_39)) + vertex_uniform_buffer_0[3u].x;
+				precise float vertex_unnamed_77 = mad(vertex_uniform_buffer_0[2u].y, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].y, vertex_input_0.x, vertex_unnamed_40)) + vertex_uniform_buffer_0[3u].y;
+				precise float vertex_unnamed_78 = mad(vertex_uniform_buffer_0[2u].z, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].z, vertex_input_0.x, vertex_unnamed_41)) + vertex_uniform_buffer_0[3u].z;
+				precise float vertex_unnamed_79 = mad(vertex_uniform_buffer_0[2u].w, vertex_input_0.z, mad(vertex_uniform_buffer_0[0u].w, vertex_input_0.x, vertex_unnamed_42)) + vertex_uniform_buffer_0[3u].w;
+				precise float vertex_unnamed_87 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].x;
+				precise float vertex_unnamed_88 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].y;
+				precise float vertex_unnamed_89 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].z;
+				precise float vertex_unnamed_90 = vertex_unnamed_77 * vertex_uniform_buffer_1[18u].w;
+				gl_Position.x = mad(vertex_uniform_buffer_1[20u].x, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].x, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].x, vertex_unnamed_76, vertex_unnamed_87)));
+				gl_Position.y = mad(vertex_uniform_buffer_1[20u].y, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].y, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].y, vertex_unnamed_76, vertex_unnamed_88)));
+				gl_Position.z = mad(vertex_uniform_buffer_1[20u].z, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].z, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].z, vertex_unnamed_76, vertex_unnamed_89)));
+				gl_Position.w = mad(vertex_uniform_buffer_1[20u].w, vertex_unnamed_79, mad(vertex_uniform_buffer_1[19u].w, vertex_unnamed_78, mad(vertex_uniform_buffer_1[17u].w, vertex_unnamed_76, vertex_unnamed_90)));
+				vertex_output_1.x = vertex_input_1.x;
+				vertex_output_1.y = vertex_input_1.y;
+			}
+
+			Vertex_Stage_Output vert(Vertex_Stage_Input stage_input)
+			{
+				vertex_uniform_buffer_0[0] = float4(unity_ObjectToWorld[0][0], unity_ObjectToWorld[1][0], unity_ObjectToWorld[2][0], unity_ObjectToWorld[3][0]);
+				vertex_uniform_buffer_0[1] = float4(unity_ObjectToWorld[0][1], unity_ObjectToWorld[1][1], unity_ObjectToWorld[2][1], unity_ObjectToWorld[3][1]);
+				vertex_uniform_buffer_0[2] = float4(unity_ObjectToWorld[0][2], unity_ObjectToWorld[1][2], unity_ObjectToWorld[2][2], unity_ObjectToWorld[3][2]);
+				vertex_uniform_buffer_0[3] = float4(unity_ObjectToWorld[0][3], unity_ObjectToWorld[1][3], unity_ObjectToWorld[2][3], unity_ObjectToWorld[3][3]);
+
+				vertex_uniform_buffer_1[17] = float4(unity_MatrixVP[0][0], unity_MatrixVP[1][0], unity_MatrixVP[2][0], unity_MatrixVP[3][0]);
+				vertex_uniform_buffer_1[18] = float4(unity_MatrixVP[0][1], unity_MatrixVP[1][1], unity_MatrixVP[2][1], unity_MatrixVP[3][1]);
+				vertex_uniform_buffer_1[19] = float4(unity_MatrixVP[0][2], unity_MatrixVP[1][2], unity_MatrixVP[2][2], unity_MatrixVP[3][2]);
+				vertex_uniform_buffer_1[20] = float4(unity_MatrixVP[0][3], unity_MatrixVP[1][3], unity_MatrixVP[2][3], unity_MatrixVP[3][3]);
+
+				vertex_input_0 = stage_input.vertex_input_0;
+				vertex_input_1 = stage_input.vertex_input_1;
+				vert_main();
+				Vertex_Stage_Output stage_output;
+				stage_output.gl_Position = gl_Position;
+				stage_output.vertex_output_1 = vertex_output_1;
+				return stage_output;
+			}
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			#define RIP_HAS_FRAG
+
+
+			Texture2D<float4> _MainTex;
+			SamplerState sampler_MainTex;
+
+			static float2 fragment_input_1;
+			static float4 fragment_output_0;
+
+			struct Fragment_Stage_Input
+			{
+				float2 fragment_input_1 : TEXCOORD; // TEXCOORD
+			};
+
+			struct Fragment_Stage_Output
+			{
+				float4 fragment_output_0 : SV_Target0;
+			};
+
+			void frag_main()
+			{
+				precise float fragment_unnamed_36 = _MainTex.Sample(sampler_MainTex, float2(fragment_input_1.x, fragment_input_1.y)).x * 256.0f;
+				precise float fragment_unnamed_42 = fragment_input_1.x * 256.0f;
+				float fragment_unnamed_52 = asfloat(((uint(int(floor(fragment_unnamed_42))) == uint(int(floor(fragment_unnamed_36)))) ? 4294967295u : 0u) & 1065353216u);
+				precise float fragment_unnamed_55 = (-0.0f) - fragment_input_1.x;
+				precise float fragment_unnamed_57 = fragment_unnamed_55 + 1.0f;
+				precise float fragment_unnamed_59 = fragment_unnamed_55 + 0.0f;
+				precise float fragment_unnamed_60 = fragment_unnamed_55 + 0.0f;
+				fragment_output_0.x = mad(fragment_unnamed_52, fragment_unnamed_57, fragment_input_1.x);
+				fragment_output_0.y = mad(fragment_unnamed_52, fragment_unnamed_59, fragment_input_1.x);
+				fragment_output_0.z = mad(fragment_unnamed_52, fragment_unnamed_60, fragment_input_1.x);
+				fragment_output_0.w = 1.0f;
+			}
+
+			Fragment_Stage_Output frag(Fragment_Stage_Input stage_input)
+			{
+				fragment_input_1 = stage_input.fragment_input_1;
+				frag_main();
+				Fragment_Stage_Output stage_output;
+				stage_output.fragment_output_0 = fragment_output_0;
+				return stage_output;
+			}
+
+
+
+			#endif
+
+			// Per-stage fallbacks for variants missing from the ripped data
+			#if defined(SHADER_STAGE_VERTEX) && !defined(RIP_HAS_VERT)
+			float4 vert(float3 pos : POSITION) : SV_POSITION { return float4(0, 0, 0, 1); }
+			#endif
+			#if defined(SHADER_STAGE_FRAGMENT) && !defined(RIP_HAS_FRAG)
+			float4 frag() : SV_TARGET { return 0; }
+			#endif
 			ENDHLSL
 		}
 	}

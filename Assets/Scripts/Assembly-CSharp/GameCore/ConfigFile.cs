@@ -90,7 +90,9 @@ namespace GameCore
 			CustomNetworkManager.EnableFastRestart = ServerConfig.GetBool("enable_fast_round_restart");
 			CustomNetworkManager.FastRestartDelay = ServerConfig.GetFloat("fast_round_restart_delay", 3.2f);
 			// Editor play hosts without the central server (its client auth path was stripped), so force offline mode there.
-			PlayerAuthenticationManager.OnlineMode = !Application.isEditor && ServerConfig.GetBool("online_mode", def: true);
+			// A build started without the official launcher can't authenticate either, so its own host would reject it.
+			bool canAuthenticate = !Application.isEditor && (ServerStatic.IsDedicated || LauncherCommunicator.Available);
+			PlayerAuthenticationManager.OnlineMode = canAuthenticate && ServerConfig.GetBool("online_mode", def: true);
 			PlayerAuthenticationManager.AuthenticationTimeout = ServerConfig.GetUInt("authentication_timeout", 45u);
 			PlayerAuthenticationManager.AllowSameAccountJoining = ServerConfig.GetBool("same_account_joining");
 			EncryptedChannelManager.CryptographyDebug = ServerConfig.GetBool("enable_crypto_debug");

@@ -17,6 +17,10 @@ namespace MapGeneration.RoomConnectors.Spawners
 			return RoomConnectorTypes.Contains(type) ? 1 : 0;
 		}
 
+#if UNITY_EDITOR
+		protected override SpawnableRoomConnectorType PreviewType => (RoomConnectorTypes != null && RoomConnectorTypes.Count > 0) ? RoomConnectorTypes[0] : _fallbackType;
+#endif
+
 		protected override void MergeWith(RoomConnectorSpawnpointBase retired)
 		{
 			for (int num = RoomConnectorTypes.Count - 1; num >= 0; num--)
